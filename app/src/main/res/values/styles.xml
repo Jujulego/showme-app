@@ -6,6 +6,26 @@
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
+        <item name="android:textSize">@dimen/moyenne_police</item>
+        <item name="android:textColor">@color/couleur_police</item>
     </style>
+
+    <style name="Note" parent="AppTheme">
+        <item name="android:textColor">@color/gris</item>
+        <item name="android:textSize">@dimen/petite_police</item>
+    </style>
+
+    <style name="Small" parent="AppTheme">
+        <item name="android:textSize">@dimen/petite_police</item>
+    </style>
+
+    <style name="AppTheme.NoActionBar">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+    </style>
+
+    <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
+
+    <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
 
 </resources>

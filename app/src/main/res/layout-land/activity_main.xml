@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.v4.widget.DrawerLayout android:id="@+id/drawer_layout"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+
+    tools:context=".MainActivity">
+
+    <!-- Contenu de la page -->
+    <android.support.constraint.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <fragment android:id="@+id/main_carte"
+            android:name="com.google.android.gms.maps.SupportMapFragment"
+
+            android:layout_width="@dimen/taille_carte"
+            android:layout_height="0dp"
+
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+
+            tools:layout="@layout/dummy_map"/>
+
+        <ExpandableListView android:id="@+id/main_liste"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toTopOf="@id/seek_rayon"
+            app:layout_constraintStart_toEndOf="@id/main_carte"
+            app:layout_constraintEnd_toEndOf="parent"/>
+
+        <SeekBar android:id="@+id/seek_rayon"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+
+            android:paddingTop="16dp"
+            android:paddingBottom="16dp"
+
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toEndOf="@id/main_carte"
+            app:layout_constraintEnd_toStartOf="@id/aff_rayon"/>
+
+        <TextView android:id="@+id/aff_rayon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+
+            android:paddingTop="16dp"
+            android:paddingBottom="16dp"
+            android:paddingLeft="@dimen/activity_horizontal_margin"
+            android:paddingRight="@dimen/activity_horizontal_margin"
+
+            android:text="@string/aff_rayon_defaut"
+
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"/>
+    </android.support.constraint.ConstraintLayout>
+
+    <!-- Panneau de navigation -->
+    <android.support.design.widget.NavigationView
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_gravity="start"
+
+        app:menu="@menu/navigation"/>
+</android.support.v4.widget.DrawerLayout>

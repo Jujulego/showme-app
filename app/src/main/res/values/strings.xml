@@ -1,3 +1,16 @@
 <resources>
+    <!-- Général -->
     <string name="app_name">ShowMe</string>
+
+    <!-- MainActivity -->
+    <string name="nav_open">Ouvrir le panneau</string>
+    <string name="nav_close">Fermer le panneau</string>
+    <string name="nav_recherche">Recherche</string>
+    <string name="nav_preferences">Préférences</string>
+
+    <string name="aff_rayon_defaut">0 m</string>
+
+    <!-- Pas touche ! -->
+    <string name="serveur">showme.capellari.net</string>
+    <string name="maps_api_key">AIzaSyCOQnGD6l0w4IphGBtG8TPTxcoyE-Cxt9k</string>
 </resources>

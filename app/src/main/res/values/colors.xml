@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#3F51B5</color>
-    <color name="colorPrimaryDark">#303F9F</color>
-    <color name="colorAccent">#FF4081</color>
+    <color name="colorPrimary">#DE6718</color>
+    <color name="colorPrimaryDark">#C75C16</color>
+    <color name="colorAccent">#2F4B73</color>
+
+    <color name="couleur_police">#000000</color>
+    <color name="gris">#404040</color>
+    <color name="blanc">#FFFFFF</color>
 </resources>
