@@ -8,6 +8,8 @@
         <item name="colorAccent">@color/colorAccent</item>
         <item name="android:textSize">@dimen/moyenne_police</item>
         <item name="android:textColor">@color/couleur_police</item>
+
+        <item name="preferenceTheme">@style/PreferenceThemeOverlay</item>
     </style>
 
     <style name="Note" parent="AppTheme">

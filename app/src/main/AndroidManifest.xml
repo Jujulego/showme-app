@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="net.capellari.showme">
 
@@ -19,15 +20,27 @@
         android:theme="@style/AppTheme">
 
         <!-- Métadonnées -->
-        <meta-data android:name="android.max_aspect" android:value="2.1"/> <!-- Rends l'appli adaptables aux plus recentes tailles ecrans 18:9 -->
-        <meta-data android:name="com.google.android.geo.API_KEY" android:value="@string/maps_api_key"/>
+        <meta-data android:name="android.max_aspect"
+            android:value="2.1" /> <!-- Rends l'appli adaptables aux plus recentes tailles ecrans 18:9 -->
+
+        <meta-data android:name="com.google.android.geo.API_KEY"
+            android:value="@string/maps_api_key" />
 
         <!-- Activités -->
         <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+        </activity>
+
+        <activity android:name=".ParametresActivity"
+            android:label="@string/title_activity_parametres"
+            android:parentActivityName=".MainActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="net.capellari.showme.MainActivity" />
         </activity>
 
         <!-- Services -->
@@ -35,4 +48,5 @@
             android:name=".DataService"
             android:exported="false" />
     </application>
+
 </manifest>

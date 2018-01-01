@@ -1,18 +1,26 @@
 package net.capellari.showme;
 
 import android.Manifest;
+import android.app.IntentService;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.design.widget.NavigationView;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.preference.PreferenceManager;
+import android.util.Log;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
@@ -25,6 +33,7 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.tasks.OnSuccessListener;
 
@@ -47,10 +56,13 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private boolean m_locationStarted = false;
 
     private DrawerLayout m_drawerLayout;
+    private NavigationView m_drawerNav;
     private ActionBarDrawerToggle m_drawerToggle;
 
     private SeekBar m_seekRayon;
     private TextView m_affRayon;
+
+    private SharedPreferences m_prefs;
 
     // Events
     @Override
@@ -60,8 +72,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         // Ajout du layout
         setContentView(R.layout.activity_main);
 
+        // Ouverture des préférences
+        m_prefs = PreferenceManager.getDefaultSharedPreferences(this);
+
         // Gestion du drawer
         m_drawerLayout = findViewById(R.id.drawer_layout);
+        m_drawerNav    = findViewById(R.id.drawer_nav);
 
         m_drawerToggle = new ActionBarDrawerToggle(
                 this, m_drawerLayout,
@@ -69,8 +85,30 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         );
         m_drawerLayout.addDrawerListener(m_drawerToggle);
 
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        getSupportActionBar().setHomeButtonEnabled(true);
+        m_drawerNav.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
+            @Override
+            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                Intent intent = null;
+
+                if (item.getItemId() == R.id.nav_pref) {
+                    intent = new Intent(MainActivity.this, ParametresActivity.class);
+                }
+
+                if (intent != null) {
+                    startActivity(intent);
+                    return true;
+                }
+
+                return false;
+            }
+        });
+
+        // Action bar !
+        ActionBar actionBar = getSupportActionBar();
+        if (actionBar != null) {
+            actionBar.setDisplayHomeAsUpEnabled(true);
+            actionBar.setHomeButtonEnabled(true);
+        }
 
         // Initialisation carte
         m_locationClient = LocationServices.getFusedLocationProviderClient(this);
@@ -80,12 +118,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 Location location = locationResult.getLastLocation();
 
                 // Centrage
-                m_map.animateCamera(CameraUpdateFactory.newLatLngZoom(
-                        new LatLng(
-                                location.getLatitude(),
-                                location.getLongitude()
-                        ), 15
-                ));
+                m_map.animateCamera(CameraUpdateFactory.newLatLng(new LatLng(
+                    location.getLatitude(),
+                    location.getLongitude()
+                )));
             }
         };
 
@@ -96,7 +132,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         m_seekRayon = findViewById(R.id.seek_rayon);
         m_affRayon  = findViewById(R.id.aff_rayon);
 
-        m_seekRayon.setMax(9);
+        m_seekRayon.setMax(m_prefs.getInt(getString(R.string.pref_rayon_max), 0) * 10 + 9);
         m_seekRayon.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
@@ -110,12 +146,13 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
-
+                // Enregistrement
+                SharedPreferences.Editor editor = m_prefs.edit();
+                editor.putInt(getString(R.string.pref_rayon), seekBar.getProgress());
+                editor.commit();
             }
         });
-        m_seekRayon.setProgress(0);
-
-        //m_affRayon.setText(String.format(Locale.getDefault(),"%d m", get_rayon()));
+        m_seekRayon.setProgress(m_prefs.getInt(getString(R.string.pref_rayon), 0));
     }
 
     @Override
@@ -198,12 +235,13 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     if (location == null) return;
 
                     // Centrage
-                    m_map.moveCamera(CameraUpdateFactory.newLatLngZoom(
-                            new LatLng(
-                                    location.getLatitude(),
-                                    location.getLongitude()
-                            ), 15
-                    ));
+                    CameraPosition.Builder builder = new CameraPosition.Builder();
+                    builder.target(new LatLng(
+                        location.getLatitude(),
+                        location.getLongitude()
+                    )).zoom(15).tilt(45);
+
+                    m_map.moveCamera(CameraUpdateFactory.newCameraPosition(builder.build()));
                 }
             });
         } else {

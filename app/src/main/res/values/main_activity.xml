@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Panneau de navigation -->
+    <string name="nav_open">Ouvrir le panneau</string>
+    <string name="nav_close">Fermer le panneau</string>
+    <string name="nav_recherche">Recherche</string>
+    <string name="nav_preferences">Préférences</string>
+
+    <string name="aff_rayon_defaut">0 m</string>
+</resources>
