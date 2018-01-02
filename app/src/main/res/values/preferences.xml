@@ -3,8 +3,11 @@
     <!-- Rayon -->
     <string name="pref_rayon">RAYON</string>
     <string name="pref_rayon_max">RAYON MAX</string>
+    <string name="pref_gps">GPS</string>
 
     <!-- Activité -->
     <string name="pref_txt_rayon">Rayon de recherche</string>
     <string name="pref_txt_rayon_max">Rayon maximal</string>
+    
+    <string name="pref_energie">Energie</string>
 </resources>

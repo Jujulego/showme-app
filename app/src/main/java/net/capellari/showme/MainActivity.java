@@ -261,6 +261,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private void start_location_updates() {
         LocationRequest rq = new LocationRequest();
         rq.setFastestInterval(1000);
+        rq.setPriority(m_prefs.getBoolean(getString(R.string.pref_gps), true) ? LocationRequest.PRIORITY_HIGH_ACCURACY : LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             m_locationClient.requestLocationUpdates(rq, m_locationCallback, null);
