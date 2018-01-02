@@ -1,16 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.v7.preference.PreferenceScreen
+<PreferenceScreen
     xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <android.support.v7.preference.PreferenceCategory
+    <PreferenceCategory
         android:title="@string/pref_txt_rayon">
 
-        <android.support.v7.preference.SeekBarPreference
+        <net.capellari.showme.RayonPreference
             android:key="@string/pref_rayon_max"
-            android:title="@string/pref_txt_rayon_max"
-            android:max="9"
-            android:defaultValue="0" />
+            android:title="@string/pref_txt_rayon_max"/>
 
-    </android.support.v7.preference.PreferenceCategory>
+    </PreferenceCategory>
 
-</android.support.v7.preference.PreferenceScreen>
+</PreferenceScreen>

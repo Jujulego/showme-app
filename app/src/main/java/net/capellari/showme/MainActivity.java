@@ -49,6 +49,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     // Constantes
     public static final int RQ_FINE_LOCATION = 1;
 
+    private static final int RAYON_MIN  = 10;
+    private static final int RAYON_FACT = 10;
+
     // Attributs
     private GoogleMap m_map;
     private FusedLocationProviderClient m_locationClient;
@@ -132,7 +135,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         m_seekRayon = findViewById(R.id.seek_rayon);
         m_affRayon  = findViewById(R.id.aff_rayon);
 
-        m_seekRayon.setMax(m_prefs.getInt(getString(R.string.pref_rayon_max), 0) * 10 + 9);
+        m_seekRayon.setMax((m_prefs.getInt(getString(R.string.pref_rayon_max), 100) - RAYON_MIN) / RAYON_FACT);
         m_seekRayon.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
@@ -148,11 +151,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             public void onStopTrackingTouch(SeekBar seekBar) {
                 // Enregistrement
                 SharedPreferences.Editor editor = m_prefs.edit();
-                editor.putInt(getString(R.string.pref_rayon), seekBar.getProgress());
+                editor.putInt(getString(R.string.pref_rayon), get_rayon());
                 editor.commit();
             }
         });
-        m_seekRayon.setProgress(m_prefs.getInt(getString(R.string.pref_rayon), 0));
+        m_seekRayon.setProgress((m_prefs.getInt(getString(R.string.pref_rayon), RAYON_MIN) - RAYON_MIN) / RAYON_FACT);
     }
 
     @Override
@@ -252,7 +255,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     private int get_rayon() {
-        return 10 * (m_seekRayon.getProgress() + 1);
+        return m_seekRayon.getProgress() * RAYON_FACT + RAYON_MIN;
     }
 
     private void start_location_updates() {
