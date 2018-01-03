@@ -1,9 +1,10 @@
 <resources>
     <!-- Général -->
     <string name="app_name">ShowMe</string>
+    <string name="title_activity_parametres">Paramètres</string>
+    <string name="title_activity_recherche">Recherche</string>
 
     <!-- Pas touche ! -->
     <string name="serveur">showme.capellari.net</string>
     <string name="maps_api_key">AIzaSyCOQnGD6l0w4IphGBtG8TPTxcoyE-Cxt9k</string>
-    <string name="title_activity_parametres">Paramètres</string>
 </resources>

@@ -1,15 +1,21 @@
 package net.capellari.showme;
 
 import android.Manifest;
-import android.app.IntentService;
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
+import android.app.SearchManager;
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.location.Location;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.annotation.RequiresApi;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -18,9 +24,15 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.preference.PreferenceManager;
+import android.support.v7.widget.SearchView;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewAnimationUtils;
+import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
@@ -58,9 +70,14 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private LocationCallback m_locationCallback;
     private boolean m_locationStarted = false;
 
+    private Toolbar m_toolbar;
     private DrawerLayout m_drawerLayout;
     private NavigationView m_drawerNav;
     private ActionBarDrawerToggle m_drawerToggle;
+
+    private Toolbar m_searchToolbar;
+    private Menu m_searchMenu;
+    private MenuItem m_searchMenuItem;
 
     private SeekBar m_seekRayon;
     private TextView m_affRayon;
@@ -93,8 +110,14 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
                 Intent intent = null;
 
-                if (item.getItemId() == R.id.nav_pref) {
-                    intent = new Intent(MainActivity.this, ParametresActivity.class);
+                switch (item.getItemId()) {
+                    case R.id.nav_pref:
+                        intent = new Intent(MainActivity.this, ParametresActivity.class);
+                        break;
+
+                    case R.id.nav_rechr:
+                        intent = new Intent(MainActivity.this, RechercheActivity.class);
+                        break;
                 }
 
                 if (intent != null) {
@@ -107,11 +130,16 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         });
 
         // Action bar !
+        m_toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(m_toolbar);
+
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
             actionBar.setDisplayHomeAsUpEnabled(true);
             actionBar.setHomeButtonEnabled(true);
         }
+
+        setupSearchToolbar();
 
         // Initialisation carte
         m_locationClient = LocationServices.getFusedLocationProviderClient(this);
@@ -128,7 +156,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         };
 
-        SupportMapFragment frag_map = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.main_carte);
+        SupportMapFragment frag_map = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.carte);
         frag_map.getMapAsync(this);
 
         // Gestion du rayon de recherche
@@ -152,7 +180,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 // Enregistrement
                 SharedPreferences.Editor editor = m_prefs.edit();
                 editor.putInt(getString(R.string.pref_rayon), get_rayon());
-                editor.commit();
+                editor.apply();
             }
         });
         m_seekRayon.setProgress((m_prefs.getInt(getString(R.string.pref_rayon), RAYON_MIN) - RAYON_MIN) / RAYON_FACT);
@@ -212,11 +240,25 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Ajout des options
+        getMenuInflater().inflate(R.menu.main_toolbar, menu);
+        return true;
+    }
+
+    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Pass the event to ActionBarDrawerToggle, if it returns
         // true, then it has handled the app icon touch event
         if (m_drawerToggle.onOptionsItemSelected(item)) {
             return true;
+        }
+
+        switch (item.getItemId()) {
+            case R.id.nav_rechr:
+                m_searchMenuItem.expandActionView();
+
+                return true;
         }
 
         return super.onOptionsItemSelected(item);
@@ -275,5 +317,100 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private void stop_location_updates() {
         m_locationClient.removeLocationUpdates(m_locationCallback);
         m_locationStarted = false;
+    }
+
+    // Animation search toolbar
+    public void setupSearchToolbar() {
+        m_searchToolbar = findViewById(R.id.searchtoolbar);
+
+        if (m_searchToolbar != null) {
+            // Préparation toolbar
+            m_searchToolbar.inflateMenu(R.menu.main_search);
+            m_searchMenu = m_searchToolbar.getMenu();
+
+            m_searchMenuItem = m_searchMenu.findItem(R.id.nav_rechr);
+            m_searchMenuItem.setOnActionExpandListener(new MenuItem.OnActionExpandListener() {
+                @Override
+                public boolean onMenuItemActionExpand(MenuItem item) {
+                    circleReveal(R.id.searchtoolbar, 1, true, true);
+                    return true;
+                }
+
+                @Override
+                public boolean onMenuItemActionCollapse(MenuItem item) {
+                    circleReveal(R.id.searchtoolbar, 1, true, false);
+                    return false;
+                }
+            });
+
+            // Préparation search view
+            SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
+            if (searchManager != null) {
+                SearchView searchView = (SearchView) m_searchMenu.findItem(R.id.nav_rechr).getActionView();
+
+                searchView.setIconified(false);
+                searchView.setIconifiedByDefault(false);
+                searchView.setSearchableInfo(searchManager.getSearchableInfo(
+                        new ComponentName(this, RechercheActivity.class)
+                ));
+
+                searchView.setOnSearchClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        m_drawerLayout.closeDrawers();
+                    }
+                });
+
+                ImageView searchViewIcon = searchView.findViewById(android.support.v7.appcompat.R.id.search_mag_icon);
+                ViewGroup linearLayoutSearchView = (ViewGroup) searchViewIcon.getParent();
+                linearLayoutSearchView.removeView(searchViewIcon);
+            }
+
+        } else {
+            Log.d("MainActivity", "setSearchtollbar: NULL");
+        }
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+    public void circleReveal(int viewID, int posFromRight, boolean containsOverflow, final boolean isShow) {
+        final View myView = findViewById(viewID);
+        int width = myView.getWidth();
+
+        if (posFromRight > 0) {
+            width -= (posFromRight - 0.5) * myView.getHeight(); // les icones sont carrées !
+        }
+
+        if (containsOverflow) {
+            width -= 2 * myView.getHeight() / 3; // bah oui !
+        }
+
+        int cx = width;
+        int cy = myView.getHeight() / 2;
+
+        Animator anim;
+        if (isShow) {
+            anim = ViewAnimationUtils.createCircularReveal(myView, cx, cy, 0, (float) width);
+        } else {
+            anim = ViewAnimationUtils.createCircularReveal(myView, cx, cy, (float) width, 0);
+        }
+
+        anim.setDuration((long) 500);
+
+        // make the view invisible when the animation is done
+        anim.addListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                if (!isShow) {
+                    super.onAnimationEnd(animation);
+                    myView.setVisibility(View.INVISIBLE);
+                }
+            }
+        });
+
+        // make the view visible and start the animation
+        if (isShow) myView.setVisibility(View.VISIBLE);
+
+        // start the animation
+        anim.start();
     }
 }

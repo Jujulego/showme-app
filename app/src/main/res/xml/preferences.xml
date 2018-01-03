@@ -6,7 +6,7 @@
     tools:context=".ParametresActivity">
 
     <PreferenceCategory
-        android:title="@string/pref_txt_rayon">
+        android:title="@string/pref_cat_recherche">
 
         <net.capellari.showme.RayonPreference
             android:key="@string/pref_rayon_max"
@@ -15,11 +15,11 @@
     </PreferenceCategory>
 
     <PreferenceCategory
-        android:title="@string/pref_energie">
+        android:title="@string/pref_cat_energie">
 
         <android.support.v7.preference.SwitchPreferenceCompat
             android:key="@string/pref_gps"
-            android:title="@string/pref_gps"
+            android:title="@string/pref_txt_gps"
 
             android:defaultValue="true"/>
 

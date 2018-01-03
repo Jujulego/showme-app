@@ -1,32 +1,39 @@
 <resources>
-
-    <!-- Base application theme. -->
+    <!-- Theme de base, avec l'action bar -->
     <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
-        <!-- Customize your theme here. -->
+        <!-- Couleurs -->
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
+
+        <!-- Texte -->
         <item name="android:textSize">@dimen/moyenne_police</item>
         <item name="android:textColor">@color/couleur_police</item>
 
+        <!-- Préférences -->
         <item name="preferenceTheme">@style/PreferenceThemeOverlay</item>
     </style>
 
-    <style name="Note" parent="AppTheme">
-        <item name="android:textColor">@color/gris</item>
-        <item name="android:textSize">@dimen/petite_police</item>
+    <!-- Theme de base, sans l'action bar -->
+    <style name="AppTheme.NoActionBar" parent="Theme.AppCompat.Light.NoActionBar">
+        <!-- Couleurs -->
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccent</item>
+
+        <!-- Texte -->
+        <item name="android:textSize">@dimen/moyenne_police</item>
+        <item name="android:textColor">@color/couleur_police</item>
+
+        <!-- Préférences -->
+        <item name="preferenceTheme">@style/PreferenceThemeOverlay</item>
+
+        <!-- Icones -->
+        <item name="drawerArrowStyle">@style/AppTheme.DrawerArrowStyle</item>
     </style>
 
-    <style name="Small" parent="AppTheme">
-        <item name="android:textSize">@dimen/petite_police</item>
+    <!-- Icones -->
+    <style name="AppTheme.DrawerArrowStyle" parent="Widget.AppCompat.DrawerArrowToggle">
+        <item name="color">@android:color/white</item>
     </style>
-
-    <style name="AppTheme.NoActionBar">
-        <item name="windowActionBar">false</item>
-        <item name="windowNoTitle">true</item>
-    </style>
-
-    <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
-
-    <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
 </resources>
