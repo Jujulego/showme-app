@@ -2,9 +2,9 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:id="@+id/nav_rechr"
         android:icon="@drawable/ic_search_black_48dp"
-        android:title="@string/nav_recherche" />
+        android:title="@string/title_activity_recherche" />
 
     <item android:id="@+id/nav_pref"
         android:icon="@drawable/ic_settings_black_48dp"
-        android:title="@string/nav_preferences" />
+        android:title="@string/title_activity_parametres" />
 </menu>
