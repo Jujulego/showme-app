@@ -57,7 +57,7 @@ public class RechercheActivity extends AppCompatActivity implements OnMapReadyCa
         setContentView(R.layout.activity_recherche);
 
         // Récupération des vues
-        m_erreur = findViewById(R.id.erreur);
+        //m_erreur = findViewById(R.id.erreur);
 
         // Gestion de la toolbar
         m_toolbar = findViewById(R.id.toolbar);
@@ -140,7 +140,7 @@ public class RechercheActivity extends AppCompatActivity implements OnMapReadyCa
 
     // Méthodes
     private void rechercher(String query) {
-        m_erreur.setText(query);
+        //m_erreur.setText(query);
     }
 
     private void centrer_carte() {

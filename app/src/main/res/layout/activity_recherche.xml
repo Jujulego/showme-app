@@ -31,24 +31,16 @@
 
         tools:layout="@layout/dummy_map" />
 
-    <ExpandableListView android:id="@+id/resultat"
-        android:layout_width="match_parent"
+    <fragment android:id="@+id/resultat"
+        android:name="net.capellari.showme.ResultatFragment"
+        android:layout_width="0dp"
         android:layout_height="0dp"
 
-        android:visibility="invisible"
-
         app:layout_constraintTop_toBottomOf="@id/carte"
-        app:layout_constraintBottom_toBottomOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
 
-    <TextView android:id="@+id/erreur"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-
-        android:text="@string/rechr_tuto"
-
-        app:layout_constraintTop_toTopOf="@id/resultat"
-        app:layout_constraintStart_toStartOf="@id/resultat"
-        app:layout_constraintEnd_toEndOf="@id/resultat"
-        app:layout_constraintBottom_toBottomOf="@id/resultat" />
+        tools:layout="@layout/fragment_resultat"/>
 
 </android.support.constraint.ConstraintLayout>

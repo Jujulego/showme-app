@@ -13,9 +13,9 @@
     <android.support.v7.widget.Toolbar android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
-        android:background="?attr/colorPrimary"
+        android:background="@color/colorTextPrimary"
         android:elevation="4dp"
-        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+        android:theme="@style/ThemeOverlay.AppCompat.Light"
 
         app:title="@string/title_activity_recherche"
         app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />
@@ -32,26 +32,16 @@
 
         tools:layout="@layout/dummy_map" />
 
-    <ExpandableListView android:id="@+id/resultat"
+    <fragment android:id="@+id/resultat"
+        android:name="net.capellari.showme.ResultatFragment"
         android:layout_width="0dp"
         android:layout_height="0dp"
-
-        android:visibility="invisible"
 
         app:layout_constraintTop_toBottomOf="@id/toolbar"
         app:layout_constraintStart_toEndOf="@id/carte"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent" />
+        app:layout_constraintBottom_toBottomOf="parent"
 
-    <TextView android:id="@+id/erreur"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-
-        android:text="@string/rechr_tuto"
-
-        app:layout_constraintTop_toTopOf="@id/resultat"
-        app:layout_constraintStart_toStartOf="@id/resultat"
-        app:layout_constraintEnd_toEndOf="@id/resultat"
-        app:layout_constraintBottom_toBottomOf="@id/resultat" />
+        tools:layout="@layout/fragment_resultat" />
 
 </android.support.constraint.ConstraintLayout>
