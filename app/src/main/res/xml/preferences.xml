@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
 
     tools:context=".ParametresActivity">
@@ -8,15 +9,22 @@
     <PreferenceCategory
         android:title="@string/pref_cat_recherche">
 
+        <!--suppress AndroidElementNotAllowed -->
         <net.capellari.showme.RayonPreference
             android:key="@string/pref_rayon_max"
-            android:title="@string/pref_txt_rayon_max"/>
+            android:title="@string/pref_txt_rayon_max"
+
+            app:rayon_fact="100"
+            app:rayon_max="1000"
+            app:rayon_min="100"
+            app:rayon="100" />
 
     </PreferenceCategory>
 
     <PreferenceCategory
         android:title="@string/pref_cat_energie">
 
+        <!--suppress AndroidElementNotAllowed -->
         <android.support.v7.preference.SwitchPreferenceCompat
             android:key="@string/pref_gps"
             android:title="@string/pref_txt_gps"

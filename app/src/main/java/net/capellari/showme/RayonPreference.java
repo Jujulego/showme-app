@@ -100,6 +100,19 @@ public class RayonPreference extends Preference {
 
     public RayonPreference(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
+
+        // Traitement des attributs
+        TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.RayonFragment, defStyleAttr, defStyleRes);
+
+        m_factor = a.getInt(R.styleable.RayonFragment_rayon_fact, m_factor);
+        m_max = a.getInt(R.styleable.RayonFragment_rayon_max, m_max * m_factor) / m_factor;
+        m_min = a.getInt(R.styleable.RayonFragment_rayon_min, m_min * m_factor) / m_factor;
+        m_seekBarValue = a.getInt(R.styleable.RayonFragment_rayon, m_min * m_factor) / m_factor;
+
+        if (m_seekBarValue < m_min) m_seekBarValue = m_min;
+        if (m_seekBarValue > m_max) m_seekBarValue = m_max;
+
+        a.recycle();
     }
     public RayonPreference(Context context, AttributeSet attrs, int defStyleAttr) {
         this(context, attrs, defStyleAttr, 0);
@@ -119,8 +132,8 @@ public class RayonPreference extends Preference {
 
         view.itemView.setOnKeyListener(mSeekBarKeyListener);
 
-        m_seekBar = (SeekBar) view.findViewById(R.id.seekbar);
-        m_seekBarValueTextView = (TextView) view.findViewById(R.id.seekbar_value);
+        m_seekBar = (SeekBar) view.findViewById(android.support.v7.preference.R.id.seekbar);
+        m_seekBarValueTextView = (TextView) view.findViewById(android.support.v7.preference.R.id.seekbar_value);
 
         if (m_showSeekBarValue) {
             m_seekBarValueTextView.setVisibility(View.VISIBLE);
@@ -164,6 +177,7 @@ public class RayonPreference extends Preference {
         return a.getInt(index, 0);
     }
 
+    @SuppressWarnings("unused")
     public void setMin(int min) {
         min /= m_factor;
 
@@ -176,10 +190,12 @@ public class RayonPreference extends Preference {
         }
     }
 
+    @SuppressWarnings("unused")
     public int getMin() {
         return m_min;
     }
 
+    @SuppressWarnings("unused")
     public final void setMax(int max) {
         max /= m_factor;
 
@@ -198,6 +214,7 @@ public class RayonPreference extends Preference {
      * from the default mKeyProgressIncrement value in {@link android.widget.AbsSeekBar}.
      * @return The amount of increment on the SeekBar performed after each user's arrow key press.
      */
+    @SuppressWarnings("unused")
     public final int getSeekBarIncrement() {
         return m_seekBarIncrement;
     }
@@ -207,6 +224,7 @@ public class RayonPreference extends Preference {
      * @param seekBarIncrement The amount to increment or decrement when the user presses an
      *                         arrow key.
      */
+    @SuppressWarnings("unused")
     public final void setSeekBarIncrement(int seekBarIncrement) {
         if (seekBarIncrement != m_seekBarIncrement) {
             m_seekBarIncrement =  Math.min(m_max - m_min, Math.abs(seekBarIncrement));
@@ -214,14 +232,17 @@ public class RayonPreference extends Preference {
         }
     }
 
+    @SuppressWarnings("unused")
     public int getMax() {
         return m_max;
     }
 
+    @SuppressWarnings("unused")
     public int getFactor() {
         return m_factor;
     }
 
+    @SuppressWarnings("unused")
     public void setFactor(int factor) {
         if (factor == m_factor) return;
 
@@ -241,10 +262,12 @@ public class RayonPreference extends Preference {
         notifyChanged();
     }
 
+    @SuppressWarnings("unused")
     public void setAdjustable(boolean adjustable) {
         m_adjustable = adjustable;
     }
 
+    @SuppressWarnings("unused")
     public boolean isAdjustable() {
         return m_adjustable;
     }
@@ -273,6 +296,7 @@ public class RayonPreference extends Preference {
         }
     }
 
+    @SuppressWarnings("unused")
     public int getValue() {
         return m_seekBarValue;
     }

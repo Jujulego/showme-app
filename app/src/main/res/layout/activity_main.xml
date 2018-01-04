@@ -19,7 +19,7 @@
         app:title="@string/app_name"
         app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />
 
-    <android.support.v7.widget.Toolbar android:id="@+id/searchtoolbar"
+    <android.support.v7.widget.Toolbar android:id="@+id/search_toolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
         android:background="@color/colorTextPrimary"
@@ -57,30 +57,20 @@
                 app:layout_constraintTop_toBottomOf="@id/carte"
                 app:layout_constraintBottom_toTopOf="@id/seek_rayon"/>
 
-            <SeekBar android:id="@+id/seek_rayon"
+            <fragment android:id="@+id/seek_rayon"
+                android:name="net.capellari.showme.RayonFragment"
+
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
 
-                android:paddingTop="16dp"
-                android:paddingBottom="16dp"
-
-                app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toStartOf="@id/aff_rayon"/>
-
-            <TextView android:id="@+id/aff_rayon"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-
-                android:paddingTop="16dp"
-                android:paddingBottom="16dp"
-                android:paddingStart="@dimen/activity_horizontal_margin"
-                android:paddingEnd="@dimen/activity_horizontal_margin"
-
-                android:text="@string/aff_rayon_defaut"
-
+                app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"/>
+
+                app:rayon_min="10"
+                app:rayon_fact="10"
+
+                tools:layout="@layout/fragment_rayon" />
         </android.support.constraint.ConstraintLayout>
 
         <!-- Panneau de navigation -->

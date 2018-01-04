@@ -33,8 +33,6 @@ import android.view.View;
 import android.view.ViewAnimationUtils;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.SeekBar;
-import android.widget.TextView;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
@@ -49,20 +47,15 @@ import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.tasks.OnSuccessListener;
 
-import java.util.Locale;
-
 /**
  * Created by julien on 31/12/17.
  *
  * Activité principale
  */
 
-public class MainActivity extends AppCompatActivity implements OnMapReadyCallback {
+public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, RayonFragment.OnRayonChangeListener {
     // Constantes
     public static final int RQ_FINE_LOCATION = 1;
-
-    private static final int RAYON_MIN  = 10;
-    private static final int RAYON_FACT = 10;
 
     // Attributs
     private GoogleMap m_map;
@@ -79,8 +72,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private Menu m_searchMenu;
     private MenuItem m_searchMenuItem;
 
-    private SeekBar m_seekRayon;
-    private TextView m_affRayon;
+    private RayonFragment m_seekRayon;
 
     private SharedPreferences m_prefs;
 
@@ -115,7 +107,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                         intent = new Intent(MainActivity.this, ParametresActivity.class);
                         break;
 
-                    case R.id.nav_rechr:
+                    case R.id.nav_recherche:
                         intent = new Intent(MainActivity.this, RechercheActivity.class);
                         break;
                 }
@@ -160,30 +152,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         frag_map.getMapAsync(this);
 
         // Gestion du rayon de recherche
-        m_seekRayon = findViewById(R.id.seek_rayon);
-        m_affRayon  = findViewById(R.id.aff_rayon);
+        int rayon = m_prefs.getInt(getString(R.string.pref_rayon), 0);
 
-        m_seekRayon.setMax((m_prefs.getInt(getString(R.string.pref_rayon_max), 100) - RAYON_MIN) / RAYON_FACT);
-        m_seekRayon.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                m_affRayon.setText(String.format(Locale.getDefault(),"%d m", get_rayon()));
-            }
-
-            @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
-
-            }
-
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
-                // Enregistrement
-                SharedPreferences.Editor editor = m_prefs.edit();
-                editor.putInt(getString(R.string.pref_rayon), get_rayon());
-                editor.apply();
-            }
-        });
-        m_seekRayon.setProgress((m_prefs.getInt(getString(R.string.pref_rayon), RAYON_MIN) - RAYON_MIN) / RAYON_FACT);
+        m_seekRayon = (RayonFragment) getFragmentManager().findFragmentById(R.id.seek_rayon);
+        m_seekRayon.set_max(m_prefs.getInt(getString(R.string.pref_rayon_max), 100));
+        m_seekRayon.set_rayon(rayon);
     }
 
     @Override
@@ -200,6 +173,21 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         // Start location updates
         if (!m_locationStarted) start_location_updates();
+
+        // Mise en place de l'animation
+        m_searchMenuItem.setOnActionExpandListener(new MenuItem.OnActionExpandListener() {
+            @Override
+            public boolean onMenuItemActionExpand(MenuItem item) {
+                circleReveal(R.id.search_toolbar, 1, true, true);
+                return true;
+            }
+
+            @Override
+            public boolean onMenuItemActionCollapse(MenuItem item) {
+                circleReveal(R.id.search_toolbar, 1, true, false);
+                return false;
+            }
+        });
     }
 
     @Override
@@ -255,13 +243,21 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
 
         switch (item.getItemId()) {
-            case R.id.nav_rechr:
+            case R.id.nav_recherche:
                 m_searchMenuItem.expandActionView();
 
                 return true;
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onRayonChange(int rayon) {
+        // Enregistrement
+        SharedPreferences.Editor editor = m_prefs.edit();
+        editor.putInt(getString(R.string.pref_rayon), rayon);
+        editor.apply();
     }
 
     // Méthodes
@@ -296,10 +292,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
-    private int get_rayon() {
-        return m_seekRayon.getProgress() * RAYON_FACT + RAYON_MIN;
-    }
-
     private void start_location_updates() {
         LocationRequest rq = new LocationRequest();
         rq.setFastestInterval(1000);
@@ -321,35 +313,20 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     // Animation search toolbar
     public void setupSearchToolbar() {
-        m_searchToolbar = findViewById(R.id.searchtoolbar);
+        m_searchToolbar = findViewById(R.id.search_toolbar);
 
         if (m_searchToolbar != null) {
             // Préparation toolbar
             m_searchToolbar.inflateMenu(R.menu.main_search);
             m_searchMenu = m_searchToolbar.getMenu();
 
-            m_searchMenuItem = m_searchMenu.findItem(R.id.nav_rechr);
-            m_searchMenuItem.setOnActionExpandListener(new MenuItem.OnActionExpandListener() {
-                @Override
-                public boolean onMenuItemActionExpand(MenuItem item) {
-                    circleReveal(R.id.searchtoolbar, 1, true, true);
-                    return true;
-                }
-
-                @Override
-                public boolean onMenuItemActionCollapse(MenuItem item) {
-                    circleReveal(R.id.searchtoolbar, 1, true, false);
-                    return false;
-                }
-            });
+            m_searchMenuItem = m_searchMenu.findItem(R.id.nav_recherche);
 
             // Préparation search view
             SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
             if (searchManager != null) {
-                SearchView searchView = (SearchView) m_searchMenu.findItem(R.id.nav_rechr).getActionView();
+                SearchView searchView = (SearchView) m_searchMenu.findItem(R.id.nav_recherche).getActionView();
 
-                searchView.setIconified(false);
-                searchView.setIconifiedByDefault(false);
                 searchView.setSearchableInfo(searchManager.getSearchableInfo(
                         new ComponentName(this, RechercheActivity.class)
                 ));

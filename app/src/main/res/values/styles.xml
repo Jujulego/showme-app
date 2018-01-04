@@ -11,7 +11,7 @@
         <item name="android:textColor">@color/couleur_police</item>
 
         <!-- Préférences -->
-        <item name="preferenceTheme">@style/PreferenceThemeOverlay</item>
+        <item name="preferenceTheme">@style/AppTheme.PreferenceThemeOverlay</item>
     </style>
 
     <!-- Theme de base, sans l'action bar -->
@@ -26,10 +26,14 @@
         <item name="android:textColor">@color/couleur_police</item>
 
         <!-- Préférences -->
-        <item name="preferenceTheme">@style/PreferenceThemeOverlay</item>
+        <item name="preferenceTheme">@style/AppTheme.PreferenceThemeOverlay</item>
 
         <!-- Icones -->
         <item name="drawerArrowStyle">@style/AppTheme.DrawerArrowStyle</item>
+    </style>
+
+    <style name="AppTheme.PreferenceThemeOverlay" parent="PreferenceThemeOverlay">
+        <item name="switchPreferenceCompatStyle">@style/Preference.SwitchPreferenceCompat</item>
     </style>
 
     <!-- Icones -->

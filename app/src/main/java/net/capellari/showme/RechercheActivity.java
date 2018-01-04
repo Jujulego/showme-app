@@ -83,7 +83,7 @@ public class RechercheActivity extends AppCompatActivity implements OnMapReadyCa
         // Gestion du SearchView
         SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
         if (searchManager != null) {
-            final SearchView searchView = (SearchView) menu.findItem(R.id.nav_rechr).getActionView();
+            final SearchView searchView = (SearchView) menu.findItem(R.id.nav_recherche).getActionView();
 
             searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
             searchView.setIconifiedByDefault(false);

@@ -1,12 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
+<RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
 
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
 
     tools:context=".MainActivity">
 
@@ -20,10 +19,23 @@
         app:title="@string/app_name"
         app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />
 
-    <android.support.v4.widget.DrawerLayout android:id="@+id/drawer_layout"
-
+    <android.support.v7.widget.Toolbar android:id="@+id/search_toolbar"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="?attr/actionBarSize"
+        android:background="@color/colorTextPrimary"
+        android:elevation="4dp"
+        android:theme="@style/ThemeOverlay.AppCompat.Light"
+        android:visibility="invisible"
+
+        app:titleTextColor="@color/colorPrimary"
+
+        app:title="@string/app_name"
+        app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />
+
+    <android.support.v4.widget.DrawerLayout android:id="@+id/drawer_layout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/toolbar">
 
         <!-- Contenu de la page -->
         <android.support.constraint.ConstraintLayout
@@ -51,30 +63,17 @@
                 app:layout_constraintStart_toEndOf="@id/carte"
                 app:layout_constraintEnd_toEndOf="parent"/>
 
-            <SeekBar android:id="@+id/seek_rayon"
+            <fragment android:id="@+id/seek_rayon"
+                android:name="net.capellari.showme.RayonFragment"
+
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
 
-                android:paddingTop="16dp"
-                android:paddingBottom="16dp"
-
-                app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toEndOf="@id/carte"
-                app:layout_constraintEnd_toStartOf="@id/aff_rayon"/>
-
-            <TextView android:id="@+id/aff_rayon"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-
-                android:paddingTop="16dp"
-                android:paddingBottom="16dp"
-                android:paddingLeft="@dimen/activity_horizontal_margin"
-                android:paddingRight="@dimen/activity_horizontal_margin"
-
-                android:text="@string/aff_rayon_defaut"
-
+                app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"/>
+
+                tools:layout="@layout/fragment_rayon" />
         </android.support.constraint.ConstraintLayout>
 
         <!-- Panneau de navigation -->
@@ -85,4 +84,4 @@
 
             app:menu="@menu/navigation"/>
     </android.support.v4.widget.DrawerLayout>
-</LinearLayout>
+</RelativeLayout>
