@@ -57,6 +57,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     // Constantes
     public static final int RQ_FINE_LOCATION = 1;
 
+    private static final int SEARCH_ICON_POS   = 1;
+    private static final boolean MENU_OVERFLOW = false;
+
     // Attributs
     private GoogleMap m_map;
     private FusedLocationProviderClient m_locationClient;
@@ -178,13 +181,13 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         m_searchMenuItem.setOnActionExpandListener(new MenuItem.OnActionExpandListener() {
             @Override
             public boolean onMenuItemActionExpand(MenuItem item) {
-                circleReveal(R.id.search_toolbar, 1, true, true);
+                circleReveal(R.id.search_toolbar, SEARCH_ICON_POS, true);
                 return true;
             }
 
             @Override
             public boolean onMenuItemActionCollapse(MenuItem item) {
-                circleReveal(R.id.search_toolbar, 1, true, false);
+                circleReveal(R.id.search_toolbar, SEARCH_ICON_POS, false);
                 return false;
             }
         });
@@ -349,7 +352,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-    public void circleReveal(int viewID, int posFromRight, boolean containsOverflow, final boolean isShow) {
+    public void circleReveal(int viewID, int posFromRight, final boolean isShow) {
         final View myView = findViewById(viewID);
         int width = myView.getWidth();
 
@@ -357,7 +360,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             width -= (posFromRight - 0.5) * myView.getHeight(); // les icones sont carrées !
         }
 
-        if (containsOverflow) {
+        if (MENU_OVERFLOW) {
             width -= 2 * myView.getHeight() / 3; // bah oui !
         }
 
