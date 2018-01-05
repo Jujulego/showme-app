@@ -13,13 +13,13 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"/>
 
-    <TextView android:id="@+id/msg_texte"
-        android:layout_width="wrap_content"
+    <TextView android:id="@+id/message"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
 
-        app:layout_constraintTop_toTopOf="@id/liste"
-        app:layout_constraintStart_toStartOf="@id/liste"
-        app:layout_constraintEnd_toEndOf="@id/liste"
-        app:layout_constraintBottom_toBottomOf="@id/liste" />
+        android:textAlignment="center"
+
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent" />
 
 </android.support.constraint.ConstraintLayout>

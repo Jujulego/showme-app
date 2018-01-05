@@ -1,11 +1,13 @@
 package net.capellari.showme;
 
-import android.app.Fragment;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ExpandableListView;
+import android.widget.TextView;
 
 /**
  * Created by julien on 04/01/18.
@@ -14,9 +16,72 @@ import android.view.ViewGroup;
  */
 
 public class ResultatFragment extends Fragment {
+    // Enumération
+    public enum Status {
+        VIDE, MESSAGE, LISTE
+    }
+
+    // Attributs
+    private TextView m_message;
+    private ExpandableListView m_liste;
+
+    private boolean m_init = false;
+    private Status m_status = Status.VIDE;
+
+    // Events
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_resultat, container);
+        // Ajout du layout
+        View view = inflater.inflate(R.layout.fragment_resultat, container, false);
+
+        // Récupération des vues
+        m_message = view.findViewById(R.id.message);
+        m_liste   = view.findViewById(R.id.liste);
+
+        // Mise à l'etat
+        m_init = true;
+        setStatus(m_status);
+
+        return view;
+    }
+
+    // Méthodes
+    @SuppressWarnings("unused")
+    public CharSequence getMessage() {
+        return m_message.getText();
+    }
+
+    @SuppressWarnings("unused")
+    public void setMessage(CharSequence msg) {
+        m_message.setText(msg);
+    }
+
+    @SuppressWarnings("unused")
+    public Status getStatus() {
+        return m_status;
+    }
+    public void setStatus(Status status) {
+        m_status = status;
+
+        // Maj vues
+        if (!m_init) return;
+
+        switch (status) {
+            case LISTE:
+                m_liste.setVisibility(View.VISIBLE);
+                m_message.setVisibility(View.GONE);
+                break;
+
+            case MESSAGE:
+                m_liste.setVisibility(View.GONE);
+                m_message.setVisibility(View.VISIBLE);
+                break;
+
+            case VIDE:
+                m_liste.setVisibility(View.GONE);
+                m_message.setVisibility(View.GONE);
+                break;
+        }
     }
 }

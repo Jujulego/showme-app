@@ -1,11 +1,12 @@
 package net.capellari.showme;
 
-import android.app.Fragment;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.v4.app.Fragment;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -37,7 +38,6 @@ public class RayonFragment extends Fragment {
     private OnRayonChangeListener m_listener;
 
     // Events
-
     @Override
     public void onInflate(Context context, AttributeSet attrs, Bundle savedInstanceState) {
         super.onInflate(context, attrs, savedInstanceState);
@@ -69,21 +69,11 @@ public class RayonFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_rayon, container);
+        View view = inflater.inflate(R.layout.fragment_rayon, container, false);
 
         // Gestion de la seekbar
         m_seek_bar = view.findViewById(R.id.seek_bar);
         m_valeur   = view.findViewById(R.id.valeur);
-
-        OnRayonChangeListener listener = m_listener;
-        m_listener = null;
-
-        set_fact( m_attr_fact);
-        set_max(  m_attr_max);
-        set_min(  m_attr_min);
-        set_rayon(m_attr_rayon);
-
-        m_listener = listener;
 
         m_seek_bar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
@@ -102,39 +92,69 @@ public class RayonFragment extends Fragment {
             }
         });
 
+        // Maj valeurs
+        OnRayonChangeListener listener = m_listener;
+        m_listener = null;
+
+        set_fact( m_attr_fact);
+        set_max(  m_attr_max);
+        set_min(  m_attr_min);
+        set_rayon(m_attr_rayon);
+
+        m_listener = listener;
+        listener.onRayonReady();
+
         return view;
     }
 
     // Méthodes
     @SuppressWarnings("unused")
     public int get_rayon() {
-        return m_seek_bar.getProgress() * m_fact + m_min;
+        int progress = 0;
+        if (m_seek_bar != null) progress = m_seek_bar.getProgress();
+
+        return progress * m_fact + m_min;
     }
 
     @SuppressWarnings("unused")
     public int get_fact() {
+        if (m_seek_bar == null) return m_attr_fact;
         return m_fact;
     }
 
     @SuppressWarnings("unused")
     public int get_min() {
+        if (m_seek_bar == null) return m_attr_min;
         return m_min;
     }
 
     @SuppressWarnings("unused")
     public int get_max() {
+        if (m_seek_bar == null) return m_attr_max;
         return m_max;
     }
 
     public void set_rayon(int rayon) {
+        if (m_seek_bar == null) {
+            m_attr_rayon = rayon;
+            return;
+        }
+
         if (rayon < m_min) rayon = m_min;
         if (rayon > m_max) rayon = m_max;
 
         m_seek_bar.setProgress((rayon - m_min) / m_fact);
+        //m_valeur.setText(String.format(Locale.getDefault(), "%d m", get_rayon()));
+
         if (m_listener != null) m_listener.onRayonChange(get_rayon());
     }
 
     public void set_max(int max) {
+        if (m_seek_bar == null) {
+            m_attr_max = max;
+            return;
+        }
+
         // Alignement sur le facteur
         if (m_max % m_fact != 0) max += m_fact - (max % m_fact);
         if (max <= m_min) return;
@@ -144,6 +164,11 @@ public class RayonFragment extends Fragment {
     }
 
     public void set_min(int min) {
+        if (m_seek_bar == null) {
+            m_attr_min = min;
+            return;
+        }
+
         // Alignement sur le facteur
         min -= min % m_fact;
         if (m_max <= min) return;
@@ -155,6 +180,11 @@ public class RayonFragment extends Fragment {
     }
 
     public void set_fact(int fact) {
+        if (m_seek_bar == null) {
+            m_attr_fact = fact;
+            return;
+        }
+
         m_fact = fact;
 
         // Alignement des valeurs
@@ -172,6 +202,7 @@ public class RayonFragment extends Fragment {
 
     // Interface
     interface OnRayonChangeListener {
+        void onRayonReady();
         void onRayonChange(int rayon);
     }
 }

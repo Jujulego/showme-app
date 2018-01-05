@@ -32,6 +32,7 @@
         <item name="drawerArrowStyle">@style/AppTheme.DrawerArrowStyle</item>
     </style>
 
+    <!-- Préférences ... -->
     <style name="AppTheme.PreferenceThemeOverlay" parent="PreferenceThemeOverlay">
         <item name="switchPreferenceCompatStyle">@style/Preference.SwitchPreferenceCompat</item>
     </style>

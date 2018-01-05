@@ -1,10 +1,45 @@
 <resources>
     <!-- Général -->
-    <string name="app_name">ShowMe</string>
-    <string name="title_activity_parametres">Paramètres</string>
-    <string name="title_activity_recherche">Recherche</string>
+    <string name="app_name" translatable="false">ShowMe</string>
 
     <!-- Pas touche ! -->
-    <string name="serveur">showme.capellari.net</string>
-    <string name="maps_api_key">AIzaSyCOQnGD6l0w4IphGBtG8TPTxcoyE-Cxt9k</string>
+    <string name="serveur" translatable="false">showme.capellari.net</string>
+    <string name="maps_api_key" translatable="false">AIzaSyCOQnGD6l0w4IphGBtG8TPTxcoyE-Cxt9k</string>
+
+    <!-- Accueil -->
+    <!-- Panneau de navigation -->
+    <string name="nav_accueil">Accueil</string>
+    <string name="nav_parametres">Paramètres</string>
+    <string name="nav_recherche">Recherche</string>
+
+    <string name="nav_open">Ouvrir le panneau</string>
+    <string name="nav_close">Fermer le panneau</string>
+
+    <!-- Menu -->
+    <string name="menu_refresh">Rafraîchir</string>
+
+    <!-- RayonFragment -->
+    <string name="aff_rayon_defaut" translatable="false">10 m</string>
+
+    <!-- Recherches -->
+    <!-- Champ de texte -->
+    <string name="champ_hint">Quoi ?</string>
+    <string name="rechr_btn">Rechercher</string>
+
+    <!-- Messages d'erreur -->
+    <string name="rechr_tuto">Entrez votre recherche …</string>
+    <string name="vide">Aucun résultat</string>
+
+    <!-- Préférences -->
+    <!-- Rayon -->
+    <string name="pref_rayon" translatable="false">RAYON</string>
+    <string name="pref_rayon_max" translatable="false">RAYON MAX</string>
+    <string name="pref_gps" translatable="false">GPS</string>
+
+    <!-- Texte -->
+    <string name="pref_cat_recherche">Rayon de recherche</string>
+    <string name="pref_txt_rayon_max">Rayon maximal</string>
+
+    <string name="pref_cat_energie">Energie</string>
+    <string name="pref_txt_gps">GPS</string>
 </resources>

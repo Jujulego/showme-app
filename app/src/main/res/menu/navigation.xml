@@ -1,10 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/nav_frag"
+        android:icon="@drawable/ic_home_black_48dp"
+        android:title="Accueil" />
+
     <item android:id="@+id/nav_recherche"
         android:icon="@drawable/ic_search_black_48dp"
-        android:title="@string/title_activity_recherche" />
+        android:title="@string/nav_recherche" />
 
     <item android:id="@+id/nav_pref"
         android:icon="@drawable/ic_settings_black_48dp"
-        android:title="@string/title_activity_parametres" />
+        android:title="@string/nav_parametres" />
 </menu>
