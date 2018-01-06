@@ -11,6 +11,7 @@ import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.location.Location;
 import android.os.Build;
+import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
@@ -25,10 +26,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.preference.PreferenceManager;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
-import android.os.Bundle;
-import android.transition.Slide;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -48,7 +46,6 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.Task;
 
 public class FragmentActivity extends AppCompatActivity
         implements OnMapReadyCallback,
@@ -295,9 +292,9 @@ public class FragmentActivity extends AppCompatActivity
         // Carte
         if (m_mapFragment == null) {
             m_mapFragment = new SupportMapFragment();
-
-            m_mapFragment.getMapAsync(this);
         }
+
+        m_mapFragment.getMapAsync(this);
 
         // Résultat
         if (m_resultatFragment == null) {
@@ -307,8 +304,6 @@ public class FragmentActivity extends AppCompatActivity
         // Rayon
         if (m_rayonFragment == null) {
             m_rayonFragment = new RayonFragment();
-            m_rayonFragment.setEnterTransition(new Slide(Gravity.BOTTOM));
-            m_rayonFragment.setExitTransition(new Slide());
         }
 
         // Paramètres
@@ -316,16 +311,25 @@ public class FragmentActivity extends AppCompatActivity
             m_parametresFragment = new ParametresFragment();
         }
     }
+    private void majIcone() {
+        boolean visible = (m_status != Status.PARAMETRES);
+
+        // La loupe !
+        if (m_searchIcone != null) {
+            m_searchIcone.setEnabled(visible);
+            m_searchIcone.setVisible(visible);
+        }
+
+        // Refresh !
+        if (m_refreshIcone != null) {
+            m_refreshIcone.setEnabled(visible);
+            m_refreshIcone.setVisible(visible);
+        }
+    }
 
     private void setupAccueil() {
         // Gardien
         if (m_status == Status.ACCUEIL) return;
-
-        // Retour de l'icone de recherche
-        if (m_searchIcone != null) {
-            m_searchIcone.setEnabled(true);
-            m_searchIcone.setVisible(true);
-        }
 
         // Evolution des fragments
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
@@ -351,16 +355,11 @@ public class FragmentActivity extends AppCompatActivity
 
         // Chg de status
         m_status = Status.ACCUEIL;
+        majIcone();
     }
     private void setupRecherche() {
         // Gardien
         if (m_status == Status.RECHERCHE) return;
-
-        // Retour de l'icone de recherche
-        if (m_searchIcone != null) {
-            m_searchIcone.setEnabled(true);
-            m_searchIcone.setVisible(true);
-        }
 
         // Gestion du drawer et du searchView
         m_drawerLayout.closeDrawers();
@@ -393,14 +392,11 @@ public class FragmentActivity extends AppCompatActivity
 
         // Chg de status
         m_status = Status.RECHERCHE;
+        majIcone();
     }
     private void setupParametres() {
         // Gardien
         if (m_status == Status.PARAMETRES) return;
-
-        // On cache l'icone de recherche
-        m_searchIcone.setEnabled(false);
-        m_searchIcone.setVisible(false);
 
         // Evolution des fragments
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
@@ -422,6 +418,7 @@ public class FragmentActivity extends AppCompatActivity
 
         // Chg de status
         m_status = Status.PARAMETRES;
+        majIcone();
     }
 
     private void setupDrawer() {

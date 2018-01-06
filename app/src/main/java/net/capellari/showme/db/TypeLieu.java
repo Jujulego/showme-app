@@ -1,8 +1,9 @@
 package net.capellari.showme.db;
 
+import android.arch.persistence.room.ColumnInfo;
 import android.arch.persistence.room.Entity;
 import android.arch.persistence.room.ForeignKey;
-import android.arch.persistence.room.PrimaryKey;
+import android.arch.persistence.room.Index;
 
 import static android.arch.persistence.room.ForeignKey.CASCADE;
 
@@ -25,11 +26,11 @@ import static android.arch.persistence.room.ForeignKey.CASCADE;
                 childColumns = "type_id",
                 onDelete = CASCADE
         )
-})
+}, primaryKeys = {"lieu_id", "type_id"})
 public class TypeLieu {
-    @PrimaryKey
-    public int id;
+    @ColumnInfo(index = true)
+    public long lieu_id;
 
-    public int lieu_id;
-    public int type_id;
+    @ColumnInfo(index = true)
+    public long type_id;
 }

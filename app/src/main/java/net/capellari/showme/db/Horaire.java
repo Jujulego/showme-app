@@ -1,8 +1,17 @@
 package net.capellari.showme.db;
 
+import android.arch.persistence.room.ColumnInfo;
+import android.arch.persistence.room.Dao;
+import android.arch.persistence.room.Delete;
 import android.arch.persistence.room.Entity;
 import android.arch.persistence.room.ForeignKey;
+import android.arch.persistence.room.Index;
+import android.arch.persistence.room.Insert;
 import android.arch.persistence.room.PrimaryKey;
+import android.arch.persistence.room.Query;
+import android.arch.persistence.room.Update;
+
+import java.util.List;
 
 import static android.arch.persistence.room.ForeignKey.CASCADE;
 
@@ -23,10 +32,33 @@ import static android.arch.persistence.room.ForeignKey.CASCADE;
 public class Horaire {
     // Champs
     @PrimaryKey
-    public int id;
+    @ColumnInfo(index = true)
+    public long id;
 
+    @ColumnInfo(index = true)
     public int lieu_id;
     public int jour;
     public int ouverture;
     public int fermeture;
+
+    // DAO
+    @Dao
+    public interface HoraireDAO {
+        // Accès
+        @Query("select * from Horaire")
+        List<Horaire> recup();
+
+        @Query("select * from Horaire where lieu_id == :lieu")
+        List<Horaire> recupLieu(long lieu);
+
+        // Edition
+        @Insert
+        List<Long> insert(Horaire... horaires);
+
+        @Update
+        int update(Horaire... horaires);
+
+        @Delete
+        int delete(Horaire... horaires);
+    }
 }
