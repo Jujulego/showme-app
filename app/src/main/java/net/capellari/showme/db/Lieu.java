@@ -19,8 +19,7 @@ import java.util.Date;
 @Entity
 public class Lieu {
     // Champs
-    @PrimaryKey
-    @ColumnInfo(index = true)
+    @PrimaryKey @ColumnInfo(index = true)
     public long id;
 
     public Date date; // Date d'ajout, permet le nettoyage

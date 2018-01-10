@@ -19,8 +19,7 @@ import java.util.List;
 @Entity
 public class Type {
     // Champs
-    @PrimaryKey
-    @ColumnInfo(index = true)
+    @PrimaryKey @ColumnInfo(index = true)
     public long id;
 
     public String nom;

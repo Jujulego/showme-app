@@ -7,6 +7,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ExpandableListView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 /**
@@ -18,12 +19,13 @@ import android.widget.TextView;
 public class ResultatFragment extends Fragment {
     // Enumération
     public enum Status {
-        VIDE, MESSAGE, LISTE
+        VIDE, CHARGEMENT, MESSAGE, LISTE
     }
 
     // Attributs
     private TextView m_message;
     private ExpandableListView m_liste;
+    private ProgressBar m_waiter;
 
     private boolean m_init = false;
     private Status m_status = Status.VIDE;
@@ -36,8 +38,9 @@ public class ResultatFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_resultat, container, false);
 
         // Récupération des vues
-        m_message = view.findViewById(R.id.message);
         m_liste   = view.findViewById(R.id.liste);
+        m_waiter  = view.findViewById(R.id.waiter);
+        m_message = view.findViewById(R.id.message);
 
         // Mise à l'etat
         m_init = true;
@@ -68,18 +71,34 @@ public class ResultatFragment extends Fragment {
         if (!m_init) return;
 
         switch (status) {
+            case CHARGEMENT:
+                m_liste.setVisibility(View.GONE);
+                m_waiter.setVisibility(View.VISIBLE);
+                m_message.setVisibility(View.VISIBLE);
+
+                m_message.setText(R.string.chargement);
+                m_message.setTextAlignment(View.TEXT_ALIGNMENT_INHERIT);
+
+                break;
+
             case LISTE:
                 m_liste.setVisibility(View.VISIBLE);
+                m_waiter.setVisibility(View.GONE);
                 m_message.setVisibility(View.GONE);
                 break;
 
             case MESSAGE:
                 m_liste.setVisibility(View.GONE);
+                m_waiter.setVisibility(View.GONE);
                 m_message.setVisibility(View.VISIBLE);
+
+                m_message.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
+
                 break;
 
             case VIDE:
                 m_liste.setVisibility(View.GONE);
+                m_waiter.setVisibility(View.GONE);
                 m_message.setVisibility(View.GONE);
                 break;
         }

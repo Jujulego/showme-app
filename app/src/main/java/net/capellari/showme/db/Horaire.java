@@ -31,8 +31,7 @@ import static android.arch.persistence.room.ForeignKey.CASCADE;
 })
 public class Horaire {
     // Champs
-    @PrimaryKey
-    @ColumnInfo(index = true)
+    @PrimaryKey @ColumnInfo(index = true)
     public long id;
 
     @ColumnInfo(index = true)

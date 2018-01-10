@@ -28,6 +28,7 @@
 
     <!-- Messages d'erreur -->
     <string name="rechr_tuto">Entrez votre recherche …</string>
+    <string name="chargement">Chargement …</string>
     <string name="vide">Aucun résultat</string>
 
     <!-- Préférences -->

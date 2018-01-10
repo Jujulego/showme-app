@@ -284,8 +284,7 @@ public class FragmentActivity extends AppCompatActivity
     private void rafraichir() {
         if (m_status != Status.ACCUEIL && m_status != Status.RECHERCHE) return;
 
-        m_resultatFragment.setMessage("Rafraîchi !!!");
-        m_resultatFragment.setStatus(ResultatFragment.Status.MESSAGE);
+        m_resultatFragment.setStatus(ResultatFragment.Status.CHARGEMENT);
     }
 
     private void prepareFragments() {

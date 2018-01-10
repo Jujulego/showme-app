@@ -15,7 +15,7 @@ import android.arch.persistence.room.TypeConverters;
         Type.class,
         TypeLieu.class,
         Horaire.class
-}, version = 1)
+}, version = 1, exportSchema = false)
 @TypeConverters(Converters.class)
 public abstract class AppDatabase extends RoomDatabase {
     // DAOs
