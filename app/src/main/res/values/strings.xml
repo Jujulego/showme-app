@@ -4,6 +4,14 @@
 
     <!-- Pas touche ! -->
     <string name="serveur" translatable="false">showme.capellari.net</string>
+
+    <string name="url_lieux" translatable="false">https://%s/google/lieux/%f:%f/%d/</string>
+    <string name="url_lieu"  translatable="false">https://%s/google/lieu/%d/</string>
+    <string name="url_rechr" translatable="false">https://%s/google/recherche/%f:%f/%d?texte=%s;maxd=%d</string>
+
+    <string name="url_types" translatable="false">https://%s/google/types/</string>
+    <string name="url_type"  translatable="false">https://%s/google/type/%d/</string>
+
     <string name="maps_api_key" translatable="false">AIzaSyCOQnGD6l0w4IphGBtG8TPTxcoyE-Cxt9k</string>
 
     <!-- Accueil -->
