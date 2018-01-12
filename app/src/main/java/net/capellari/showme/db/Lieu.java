@@ -6,6 +6,7 @@ import android.arch.persistence.room.Entity;
 import android.arch.persistence.room.Ignore;
 import android.arch.persistence.room.Index;
 import android.arch.persistence.room.PrimaryKey;
+import android.support.annotation.NonNull;
 
 import java.net.URL;
 import java.util.Date;
@@ -22,10 +23,14 @@ public class Lieu {
     @PrimaryKey @ColumnInfo(index = true)
     public long id;
 
-    public Date date; // Date d'ajout, permet le nettoyage
-    public String nom;
-    public double note;
-    public int prix;
+    @NonNull
+    public Date date = new Date(); // Date d'ajout, permet le nettoyage
+
+    @NonNull
+    public String nom = "";
+
+    public Double note;
+    public Integer prix;
     public String telephone;
     public URL site;
     public URL photo;
@@ -33,8 +38,8 @@ public class Lieu {
     @Embedded
     public Adresse adresse;
 
-    @Embedded
-    public GeoPoint coordonnees;
+    @Embedded @NonNull
+    public GeoPoint coordonnees = new GeoPoint();
 
     // Attributs
     @Ignore
@@ -43,8 +48,8 @@ public class Lieu {
     // Classes
     public class GeoPoint {
         // Champs
-        public double latitude;
-        public double longitude;
+        public double latitude = 0.;
+        public double longitude = 0.;
     }
 
     public class Adresse {

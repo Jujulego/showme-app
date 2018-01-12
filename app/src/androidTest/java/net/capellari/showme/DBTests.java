@@ -39,6 +39,7 @@ public class DBTests {
     public void insertType() {
         Type type = new Type();
         type.id = 5;
+        type.ordre = 2;
         type.nom = "cool !";
 
         m_typeDAO.insert(type);

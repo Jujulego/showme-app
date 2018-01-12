@@ -10,6 +10,7 @@ import android.arch.persistence.room.Insert;
 import android.arch.persistence.room.PrimaryKey;
 import android.arch.persistence.room.Query;
 import android.arch.persistence.room.Update;
+import android.support.annotation.NonNull;
 
 import java.util.List;
 
@@ -35,10 +36,11 @@ public class Horaire {
     public long id;
 
     @ColumnInfo(index = true)
-    public int lieu_id;
-    public int jour;
-    public int ouverture;
-    public int fermeture;
+    public long lieu_id = -1L;
+
+    public int jour = 0;
+    public int ouverture = 0;
+    public int fermeture = 0;
 
     // DAO
     @Dao
