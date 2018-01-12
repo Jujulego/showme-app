@@ -1,5 +1,6 @@
 package net.capellari.showme;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -28,6 +29,7 @@ public class ResultatFragment extends Fragment {
     private ProgressBar m_waiter;
 
     private boolean m_init = false;
+    private CharSequence m_messagePreinit = "";
     private Status m_status = Status.VIDE;
 
     // Events
@@ -45,6 +47,7 @@ public class ResultatFragment extends Fragment {
         // Mise à l'etat
         m_init = true;
         setStatus(m_status);
+        m_message.setText(m_messagePreinit);
 
         return view;
     }
@@ -52,12 +55,20 @@ public class ResultatFragment extends Fragment {
     // Méthodes
     @SuppressWarnings("unused")
     public CharSequence getMessage() {
-        return m_message.getText();
+        if (m_init) {
+            return m_message.getText();
+        } else {
+            return m_messagePreinit;
+        }
     }
 
     @SuppressWarnings("unused")
     public void setMessage(CharSequence msg) {
-        m_message.setText(msg);
+        if (m_init) {
+            m_message.setText(msg);
+        } else {
+            m_messagePreinit = msg;
+        }
     }
 
     @SuppressWarnings("unused")

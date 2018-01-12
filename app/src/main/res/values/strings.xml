@@ -17,8 +17,11 @@
     <!-- Accueil -->
     <!-- Panneau de navigation -->
     <string name="nav_accueil">Accueil</string>
-    <string name="nav_parametres">Paramètres</string>
     <string name="nav_recherche">Recherche</string>
+
+    <string name="nav_perso">Personalisation</string>
+    <string name="nav_types">Catégories</string>
+    <string name="nav_parametres">Paramètres</string>
 
     <string name="nav_open">Ouvrir le panneau</string>
     <string name="nav_close">Fermer le panneau</string>

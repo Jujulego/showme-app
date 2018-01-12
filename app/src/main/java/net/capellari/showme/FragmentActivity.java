@@ -4,12 +4,14 @@ import android.Manifest;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.app.SearchManager;
+import android.arch.persistence.room.Room;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.location.Location;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -47,6 +49,8 @@ import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.tasks.OnSuccessListener;
 
+import net.capellari.showme.db.AppDatabase;
+
 public class FragmentActivity extends AppCompatActivity
         implements OnMapReadyCallback,
                    RayonFragment.OnRayonChangeListener,
@@ -62,6 +66,7 @@ public class FragmentActivity extends AppCompatActivity
     private static final String MAP_TAG        = "map";
     private static final String RESULTAT_TAG   = "resultat";
     private static final String RAYON_TAG      = "rayon";
+    private static final String TYPES_TAG      = "types";
     private static final String PARAMETRES_TAG = "parametres";
 
     private static final int RQ_PERM_START_LOCATION_UPDATE = 1;
@@ -69,7 +74,7 @@ public class FragmentActivity extends AppCompatActivity
 
     // Enuméraion
     enum Status {
-        VIDE, ACCUEIL, RECHERCHE, PARAMETRES
+        VIDE, ACCUEIL, RECHERCHE, TYPES, PARAMETRES
     }
 
     // Attributs
@@ -94,7 +99,11 @@ public class FragmentActivity extends AppCompatActivity
     private SupportMapFragment m_mapFragment;
     private ResultatFragment m_resultatFragment;
     private RayonFragment m_rayonFragment;
+    private TypesFragment m_typesFragment;
     private ParametresFragment m_parametresFragment;
+
+    private RequestManager m_requestManager;
+    private AppDatabase m_db;
 
     // Events
     @Override
@@ -121,6 +130,7 @@ public class FragmentActivity extends AppCompatActivity
             m_mapFragment        = (SupportMapFragment) getSupportFragmentManager().findFragmentByTag(MAP_TAG);
             m_resultatFragment   = (ResultatFragment)   getSupportFragmentManager().findFragmentByTag(RESULTAT_TAG);
             m_rayonFragment      = (RayonFragment)      getSupportFragmentManager().findFragmentByTag(RAYON_TAG);
+            m_typesFragment      = (TypesFragment)      getSupportFragmentManager().findFragmentByTag(TYPES_TAG);
             m_parametresFragment = (ParametresFragment) getSupportFragmentManager().findFragmentByTag(PARAMETRES_TAG);
         }
 
@@ -132,6 +142,12 @@ public class FragmentActivity extends AppCompatActivity
         // Mise en place de la toolbar
         setupToolbar();
         setupSearchbar();
+
+        // Initialisation gestion des requetes
+        m_requestManager = RequestManager.getInstance(this.getApplicationContext());
+
+        // Initialisation DB
+        new DBInit().execute();
     }
 
     @Override
@@ -196,6 +212,9 @@ public class FragmentActivity extends AppCompatActivity
         m_searchIcone  = m_toolbar.getMenu().findItem(R.id.nav_recherche);
         m_refreshIcone = m_toolbar.getMenu().findItem(R.id.nav_refresh);
 
+        // Mise à l'état des icones
+        majIcone();
+
         return true;
     }
 
@@ -248,8 +267,6 @@ public class FragmentActivity extends AppCompatActivity
 
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-        Log.d(TAG, key);
-
         if (key.equals(getString(R.string.pref_gps))) {
             stopLocationUpdates();
             startLocationUpdates();
@@ -272,6 +289,14 @@ public class FragmentActivity extends AppCompatActivity
 
         // Enregistrement du status
         outState.putString(STATUS, m_status.name());
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+        // Fermeture de la base
+        if (m_db != null) m_db.close();
     }
 
     // Méthodes
@@ -305,13 +330,18 @@ public class FragmentActivity extends AppCompatActivity
             m_rayonFragment = new RayonFragment();
         }
 
+        // Types
+        if (m_typesFragment == null) {
+            m_typesFragment = new TypesFragment();
+        }
+
         // Paramètres
         if (m_parametresFragment == null) {
             m_parametresFragment = new ParametresFragment();
         }
     }
     private void majIcone() {
-        boolean visible = (m_status != Status.PARAMETRES);
+        boolean visible = (m_status != Status.PARAMETRES) && (m_status != Status.TYPES);
 
         // La loupe !
         if (m_searchIcone != null) {
@@ -336,6 +366,9 @@ public class FragmentActivity extends AppCompatActivity
         switch (m_status) {
             case PARAMETRES:
                 transaction.remove(m_parametresFragment);
+
+            case TYPES:
+                transaction.remove(m_typesFragment);
 
             case VIDE:
                 transaction.add(R.id.layout_central, m_resultatFragment, RESULTAT_TAG);
@@ -371,6 +404,9 @@ public class FragmentActivity extends AppCompatActivity
             case PARAMETRES:
                 transaction.remove(m_parametresFragment);
 
+            case TYPES:
+                transaction.remove(m_typesFragment);
+
             case VIDE:
                 transaction.add(R.id.layout_central, m_resultatFragment, RESULTAT_TAG);
                 transaction.add(R.id.layout_carte, m_mapFragment, MAP_TAG);
@@ -393,6 +429,35 @@ public class FragmentActivity extends AppCompatActivity
         m_status = Status.RECHERCHE;
         majIcone();
     }
+    private void setupTypes() {
+        // Gardien
+        if (m_status == Status.TYPES) return;
+
+        // Evolution des fragments
+        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+
+        switch (m_status) {
+            case ACCUEIL:
+                transaction.remove(m_rayonFragment);
+
+            case RECHERCHE:
+                transaction.remove(m_resultatFragment);
+                transaction.remove(m_mapFragment);
+                stopLocationUpdates();
+
+            case PARAMETRES:
+                transaction.remove(m_parametresFragment);
+
+            case VIDE:
+                transaction.add(R.id.layout_full, m_typesFragment, TYPES_TAG);
+        }
+
+        transaction.commit();
+
+        // Chg de status
+        m_status = Status.TYPES;
+        majIcone();
+    }
     private void setupParametres() {
         // Gardien
         if (m_status == Status.PARAMETRES) return;
@@ -408,6 +473,9 @@ public class FragmentActivity extends AppCompatActivity
                 transaction.remove(m_resultatFragment);
                 transaction.remove(m_mapFragment);
                 stopLocationUpdates();
+
+            case TYPES:
+                transaction.remove(m_typesFragment);
 
             case VIDE:
                 transaction.add(R.id.layout_full, m_parametresFragment, PARAMETRES_TAG);
@@ -440,8 +508,8 @@ public class FragmentActivity extends AppCompatActivity
 
                 // Evolution des fragments
                 switch (item.getItemId()) {
-                    case R.id.nav_pref:
-                        setupParametres();
+                    case R.id.nav_accueil:
+                        setupAccueil();
                         ret = true;
                         break;
 
@@ -450,8 +518,13 @@ public class FragmentActivity extends AppCompatActivity
                         ret = true;
                         break;
 
-                    case R.id.nav_frag:
-                        setupAccueil();
+                    case R.id.nav_types:
+                        setupTypes();
+                        ret = true;
+                        break;
+
+                    case R.id.nav_pref:
+                        setupParametres();
                         ret = true;
                         break;
                 }
@@ -681,5 +754,26 @@ public class FragmentActivity extends AppCompatActivity
 
         // start the animation
         anim.start();
+    }
+
+    // Taches
+    class DBInit extends AsyncTask<Void,Void,AppDatabase> {
+        @Override
+        protected AppDatabase doInBackground(Void... voids) {
+            AppDatabase db = Room.databaseBuilder(
+                    FragmentActivity.this,
+                    AppDatabase.class,
+                    "showme_db"
+            ).build();
+
+            Log.i(TAG, "Database initialisée");
+
+            return db;
+        }
+
+        @Override
+        protected void onPostExecute(AppDatabase db) {
+            m_db = db;
+        }
     }
 }

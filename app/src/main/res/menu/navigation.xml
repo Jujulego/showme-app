@@ -1,14 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:id="@+id/nav_frag"
+    <item android:id="@+id/nav_accueil"
         android:icon="@drawable/ic_home_black_48dp"
-        android:title="Accueil" />
+        android:title="@string/nav_accueil" />
 
     <item android:id="@+id/nav_recherche"
         android:icon="@drawable/ic_search_black_48dp"
         android:title="@string/nav_recherche" />
 
-    <item android:id="@+id/nav_pref"
-        android:icon="@drawable/ic_settings_black_48dp"
-        android:title="@string/nav_parametres" />
+    <item android:title="@string/nav_perso">
+        <menu>
+            <item android:id="@+id/nav_types"
+                android:icon="@drawable/ic_view_list_black_48dp"
+                android:title="@string/nav_types"/>
+
+            <item android:id="@+id/nav_pref"
+                android:icon="@drawable/ic_settings_black_48dp"
+                android:title="@string/nav_parametres" />
+        </menu>
+    </item>
 </menu>
