@@ -1,6 +1,5 @@
 package net.capellari.showme;
 
-import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -10,6 +9,11 @@ import android.view.ViewGroup;
 import android.widget.ExpandableListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+
+import net.capellari.showme.db.Lieu;
+
+import java.util.Arrays;
+import java.util.LinkedList;
 
 /**
  * Created by julien on 04/01/18.
@@ -32,9 +36,10 @@ public class ResultatFragment extends Fragment {
     private CharSequence m_messagePreinit = "";
     private Status m_status = Status.VIDE;
 
+    private LinkedList<Lieu> m_lieux = new LinkedList<>();
+
     // Events
-    @Nullable
-    @Override
+    @Nullable @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, Bundle savedInstanceState) {
         // Ajout du layout
         View view = inflater.inflate(R.layout.fragment_resultat, container, false);
@@ -53,6 +58,28 @@ public class ResultatFragment extends Fragment {
     }
 
     // Méthodes
+    public void indetermine() {
+        m_waiter.setIndeterminate(true);
+        m_message.setText(R.string.chargement_indetermine);
+    }
+    public void initProgress(int max) {
+        m_waiter.setMax(max);
+        m_waiter.setProgress(0);
+        m_waiter.setIndeterminate(false);
+
+        m_message.setText(getString(R.string.chargement_determine, m_waiter.getProgress(), m_waiter.getMax()));
+    }
+    public void incrementProgress(int diff) {
+        m_waiter.incrementProgressBy(diff);
+
+        m_message.setText(getString(R.string.chargement_determine, m_waiter.getProgress(), m_waiter.getMax()));
+    }
+    public void incrementProgressMax(int diff) {
+        m_waiter.setMax(m_waiter.getMax() + diff);
+
+        m_message.setText(getString(R.string.chargement_determine, m_waiter.getProgress(), m_waiter.getMax()));
+    }
+
     @SuppressWarnings("unused")
     public CharSequence getMessage() {
         if (m_init) {
@@ -61,7 +88,6 @@ public class ResultatFragment extends Fragment {
             return m_messagePreinit;
         }
     }
-
     @SuppressWarnings("unused")
     public void setMessage(CharSequence msg) {
         if (m_init) {
@@ -69,6 +95,21 @@ public class ResultatFragment extends Fragment {
         } else {
             m_messagePreinit = msg;
         }
+    }
+
+    public void clearLieux() {
+        m_lieux.clear();
+    }
+    public void ajouterLieu(Lieu lieu) {
+        m_lieux.add(lieu);
+        incrementProgress(1);
+    }
+    public void ajouterLieux(Lieu... lieux) {
+        m_lieux.addAll(Arrays.asList(lieux));
+        incrementProgress(lieux.length);
+    }
+    public boolean plein() {
+        return m_waiter.getMax() == m_lieux.size();
     }
 
     @SuppressWarnings("unused")
@@ -87,8 +128,7 @@ public class ResultatFragment extends Fragment {
                 m_waiter.setVisibility(View.VISIBLE);
                 m_message.setVisibility(View.VISIBLE);
 
-                m_message.setText(R.string.chargement);
-                m_message.setTextAlignment(View.TEXT_ALIGNMENT_INHERIT);
+                indetermine();
 
                 break;
 
@@ -102,8 +142,6 @@ public class ResultatFragment extends Fragment {
                 m_liste.setVisibility(View.GONE);
                 m_waiter.setVisibility(View.GONE);
                 m_message.setVisibility(View.VISIBLE);
-
-                m_message.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
 
                 break;
 

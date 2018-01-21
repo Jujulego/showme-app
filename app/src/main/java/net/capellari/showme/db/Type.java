@@ -1,14 +1,21 @@
 package net.capellari.showme.db;
 
+import android.arch.lifecycle.LiveData;
 import android.arch.persistence.room.ColumnInfo;
 import android.arch.persistence.room.Dao;
 import android.arch.persistence.room.Entity;
 import android.arch.persistence.room.Index;
 import android.arch.persistence.room.Insert;
+import android.arch.persistence.room.OnConflictStrategy;
 import android.arch.persistence.room.PrimaryKey;
 import android.arch.persistence.room.Query;
+import android.arch.persistence.room.Update;
 import android.support.annotation.NonNull;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -22,20 +29,36 @@ public class Type {
     // Champs
     @PrimaryKey @ColumnInfo(index = true)
     public long id;
+    public Integer ordre;
 
-    @NonNull
-    public String nom = "";
-    public int ordre;
+    @NonNull public String nom = "";
+    @NonNull public String pluriel = "";
+
+    // Constructeur
+    public Type() {}
+    public Type(JSONObject obj) throws JSONException {
+        id      = obj.getInt("id");
+        nom     = obj.getString("nom");
+        pluriel = obj.getString("pluriel");
+    }
 
     // DAO
     @Dao
     public interface TypeDAO {
         // Accès
         @Query("select * from Type order by ordre")
-        List<Type> recup();
+        LiveData<List<Type>> recup();
+
+        @Query("select * from Type where id == :id")
+        Type recup(long id);
+
+        @Query("select distinct Type.* from TypeLieu join Type on type_id = Type.id where lieu_id in (:lieux) order by Type.ordre")
+        List<Type> recup(List<Long> lieux);
 
         // Edition
-        @Insert
-        List<Long> insert(Type... types);
+        @Insert(onConflict = OnConflictStrategy.REPLACE)
+        List<Long> insert(Collection<Type> types);
+
+        @Update void maj(Type type);
     }
 }

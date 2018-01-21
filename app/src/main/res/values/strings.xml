@@ -39,7 +39,8 @@
 
     <!-- Messages d'erreur -->
     <string name="rechr_tuto">Entrez votre recherche …</string>
-    <string name="chargement">Chargement …</string>
+    <string name="chargement_indetermine">Chargement …</string>
+    <string name="chargement_determine">Chargement (%d / %d)</string>
     <string name="vide">Aucun résultat</string>
 
     <!-- Préférences -->
@@ -47,11 +48,13 @@
     <string name="pref_rayon" translatable="false">RAYON</string>
     <string name="pref_rayon_max" translatable="false">RAYON MAX</string>
     <string name="pref_gps" translatable="false">GPS</string>
+    <string name="pref_internet" translatable="false">INTERNET</string>
 
     <!-- Texte -->
     <string name="pref_cat_recherche">Rayon de recherche</string>
     <string name="pref_txt_rayon_max">Rayon maximal</string>
 
     <string name="pref_cat_energie">Energie</string>
+    <string name="pref_txt_internet">Réduire Internet</string>
     <string name="pref_txt_gps">GPS</string>
 </resources>

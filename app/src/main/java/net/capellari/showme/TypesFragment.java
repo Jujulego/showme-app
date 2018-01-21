@@ -1,5 +1,7 @@
 package net.capellari.showme;
 
+import android.arch.lifecycle.LiveData;
+import android.arch.lifecycle.Observer;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -10,9 +12,13 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import net.capellari.showme.db.Type;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Created by julien on 12/01/18.
@@ -22,34 +28,31 @@ import java.util.Collections;
 
 public class TypesFragment extends Fragment {
     // Attributs
+    private TypesAdapter m_adapter;
     private RecyclerView m_recycler;
 
     // Events
-    @Nullable
-    @Override
+    @Nullable @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_types, container, false);
-
-        // Test data
-        ArrayList<String> types = new ArrayList<>();
-        types.add("item 1");
-        types.add("item 2");
-        types.add("item 3");
-        types.add("item 4");
-        types.add("item 5");
-        types.add("item 6");
 
         // Récupération des vues
         m_recycler = view.findViewById(R.id.recycler);
 
-        TypesAdapter adapter = new TypesAdapter(types);
-        m_recycler.setAdapter(adapter);
+        if (m_adapter == null) m_adapter = new TypesAdapter();
+        m_recycler.setAdapter(m_adapter);
 
-        ItemTouchHelper.Callback callback = new TypesTouchCallback(adapter);
+        ItemTouchHelper.Callback callback = new TypesTouchCallback(m_adapter);
         ItemTouchHelper touchHelper = new ItemTouchHelper(callback);
         touchHelper.attachToRecyclerView(m_recycler);
 
         return view;
+    }
+
+    // Méthodes
+    public TypesAdapter getAdapter() {
+        if (m_adapter == null) m_adapter = new TypesAdapter();
+        return m_adapter;
     }
 
     // Classes
@@ -67,12 +70,11 @@ public class TypesFragment extends Fragment {
     }
     class TypesAdapter extends RecyclerView.Adapter<TypeViewHolder> {
         // Attributs
-        private ArrayList<String> m_types = new ArrayList<>();
+        private LiveData<List<Type>> m_livedata;
+        private List<Type> m_types = new LinkedList<>();
 
         // Constructeur
-        public TypesAdapter(Collection<String> types) {
-            m_types.addAll(types);
-        }
+        public TypesAdapter() {}
 
         // Events
         @Override
@@ -83,7 +85,7 @@ public class TypesFragment extends Fragment {
 
         @Override
         public void onBindViewHolder(TypeViewHolder holder, int position) {
-            holder.nom.setText(m_types.get(position));
+            holder.nom.setText(m_types.get(position).nom);
         }
 
         public boolean onItemMove(int from, int to) {
@@ -105,6 +107,19 @@ public class TypesFragment extends Fragment {
         @Override
         public int getItemCount() {
             return m_types.size();
+        }
+
+        public void setLiveData(LiveData<List<Type>> livedata) {
+            if (m_livedata != null) m_livedata.removeObservers(TypesFragment.this);
+
+            m_livedata = livedata;
+            m_livedata.observe(TypesFragment.this, new Observer<List<Type>>() {
+                @Override
+                public void onChanged(@Nullable List<Type> types) {
+                    m_types = types;
+                    notifyDataSetChanged();
+                }
+            });
         }
     }
     class TypesTouchCallback extends ItemTouchHelper.Callback {

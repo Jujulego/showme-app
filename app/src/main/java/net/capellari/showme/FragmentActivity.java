@@ -36,6 +36,10 @@ import android.view.ViewAnimationUtils;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonArrayRequest;
+import com.android.volley.toolbox.JsonObjectRequest;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
@@ -50,6 +54,17 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.tasks.OnSuccessListener;
 
 import net.capellari.showme.db.AppDatabase;
+import net.capellari.showme.db.Lieu;
+import net.capellari.showme.db.Type;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Locale;
 
 public class FragmentActivity extends AppCompatActivity
         implements OnMapReadyCallback,
@@ -69,8 +84,7 @@ public class FragmentActivity extends AppCompatActivity
     private static final String TYPES_TAG      = "types";
     private static final String PARAMETRES_TAG = "parametres";
 
-    private static final int RQ_PERM_START_LOCATION_UPDATE = 1;
-    private static final int RQ_PERM_CENTRER_CARTE = 2;
+    private static final int RQ_PERM_LOCATION = 1;
 
     // Enuméraion
     enum Status {
@@ -87,6 +101,12 @@ public class FragmentActivity extends AppCompatActivity
 
     private DrawerLayout m_drawerLayout;
     private ActionBarDrawerToggle m_drawerToggle;
+
+    // Fonctions en attente
+    private boolean m_permDemandee = false;
+    private boolean m_startLocationUpdate = false;
+    private boolean m_rafraichir = false;
+    private boolean m_centrerCarte = false;
 
     private boolean m_locationStarted = false;
     private LocationCallback m_locationCallback;
@@ -187,17 +207,19 @@ public class FragmentActivity extends AppCompatActivity
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         switch (requestCode) {
-            case RQ_PERM_START_LOCATION_UPDATE:
+            case RQ_PERM_LOCATION:
                 if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    startLocationUpdates();
+                    // Execution !
+                    if (m_startLocationUpdate) startLocationUpdates();
+                    if (m_centrerCarte) centrerCarte();
+                    if (m_rafraichir)   rafraichir();
                 }
 
-                break;
-
-            case RQ_PERM_CENTRER_CARTE:
-                if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    centrerCarte();
-                }
+                // Reset
+                m_permDemandee = false;
+                m_startLocationUpdate = false;
+                m_centrerCarte = false;
+                m_rafraichir   = false;
 
                 break;
         }
@@ -309,7 +331,74 @@ public class FragmentActivity extends AppCompatActivity
     private void rafraichir() {
         if (m_status != Status.ACCUEIL && m_status != Status.RECHERCHE) return;
 
-        m_resultatFragment.setStatus(ResultatFragment.Status.CHARGEMENT);
+        // Récupération de la postion
+        if (checkLocationPermission()) {
+            m_map.setMyLocationEnabled(true);
+
+            m_locationClient.getLastLocation().addOnSuccessListener(new OnSuccessListener<Location>() {
+                @Override
+                public void onSuccess(Location location) {
+                    // Gardien
+                    if (location == null) return;
+
+                    // Chargement ...
+                    m_resultatFragment.setStatus(ResultatFragment.Status.CHARGEMENT);
+                    m_resultatFragment.indetermine();
+                    m_resultatFragment.clearLieux();
+
+                    getLieux(location, m_rayonFragment.get_rayon());
+                }
+            });
+        } else {
+            m_rafraichir = true;
+        }
+    }
+
+    private void getTypes() {
+        // Check pref
+        if (m_preferences.getBoolean(getString(R.string.pref_internet), false)) return;
+
+        // Requete
+        m_requestManager.addRequest(new JsonArrayRequest(getString(R.string.url_types, getString(R.string.serveur)), new Response.Listener<JSONArray>() {
+            @Override
+            public void onResponse(JSONArray reponse) {
+                LinkedList<Type> types = new LinkedList<>();
+
+                // Création des objets
+                for (int i = 0; i < reponse.length(); ++i) {
+                    try {
+                        types.add(new Type(reponse.getJSONObject(i)));
+
+                    } catch (JSONException err) {
+                        Log.e(TAG, "Erreur JSON types", err);
+                    }
+                }
+
+                // Log
+                Log.i(TAG, "Types mis à jour !");
+
+                // Ajout au fragment
+                new AsyncTask<List<Type>,Void,Void>() {
+                    @Override
+                    protected Void doInBackground(List<Type>... types) {
+                        m_db.getTypeDAO().insert(types[0]);
+                        return null;
+                    }
+                }.execute(types);
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Log.w(TAG, error.toString());
+            }
+        }));
+    }
+    private void getLieux(Location location, int rayon) {
+        // Check pref
+        if (m_preferences.getBoolean(getString(R.string.pref_internet), false)) return;
+
+        // Requete
+        m_requestManager.addRequest(new LieuxRequete(location, rayon));
     }
 
     private void prepareFragments() {
@@ -643,7 +732,7 @@ public class FragmentActivity extends AppCompatActivity
         if (m_map == null) return;
 
         // Centrage !
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+        if (checkLocationPermission()) {
             m_map.setMyLocationEnabled(true);
 
             m_locationClient.getLastLocation().addOnSuccessListener(new OnSuccessListener<Location>() {
@@ -662,14 +751,31 @@ public class FragmentActivity extends AppCompatActivity
                 }
             });
         } else {
-            // On demande gentillement !
-            ActivityCompat.requestPermissions(this,
-                    new String[] { Manifest.permission.ACCESS_FINE_LOCATION },
-                    RQ_PERM_CENTRER_CARTE
-            );
+            m_centrerCarte = true;
         }
     }
 
+    private boolean checkLocationPermission() {
+        // Préférence
+        boolean gps = m_preferences.getBoolean(getString(R.string.pref_gps), true);
+        String permission = gps ? Manifest.permission.ACCESS_FINE_LOCATION : Manifest.permission.ACCESS_COARSE_LOCATION;
+
+        // Test
+        if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
+            if (!m_permDemandee) {
+                // On demande gentillement !
+                ActivityCompat.requestPermissions(this,
+                        new String[]{permission}, RQ_PERM_LOCATION
+                );
+
+                m_permDemandee = true;
+            }
+
+            return false;
+        }
+
+        return true;
+    }
     private void startLocationUpdates() {
         // Gardien
         if (m_locationStarted) return;
@@ -683,15 +789,11 @@ public class FragmentActivity extends AppCompatActivity
         rq.setPriority(gps ? LocationRequest.PRIORITY_HIGH_ACCURACY : LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
 
         // Activation !
-        if (!gps || ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+        if (checkLocationPermission()) {
             m_locationClient.requestLocationUpdates(rq, m_locationCallback, null);
             m_locationStarted = true;
         } else {
-            // On demande gentillement !
-            ActivityCompat.requestPermissions(this,
-                    new String[] { Manifest.permission.ACCESS_FINE_LOCATION },
-                    RQ_PERM_START_LOCATION_UPDATE
-            );
+            m_startLocationUpdate = true;
         }
     }
     private void stopLocationUpdates() {
@@ -763,10 +865,12 @@ public class FragmentActivity extends AppCompatActivity
             AppDatabase db = Room.databaseBuilder(
                     FragmentActivity.this,
                     AppDatabase.class,
-                    "showme_db"
+                    "showme.db"
             ).build();
 
             Log.i(TAG, "Database initialisée");
+
+            m_typesFragment.getAdapter().setLiveData(db.getTypeDAO().recup());
 
             return db;
         }
@@ -774,6 +878,128 @@ public class FragmentActivity extends AppCompatActivity
         @Override
         protected void onPostExecute(AppDatabase db) {
             m_db = db;
+            getTypes();
+        }
+    }
+
+    class LieuxRequete extends JsonArrayRequest {
+        public LieuxRequete(Location location, int rayon) {
+            super(
+                    String.format(Locale.US, getString(R.string.url_lieux),
+                            getString(R.string.serveur),
+                            location.getLongitude(), location.getLatitude(),
+                            rayon
+                    ),
+                    new Response.Listener<JSONArray>() {
+                        @Override
+                        public void onResponse(JSONArray reponse) {
+                            Long[] ids = new Long[reponse.length()];
+                            m_resultatFragment.initProgress(reponse.length());
+
+                            // Récupération des IDs
+                            for (int i = 0; i < reponse.length(); ++i) {
+                                try {
+                                    ids[i] = reponse.getLong(i);
+
+                                } catch (JSONException err) {
+                                    ids[i] = null;
+                                    m_resultatFragment.incrementProgressMax(-1);
+
+                                    Log.e(TAG, "Erreur JSON lieux", err);
+                                }
+                            }
+
+                            // Tache
+                            new LieuxTask().execute(ids);
+                        }
+                    }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    Log.w(TAG, error.toString());
+                }
+            }
+            );
+        }
+    }
+    class LieuRequete<Progress,Result> extends JsonObjectRequest {
+        public LieuRequete(final long id, final AsyncTask<JSONObject,Progress,Result> task) {
+            super(Method.GET, getString(R.string.url_lieu, getString(R.string.serveur), id), new JSONObject(), new Response.Listener<JSONObject>() {
+                @Override
+                public void onResponse(JSONObject reponse) {
+                    task.execute(reponse);
+                }
+            }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    Log.w(TAG, error.toString());
+
+                    // Il ne sera pas récupéré
+                    m_resultatFragment.incrementProgress(1);
+                    if (m_resultatFragment.plein()) m_resultatFragment.setStatus(ResultatFragment.Status.LISTE);
+                }
+            });
+        }
+    }
+
+    class LieuxTask extends AsyncTask<Long,Lieu,Void> {
+        @Override
+        protected Void doInBackground(Long... ids) {
+            // Extraction de tous ceux qui existent dans la db
+            LinkedList<Long> list = new LinkedList<>(Arrays.asList(ids));
+            List<Lieu> lieux = m_db.getLieuDAO().recup(ids);
+
+            for (Lieu l : lieux) {
+                list.remove(l.id);
+            }
+            publishProgress(lieux.toArray(new Lieu[lieux.size()]));
+
+            // Récupération des autres
+            for (Long id : list) {
+                if (id == null) continue;
+                m_requestManager.addRequest(new LieuRequete<>(id, new LieuTask()));
+            }
+
+            return null;
+        }
+
+        @Override
+        protected void onProgressUpdate(Lieu... lieux) {
+            m_resultatFragment.ajouterLieux(lieux);
+        }
+
+        @Override
+        protected void onPostExecute(Void v) {
+            // Fini ?
+            if (m_resultatFragment.plein()) m_resultatFragment.setStatus(ResultatFragment.Status.LISTE);
+        }
+    }
+    class LieuTask extends AsyncTask<JSONObject,Lieu,Void> {
+        @Override
+        protected Void doInBackground(JSONObject... objets) {
+            // Construction des objets
+            Lieu[] lieux = new Lieu[objets.length];
+
+            for (int i = 0; i < objets.length; ++i) {
+                try {
+                    lieux[i] = new Lieu(FragmentActivity.this, m_db.getTypeDAO(), objets[i]);
+                } catch (JSONException err) {
+                    Log.e(TAG, "Erreur JSON lieu", err);
+                }
+            }
+
+            // Ajout à la base
+            m_db.getLieuDAO().ajouter(lieux);
+            publishProgress(lieux);
+
+            return null;
+        }
+
+        @Override
+        protected void onProgressUpdate(Lieu... lieux) {
+            m_resultatFragment.ajouterLieux(lieux);
+
+            // Fini ?
+            if (m_resultatFragment.plein()) m_resultatFragment.setStatus(ResultatFragment.Status.LISTE);
         }
     }
 }
