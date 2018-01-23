@@ -52,13 +52,21 @@ public class Type {
         @Query("select * from Type where id == :id")
         Type recup(long id);
 
-        @Query("select distinct Type.* from TypeLieu join Type on type_id = Type.id where lieu_id in (:lieux) order by Type.ordre")
-        List<Type> recup(List<Long> lieux);
+        @Query("select Type.id,Type.nom,Type.pluriel,count(distinct TypeLieu.lieu_id) as nb_lieux from TypeLieu join Type on type_id = Type.id where lieu_id in (:lieux) group by Type.id order by Type.ordre")
+        TypeNb[] recupTypes(List<Long> lieux);
 
         // Edition
         @Insert(onConflict = OnConflictStrategy.REPLACE)
-        List<Long> insert(Collection<Type> types);
+        List<Long> insert(Type... types);
 
         @Update void maj(Type type);
+    }
+
+    // Pojo retour
+    public static class TypeNb {
+        public long id;
+        public String nom;
+        public String pluriel;
+        public int nb_lieux;
     }
 }

@@ -10,7 +10,6 @@
     <string name="url_rechr" translatable="false">https://%s/google/recherche/%f:%f/%d?texte=%s;maxd=%d</string>
 
     <string name="url_types" translatable="false">https://%s/google/types/</string>
-    <string name="url_type"  translatable="false">https://%s/google/type/%d/</string>
 
     <string name="maps_api_key" translatable="false">AIzaSyCOQnGD6l0w4IphGBtG8TPTxcoyE-Cxt9k</string>
 
@@ -35,20 +34,20 @@
     <!-- Recherches -->
     <!-- Champ de texte -->
     <string name="champ_hint">Quoi ?</string>
-    <string name="rechr_btn">Rechercher</string>
 
     <!-- Messages d'erreur -->
     <string name="rechr_tuto">Entrez votre recherche …</string>
     <string name="chargement_indetermine">Chargement …</string>
     <string name="chargement_determine">Chargement (%d / %d)</string>
     <string name="vide">Aucun résultat</string>
+    <string name="erreur">Erreur !</string>
 
     <!-- Préférences -->
     <!-- Rayon -->
-    <string name="pref_rayon" translatable="false">RAYON</string>
+    <string name="pref_rayon"     translatable="false">RAYON</string>
     <string name="pref_rayon_max" translatable="false">RAYON MAX</string>
-    <string name="pref_gps" translatable="false">GPS</string>
-    <string name="pref_internet" translatable="false">INTERNET</string>
+    <string name="pref_gps"       translatable="false">GPS</string>
+    <string name="pref_internet"  translatable="false">INTERNET</string>
 
     <!-- Texte -->
     <string name="pref_cat_recherche">Rayon de recherche</string>

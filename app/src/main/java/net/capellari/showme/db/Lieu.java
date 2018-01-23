@@ -60,7 +60,7 @@ public class Lieu {
 
     // Attributs
     @Ignore public double distance;
-    @Ignore public LinkedList<Type> types = new LinkedList<>();
+    @Ignore public List<Type> types = new LinkedList<>();
 
     // Constructeur
     public Lieu() {}
@@ -131,8 +131,11 @@ public class Lieu {
     @Dao
     public static abstract class LieuDAO {
         // Acces
-        @Query("select * from Lieu where id == :id") public abstract Lieu recup(long id);
-        @Query("select * from Lieu where id in (:ids)") public abstract List<Lieu> recup(Long[] ids);
+        @Query("select * from Lieu where id == :id")
+        protected abstract Lieu select(long id);
+
+        @Query("select Type.* from TypeLieu join Type on TypeLieu.type_id == Type.id where lieu_id == :id")
+        protected abstract List<Type> selectTypes(long id);
 
         // Modif
         @Insert(onConflict = OnConflictStrategy.REPLACE)
@@ -140,6 +143,26 @@ public class Lieu {
 
         @Insert
         protected abstract void ajoutLienType(TypeLieu typeLieu);
+
+        // Generales
+        public Lieu recup(long id) {
+            Lieu lieu = select(id);
+
+            // Récupération des types
+            if (lieu != null) lieu.types = selectTypes(id);
+
+            return lieu;
+        }
+        public List<Lieu> recup(Long... ids) {
+            List<Lieu> lieux = new LinkedList<>();
+
+            for (Long id : ids) {
+                Lieu lieu = recup(id);
+                if (lieu != null) lieux.add(lieu);
+            }
+
+            return lieux;
+        }
 
         public void ajouter(Lieu... lieux) {
             // Ajout à la base

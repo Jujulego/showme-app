@@ -3,6 +3,7 @@ package net.capellari.showme;
 import android.Manifest;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
+import android.annotation.SuppressLint;
 import android.app.SearchManager;
 import android.arch.persistence.room.Room;
 import android.content.Context;
@@ -25,6 +26,7 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.app.AppCompatDelegate;
 import android.support.v7.preference.PreferenceManager;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
@@ -61,6 +63,9 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URL;
+import java.net.URLEncoder;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
@@ -104,9 +109,10 @@ public class FragmentActivity extends AppCompatActivity
 
     // Fonctions en attente
     private boolean m_permDemandee = false;
-    private boolean m_startLocationUpdate = false;
-    private boolean m_rafraichir = false;
     private boolean m_centrerCarte = false;
+    private boolean m_rafraichir   = false;
+    private String  m_rechercher   = null;
+    private boolean m_startLocationUpdate = false;
 
     private boolean m_locationStarted = false;
     private LocationCallback m_locationCallback;
@@ -124,6 +130,10 @@ public class FragmentActivity extends AppCompatActivity
 
     private RequestManager m_requestManager;
     private AppDatabase m_db;
+
+    static {
+        AppCompatDelegate.setCompatVectorFromResourcesEnabled(true);
+    }
 
     // Events
     @Override
@@ -210,16 +220,18 @@ public class FragmentActivity extends AppCompatActivity
             case RQ_PERM_LOCATION:
                 if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     // Execution !
-                    if (m_startLocationUpdate) startLocationUpdates();
                     if (m_centrerCarte) centrerCarte();
                     if (m_rafraichir)   rafraichir();
+                    if (m_rechercher != null) rechercher(m_rechercher);
+                    if (m_startLocationUpdate) startLocationUpdates();
                 }
 
                 // Reset
                 m_permDemandee = false;
-                m_startLocationUpdate = false;
                 m_centrerCarte = false;
                 m_rafraichir   = false;
+                m_rechercher   = null;
+                m_startLocationUpdate = false;
 
                 break;
         }
@@ -322,11 +334,30 @@ public class FragmentActivity extends AppCompatActivity
     }
 
     // Méthodes
-    private void rechercher(String query) {
+    private void rechercher(final String query) {
         if (m_status != Status.ACCUEIL && m_status != Status.RECHERCHE) return;
 
-        m_resultatFragment.setMessage(query);
-        m_resultatFragment.setStatus(ResultatFragment.Status.MESSAGE);
+        // Récupération de la postion
+        if (checkLocationPermission()) {
+            m_map.setMyLocationEnabled(true);
+
+            m_locationClient.getLastLocation().addOnSuccessListener(new OnSuccessListener<Location>() {
+                @Override
+                public void onSuccess(Location location) {
+                    // Gardien
+                    if (location == null) return;
+
+                    // Chargement ...
+                    m_resultatFragment.setStatus(ResultatFragment.Status.CHARGEMENT);
+                    m_resultatFragment.indetermine();
+                    m_resultatFragment.clearLieux();
+
+                    getLieux(location, m_rayonFragment.get_rayon(), query);
+                }
+            });
+        } else {
+            m_rechercher = query;
+        }
     }
     private void rafraichir() {
         if (m_status != Status.ACCUEIL && m_status != Status.RECHERCHE) return;
@@ -354,6 +385,7 @@ public class FragmentActivity extends AppCompatActivity
         }
     }
 
+    @SuppressLint("StaticFieldLeak")
     private void getTypes() {
         // Check pref
         if (m_preferences.getBoolean(getString(R.string.pref_internet), false)) return;
@@ -362,12 +394,12 @@ public class FragmentActivity extends AppCompatActivity
         m_requestManager.addRequest(new JsonArrayRequest(getString(R.string.url_types, getString(R.string.serveur)), new Response.Listener<JSONArray>() {
             @Override
             public void onResponse(JSONArray reponse) {
-                LinkedList<Type> types = new LinkedList<>();
+                Type[] types = new Type[reponse.length()];
 
                 // Création des objets
                 for (int i = 0; i < reponse.length(); ++i) {
                     try {
-                        types.add(new Type(reponse.getJSONObject(i)));
+                        types[i] = new Type(reponse.getJSONObject(i));
 
                     } catch (JSONException err) {
                         Log.e(TAG, "Erreur JSON types", err);
@@ -378,10 +410,10 @@ public class FragmentActivity extends AppCompatActivity
                 Log.i(TAG, "Types mis à jour !");
 
                 // Ajout au fragment
-                new AsyncTask<List<Type>,Void,Void>() {
+                new AsyncTask<Type,Void,Void>() {
                     @Override
-                    protected Void doInBackground(List<Type>... types) {
-                        m_db.getTypeDAO().insert(types[0]);
+                    protected Void doInBackground(Type... types) {
+                        m_db.getTypeDAO().insert(types);
                         return null;
                     }
                 }.execute(types);
@@ -399,6 +431,17 @@ public class FragmentActivity extends AppCompatActivity
 
         // Requete
         m_requestManager.addRequest(new LieuxRequete(location, rayon));
+    }
+    private void getLieux(Location location, int rayon, String query) {
+        // Check pref
+        if (m_preferences.getBoolean(getString(R.string.pref_internet), false)) return;
+
+        // Requete
+        try {
+            m_requestManager.addRequest(new LieuxRequete(location, rayon, query));
+        } catch (UnsupportedEncodingException err) {
+            Log.w(TAG, "Erreur !", err);
+        }
     }
 
     private void prepareFragments() {
@@ -462,12 +505,10 @@ public class FragmentActivity extends AppCompatActivity
             case VIDE:
                 transaction.add(R.id.layout_central, m_resultatFragment, RESULTAT_TAG);
                 transaction.add(R.id.layout_carte, m_mapFragment, MAP_TAG);
+                transaction.add(R.id.layout_rayon, m_rayonFragment, RAYON_TAG);
 
                 m_mapFragment.getMapAsync(this);
                 startLocationUpdates();
-
-            case RECHERCHE:
-                transaction.add(R.id.layout_rayon, m_rayonFragment, RAYON_TAG);
         }
 
         m_resultatFragment.setStatus(ResultatFragment.Status.VIDE);
@@ -499,14 +540,12 @@ public class FragmentActivity extends AppCompatActivity
             case VIDE:
                 transaction.add(R.id.layout_central, m_resultatFragment, RESULTAT_TAG);
                 transaction.add(R.id.layout_carte, m_mapFragment, MAP_TAG);
+                transaction.add(R.id.layout_rayon, m_rayonFragment, RAYON_TAG);
 
                 m_mapFragment.getMapAsync(this);
                 startLocationUpdates();
 
                 break;
-
-            case ACCUEIL:
-                transaction.remove(m_rayonFragment);
         }
 
         m_resultatFragment.setMessage(getString(R.string.rechr_tuto));
@@ -527,9 +566,8 @@ public class FragmentActivity extends AppCompatActivity
 
         switch (m_status) {
             case ACCUEIL:
-                transaction.remove(m_rayonFragment);
-
             case RECHERCHE:
+                transaction.remove(m_rayonFragment);
                 transaction.remove(m_resultatFragment);
                 transaction.remove(m_mapFragment);
                 stopLocationUpdates();
@@ -556,9 +594,8 @@ public class FragmentActivity extends AppCompatActivity
 
         switch (m_status) {
             case ACCUEIL:
-                transaction.remove(m_rayonFragment);
-
             case RECHERCHE:
+                transaction.remove(m_rayonFragment);
                 transaction.remove(m_resultatFragment);
                 transaction.remove(m_mapFragment);
                 stopLocationUpdates();
@@ -859,6 +896,7 @@ public class FragmentActivity extends AppCompatActivity
     }
 
     // Taches
+    @SuppressLint("StaticFieldLeak")
     class DBInit extends AsyncTask<Void,Void,AppDatabase> {
         @Override
         protected AppDatabase doInBackground(Void... voids) {
@@ -883,42 +921,55 @@ public class FragmentActivity extends AppCompatActivity
     }
 
     class LieuxRequete extends JsonArrayRequest {
-        public LieuxRequete(Location location, int rayon) {
-            super(
-                    String.format(Locale.US, getString(R.string.url_lieux),
-                            getString(R.string.serveur),
-                            location.getLongitude(), location.getLatitude(),
-                            rayon
-                    ),
-                    new Response.Listener<JSONArray>() {
+        protected  LieuxRequete(String url) {
+            super(url, new Response.Listener<JSONArray>() {
                         @Override
                         public void onResponse(JSONArray reponse) {
-                            Long[] ids = new Long[reponse.length()];
-                            m_resultatFragment.initProgress(reponse.length());
+                    Long[] ids = new Long[reponse.length()];
+                    m_resultatFragment.initProgress(reponse.length());
 
-                            // Récupération des IDs
-                            for (int i = 0; i < reponse.length(); ++i) {
-                                try {
-                                    ids[i] = reponse.getLong(i);
+                    // Récupération des IDs
+                    for (int i = 0; i < reponse.length(); ++i) {
+                        try {
+                            ids[i] = reponse.getLong(i);
 
-                                } catch (JSONException err) {
-                                    ids[i] = null;
-                                    m_resultatFragment.incrementProgressMax(-1);
+                        } catch (JSONException err) {
+                            ids[i] = null;
+                            m_resultatFragment.incrementProgress(1);
 
-                                    Log.e(TAG, "Erreur JSON lieux", err);
-                                }
-                            }
-
-                            // Tache
-                            new LieuxTask().execute(ids);
+                            Log.e(TAG, "Erreur JSON lieux", err);
                         }
-                    }, new Response.ErrorListener() {
+                    }
+
+                    // Tache
+                    new LieuxTask().execute(ids);
+                }
+            }, new Response.ErrorListener() {
                 @Override
                 public void onErrorResponse(VolleyError error) {
                     Log.w(TAG, error.toString());
+
+                    // Message d'erreur
+                    m_resultatFragment.setMessage(getString(R.string.erreur));
+                    m_resultatFragment.setStatus(ResultatFragment.Status.MESSAGE);
                 }
-            }
-            );
+            });
+        }
+
+        public LieuxRequete(Location location, int rayon) {
+            this(String.format(Locale.US, getString(R.string.url_lieux),
+                    getString(R.string.serveur),
+                    location.getLongitude(), location.getLatitude(),
+                    rayon
+            ));
+        }
+
+        public LieuxRequete(Location location, int rayon, String query) throws UnsupportedEncodingException {
+            this(String.format(Locale.US, getString(R.string.url_rechr),
+                    getString(R.string.serveur),
+                    location.getLongitude(), location.getLatitude(),
+                    rayon, URLEncoder.encode(query, "UTF-8"), query.length() / 2
+            ));
         }
     }
     class LieuRequete<Progress,Result> extends JsonObjectRequest {
@@ -935,22 +986,28 @@ public class FragmentActivity extends AppCompatActivity
 
                     // Il ne sera pas récupéré
                     m_resultatFragment.incrementProgress(1);
-                    if (m_resultatFragment.plein()) m_resultatFragment.setStatus(ResultatFragment.Status.LISTE);
+                    if (m_resultatFragment.plein()) {
+                        m_resultatFragment.majListe(m_db.getTypeDAO());
+                        m_resultatFragment.setStatus(ResultatFragment.Status.LISTE);
+                    }
                 }
             });
         }
     }
 
-    class LieuxTask extends AsyncTask<Long,Lieu,Void> {
+    @SuppressLint("StaticFieldLeak")
+    class LieuxTask extends AsyncTask<Long,Lieu,Integer> {
         @Override
-        protected Void doInBackground(Long... ids) {
+        protected Integer doInBackground(Long... ids) {
             // Extraction de tous ceux qui existent dans la db
             LinkedList<Long> list = new LinkedList<>(Arrays.asList(ids));
             List<Lieu> lieux = m_db.getLieuDAO().recup(ids);
+            int nb = lieux.size();
 
             for (Lieu l : lieux) {
                 list.remove(l.id);
             }
+
             publishProgress(lieux.toArray(new Lieu[lieux.size()]));
 
             // Récupération des autres
@@ -959,7 +1016,7 @@ public class FragmentActivity extends AppCompatActivity
                 m_requestManager.addRequest(new LieuRequete<>(id, new LieuTask()));
             }
 
-            return null;
+            return nb;
         }
 
         @Override
@@ -968,11 +1025,22 @@ public class FragmentActivity extends AppCompatActivity
         }
 
         @Override
-        protected void onPostExecute(Void v) {
+        protected void onPostExecute(Integer nb) {
             // Fini ?
-            if (m_resultatFragment.plein()) m_resultatFragment.setStatus(ResultatFragment.Status.LISTE);
+            if (nb == 0) {
+                m_resultatFragment.setMessage(getString(R.string.vide));
+                m_resultatFragment.setStatus(ResultatFragment.Status.MESSAGE);
+
+            } else {
+                if (m_resultatFragment.plein()) {
+                    m_resultatFragment.majListe(m_db.getTypeDAO());
+                    m_resultatFragment.setStatus(ResultatFragment.Status.LISTE);
+                }
+            }
         }
     }
+
+    @SuppressLint("StaticFieldLeak")
     class LieuTask extends AsyncTask<JSONObject,Lieu,Void> {
         @Override
         protected Void doInBackground(JSONObject... objets) {
@@ -999,7 +1067,10 @@ public class FragmentActivity extends AppCompatActivity
             m_resultatFragment.ajouterLieux(lieux);
 
             // Fini ?
-            if (m_resultatFragment.plein()) m_resultatFragment.setStatus(ResultatFragment.Status.LISTE);
+            if (m_resultatFragment.plein()) {
+                m_resultatFragment.majListe(m_db.getTypeDAO());
+                m_resultatFragment.setStatus(ResultatFragment.Status.LISTE);
+            }
         }
     }
 }

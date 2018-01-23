@@ -7,5 +7,4 @@
     <color name="couleur_police">@android:color/black</color>
 
     <color name="colorTextPrimary">#FFFFFF</color>
-    <color name="colorTextDisable">#66FFFFFF</color>
 </resources>

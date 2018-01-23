@@ -1,17 +1,11 @@
 <resources>
     <!-- Default screen margins, per the Android Design guidelines. -->
     <dimen name="activity_horizontal_margin">10dp</dimen>
-    <dimen name="activity_vertical_margin">10dp</dimen>
-    <dimen name="padding_liste">5dp</dimen>
-    <dimen name="fab_margin">16dp</dimen>
 
-    <dimen name="petite_police">13sp</dimen>
+    <!-- icones dans le cercle bleu -->
+    <dimen name="icone_margin">5dp</dimen>
+
     <dimen name="moyenne_police">15sp</dimen>
 
-    <dimen name="taille_ligne">50dp</dimen>
     <dimen name="taille_carte">200dp</dimen>
-
-    <dimen name="burger">280dp</dimen>
-
-    <dimen name="list_test">1330dp</dimen>
 </resources>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Elements -->
+    <item android:id="@+id/less"
+        android:state_selected="true"
+        android:drawable="@drawable/ic_expand_less_black_24dp" />
+
+    <item android:id="@+id/more"
+        android:drawable="@drawable/ic_expand_more_black_24dp" />
+</selector>
