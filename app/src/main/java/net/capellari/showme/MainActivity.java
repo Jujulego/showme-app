@@ -26,7 +26,6 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.app.AppCompatDelegate;
 import android.support.v7.preference.PreferenceManager;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
@@ -64,14 +63,13 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.UnsupportedEncodingException;
-import java.net.URL;
 import java.net.URLEncoder;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 
-public class FragmentActivity extends AppCompatActivity
+public class MainActivity extends AppCompatActivity
         implements OnMapReadyCallback,
                    RayonFragment.OnRayonChangeListener,
                    SharedPreferences.OnSharedPreferenceChangeListener {
@@ -81,19 +79,17 @@ public class FragmentActivity extends AppCompatActivity
     private static final boolean MENU_OVERFLOW = false; // Les 3 points dans la toolbar
 
     private static final String STATUS = "showme.STATUS";
-    private static final String TAG    = "FragmentActivity";
+    private static final String TAG    = "MainActivity";
 
     private static final String MAP_TAG        = "map";
     private static final String RESULTAT_TAG   = "resultat";
     private static final String RAYON_TAG      = "rayon";
-    private static final String TYPES_TAG      = "types";
-    private static final String PARAMETRES_TAG = "parametres";
 
     private static final int RQ_PERM_LOCATION = 1;
 
     // Enuméraion
     enum Status {
-        VIDE, ACCUEIL, RECHERCHE, TYPES, PARAMETRES
+        VIDE, ACCUEIL, RECHERCHE
     }
 
     // Attributs
@@ -101,8 +97,6 @@ public class FragmentActivity extends AppCompatActivity
     private Toolbar m_searchBar;
     private SearchView m_searchView;
     private MenuItem m_searchMenuItem;
-    private MenuItem m_searchIcone;
-    private MenuItem m_refreshIcone;
 
     private DrawerLayout m_drawerLayout;
     private ActionBarDrawerToggle m_drawerToggle;
@@ -125,15 +119,9 @@ public class FragmentActivity extends AppCompatActivity
     private SupportMapFragment m_mapFragment;
     private ResultatFragment m_resultatFragment;
     private RayonFragment m_rayonFragment;
-    private TypesFragment m_typesFragment;
-    private ParametresFragment m_parametresFragment;
 
     private RequestManager m_requestManager;
     private AppDatabase m_db;
-
-    static {
-        AppCompatDelegate.setCompatVectorFromResourcesEnabled(true);
-    }
 
     // Events
     @Override
@@ -145,7 +133,7 @@ public class FragmentActivity extends AppCompatActivity
         m_preferences.registerOnSharedPreferenceChangeListener(this);
 
         // Ajout du layout
-        setContentView(R.layout.activity_fragment);
+        setContentView(R.layout.activity_main);
         setupDrawer();
 
         // Préparation des maj location
@@ -157,11 +145,9 @@ public class FragmentActivity extends AppCompatActivity
             m_status = Status.valueOf(savedInstanceState.getString(STATUS));
 
             // Récupération des fragements
-            m_mapFragment        = (SupportMapFragment) getSupportFragmentManager().findFragmentByTag(MAP_TAG);
-            m_resultatFragment   = (ResultatFragment)   getSupportFragmentManager().findFragmentByTag(RESULTAT_TAG);
-            m_rayonFragment      = (RayonFragment)      getSupportFragmentManager().findFragmentByTag(RAYON_TAG);
-            m_typesFragment      = (TypesFragment)      getSupportFragmentManager().findFragmentByTag(TYPES_TAG);
-            m_parametresFragment = (ParametresFragment) getSupportFragmentManager().findFragmentByTag(PARAMETRES_TAG);
+            m_mapFragment      = (SupportMapFragment) getSupportFragmentManager().findFragmentByTag(MAP_TAG);
+            m_resultatFragment = (ResultatFragment)   getSupportFragmentManager().findFragmentByTag(RESULTAT_TAG);
+            m_rayonFragment    = (RayonFragment)      getSupportFragmentManager().findFragmentByTag(RAYON_TAG);
         }
 
         // Complète les fragements manquants
@@ -177,7 +163,7 @@ public class FragmentActivity extends AppCompatActivity
         m_requestManager = RequestManager.getInstance(this.getApplicationContext());
 
         // Initialisation DB
-        new DBInit().execute();
+        new DBInit().execute(this);
     }
 
     @Override
@@ -241,14 +227,6 @@ public class FragmentActivity extends AppCompatActivity
     public boolean onCreateOptionsMenu(Menu menu) {
         // Ajout des options
         getMenuInflater().inflate(R.menu.main_toolbar, menu);
-
-        // Récupération de l'icone search
-        m_searchIcone  = m_toolbar.getMenu().findItem(R.id.nav_recherche);
-        m_refreshIcone = m_toolbar.getMenu().findItem(R.id.nav_refresh);
-
-        // Mise à l'état des icones
-        majIcone();
-
         return true;
     }
 
@@ -461,31 +439,6 @@ public class FragmentActivity extends AppCompatActivity
         if (m_rayonFragment == null) {
             m_rayonFragment = new RayonFragment();
         }
-
-        // Types
-        if (m_typesFragment == null) {
-            m_typesFragment = new TypesFragment();
-        }
-
-        // Paramètres
-        if (m_parametresFragment == null) {
-            m_parametresFragment = new ParametresFragment();
-        }
-    }
-    private void majIcone() {
-        boolean visible = (m_status != Status.PARAMETRES) && (m_status != Status.TYPES);
-
-        // La loupe !
-        if (m_searchIcone != null) {
-            m_searchIcone.setEnabled(visible);
-            m_searchIcone.setVisible(visible);
-        }
-
-        // Refresh !
-        if (m_refreshIcone != null) {
-            m_refreshIcone.setEnabled(visible);
-            m_refreshIcone.setVisible(visible);
-        }
     }
 
     private void setupAccueil() {
@@ -496,12 +449,6 @@ public class FragmentActivity extends AppCompatActivity
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
 
         switch (m_status) {
-            case PARAMETRES:
-                transaction.remove(m_parametresFragment);
-
-            case TYPES:
-                transaction.remove(m_typesFragment);
-
             case VIDE:
                 transaction.add(R.id.layout_central, m_resultatFragment, RESULTAT_TAG);
                 transaction.add(R.id.layout_carte, m_mapFragment, MAP_TAG);
@@ -517,7 +464,6 @@ public class FragmentActivity extends AppCompatActivity
 
         // Chg de status
         m_status = Status.ACCUEIL;
-        majIcone();
     }
     private void setupRecherche() {
         // Gardien
@@ -531,12 +477,6 @@ public class FragmentActivity extends AppCompatActivity
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
 
         switch (m_status) {
-            case PARAMETRES:
-                transaction.remove(m_parametresFragment);
-
-            case TYPES:
-                transaction.remove(m_typesFragment);
-
             case VIDE:
                 transaction.add(R.id.layout_central, m_resultatFragment, RESULTAT_TAG);
                 transaction.add(R.id.layout_carte, m_mapFragment, MAP_TAG);
@@ -555,63 +495,6 @@ public class FragmentActivity extends AppCompatActivity
 
         // Chg de status
         m_status = Status.RECHERCHE;
-        majIcone();
-    }
-    private void setupTypes() {
-        // Gardien
-        if (m_status == Status.TYPES) return;
-
-        // Evolution des fragments
-        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-
-        switch (m_status) {
-            case ACCUEIL:
-            case RECHERCHE:
-                transaction.remove(m_rayonFragment);
-                transaction.remove(m_resultatFragment);
-                transaction.remove(m_mapFragment);
-                stopLocationUpdates();
-
-            case PARAMETRES:
-                transaction.remove(m_parametresFragment);
-
-            case VIDE:
-                transaction.add(R.id.layout_full, m_typesFragment, TYPES_TAG);
-        }
-
-        transaction.commit();
-
-        // Chg de status
-        m_status = Status.TYPES;
-        majIcone();
-    }
-    private void setupParametres() {
-        // Gardien
-        if (m_status == Status.PARAMETRES) return;
-
-        // Evolution des fragments
-        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-
-        switch (m_status) {
-            case ACCUEIL:
-            case RECHERCHE:
-                transaction.remove(m_rayonFragment);
-                transaction.remove(m_resultatFragment);
-                transaction.remove(m_mapFragment);
-                stopLocationUpdates();
-
-            case TYPES:
-                transaction.remove(m_typesFragment);
-
-            case VIDE:
-                transaction.add(R.id.layout_full, m_parametresFragment, PARAMETRES_TAG);
-        }
-
-        transaction.commit();
-
-        // Chg de status
-        m_status = Status.PARAMETRES;
-        majIcone();
     }
 
     private void setupDrawer() {
@@ -631,6 +514,7 @@ public class FragmentActivity extends AppCompatActivity
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
                 boolean ret = false;
+                Intent intent;
 
                 // Evolution des fragments
                 switch (item.getItemId()) {
@@ -644,19 +528,31 @@ public class FragmentActivity extends AppCompatActivity
                         ret = true;
                         break;
 
+                    case R.id.nav_lieu:
+                        intent = new Intent(MainActivity.this, LieuActivity.class);
+                        startActivity(intent);
+
+                        ret = true;
+                        break;
+
                     case R.id.nav_types:
-                        setupTypes();
+                        intent = new Intent(MainActivity.this, TypesActivity.class);
+                        startActivity(intent);
+
                         ret = true;
                         break;
 
                     case R.id.nav_pref:
-                        setupParametres();
+                        intent = new Intent(MainActivity.this, ParametresActivity.class);
+                        startActivity(intent);
+
                         ret = true;
                         break;
                 }
 
                 // Fermeture !
                 if (ret) m_drawerLayout.closeDrawers();
+
                 return ret;
             }
         });
@@ -896,27 +792,21 @@ public class FragmentActivity extends AppCompatActivity
     }
 
     // Taches
-    @SuppressLint("StaticFieldLeak")
-    class DBInit extends AsyncTask<Void,Void,AppDatabase> {
+    static class DBInit extends AsyncTask<MainActivity,Void,Void> {
         @Override
-        protected AppDatabase doInBackground(Void... voids) {
-            AppDatabase db = Room.databaseBuilder(
-                    FragmentActivity.this,
-                    AppDatabase.class,
+        protected Void doInBackground(MainActivity... activities) {
+            MainActivity activity = activities[0];
+
+            // Initialisation
+            activity.m_db = Room.databaseBuilder(
+                    activity, AppDatabase.class,
                     "showme.db"
             ).build();
-
             Log.i(TAG, "Database initialisée");
 
-            m_typesFragment.getAdapter().setLiveData(db.getTypeDAO().recup());
-
-            return db;
-        }
-
-        @Override
-        protected void onPostExecute(AppDatabase db) {
-            m_db = db;
-            getTypes();
+            // Remplissage & mise à jour
+            activity.getTypes();
+            return null;
         }
     }
 
@@ -1049,7 +939,7 @@ public class FragmentActivity extends AppCompatActivity
 
             for (int i = 0; i < objets.length; ++i) {
                 try {
-                    lieux[i] = new Lieu(FragmentActivity.this, m_db.getTypeDAO(), objets[i]);
+                    lieux[i] = new Lieu(MainActivity.this, m_db.getTypeDAO(), objets[i]);
                 } catch (JSONException err) {
                     Log.e(TAG, "Erreur JSON lieu", err);
                 }

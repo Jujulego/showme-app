@@ -7,7 +7,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
 
-    tools:context="net.capellari.showme.FragmentActivity">
+    tools:context="net.capellari.showme.MainActivity"
+    tools:menu="main_toolbar">
 
     <!-- Toolbars -->
     <android.support.v7.widget.Toolbar android:id="@+id/toolbar"
@@ -29,7 +30,9 @@
         android:visibility="invisible"
 
         app:title="@string/app_name"
-        app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />
+        app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
+
+        tools:menu="@menu/main_search" />
 
     <!-- Drawer -->
     <android.support.v4.widget.DrawerLayout android:id="@+id/drawer_layout"
@@ -53,30 +56,27 @@
                 app:layout_constraintBottom_toBottomOf="parent" />
 
             <FrameLayout android:id="@+id/layout_carte"
-                android:layout_width="@dimen/taille_carte"
-                android:layout_height="0dp"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/taille_carte"
 
                 app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintBottom_toBottomOf="parent"/>
+                app:layout_constraintBottom_toTopOf="@id/layout_central"/>
 
             <LinearLayout android:id="@+id/layout_central"
                 android:layout_width="0dp"
                 android:layout_height="0dp"
                 android:orientation="vertical"
 
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintStart_toEndOf="@id/layout_carte"
+                app:layout_constraintTop_toBottomOf="@id/layout_carte"
+                app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintBottom_toTopOf="@id/layout_rayon"/>
+                app:layout_constraintBottom_toTopOf="@id/layout_rayon" />
 
             <FrameLayout android:id="@+id/layout_rayon"
-                android:layout_width="0dp"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
 
                 app:layout_constraintTop_toBottomOf="@id/layout_central"
-                app:layout_constraintStart_toEndOf="@id/layout_carte"
-                app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintBottom_toBottomOf="parent"
 
                 tools:layout_height="50dp"/>

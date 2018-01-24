@@ -14,8 +14,6 @@ import android.widget.TextView;
 
 import net.capellari.showme.db.Type;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -159,7 +157,6 @@ public class TypesFragment extends Fragment {
 
         @Override
         public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
-            return;
         }
     }
 }
