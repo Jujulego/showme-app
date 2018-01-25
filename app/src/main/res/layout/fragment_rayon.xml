@@ -10,7 +10,7 @@
     android:paddingEnd="@dimen/activity_horizontal_margin"
 
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_height="wrap_content"
 
     tools:context=".RayonFragment">
 
@@ -18,12 +18,14 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
 
+        app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toStartOf="@id/space"/>
+        app:layout_constraintEnd_toStartOf="@id/space"
+        app:layout_constraintBottom_toBottomOf="parent"/>
 
     <Space android:id="@+id/space"
         android:layout_width="16dp"
-        android:layout_height="0dp"
+        android:layout_height="match_parent"
 
         app:layout_constraintEnd_toStartOf="@id/valeur" />
 
@@ -33,6 +35,8 @@
 
         android:text="@string/aff_rayon_defaut"
 
-        app:layout_constraintEnd_toEndOf="parent"/>
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"/>
 
 </android.support.constraint.ConstraintLayout>

@@ -12,6 +12,7 @@
     <ExpandableListView android:id="@+id/liste"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:groupIndicator="@null"
 
         tools:listitem="@layout/categorie_type"/>
 

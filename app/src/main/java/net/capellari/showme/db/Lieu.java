@@ -13,6 +13,7 @@ import android.arch.persistence.room.Query;
 import android.arch.persistence.room.Update;
 import android.content.Context;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.util.Log;
 
 import net.capellari.showme.R;
@@ -107,6 +108,28 @@ public class Lieu {
             photo = null;
             Log.w("Lieu", String.format(Locale.getDefault(),"Erreur format URL (photo, id = %d)", id), err);
         }
+    }
+
+    // Méthodes
+    @Nullable public String getPrix() {
+        switch (prix) {
+            case 0:
+                return "Gratuit";
+
+            case 1:
+                return "Bon marché";
+
+            case 2:
+                return "Modéré";
+
+            case 3:
+                return "Cher";
+
+            case 4:
+                return "Très cher";
+        }
+
+        return null;
     }
 
     // Classes

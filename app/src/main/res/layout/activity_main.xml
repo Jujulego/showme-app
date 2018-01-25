@@ -40,48 +40,71 @@
         android:layout_height="match_parent"
         android:layout_below="@id/toolbar">
 
-        <!-- Contenu -->
-        <android.support.constraint.ConstraintLayout
+        <android.support.design.widget.CoordinatorLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
-            <LinearLayout android:id="@+id/layout_full"
+            <!-- Contenu -->
+            <android.support.constraint.ConstraintLayout
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:orientation="vertical"
+                android:layout_height="match_parent">
 
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintBottom_toBottomOf="parent" />
+                <LinearLayout android:id="@+id/layout_full"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical"
 
-            <FrameLayout android:id="@+id/layout_carte"
-                android:layout_width="match_parent"
-                android:layout_height="@dimen/taille_carte"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent" />
 
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintBottom_toTopOf="@id/layout_central"/>
+                <FrameLayout android:id="@+id/layout_carte"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/taille_carte"
 
-            <LinearLayout android:id="@+id/layout_central"
-                android:layout_width="0dp"
-                android:layout_height="0dp"
-                android:orientation="vertical"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toTopOf="@id/layout_central"/>
 
-                app:layout_constraintTop_toBottomOf="@id/layout_carte"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintBottom_toTopOf="@id/layout_rayon" />
+                <LinearLayout android:id="@+id/layout_central"
+                    android:layout_width="0dp"
+                    android:layout_height="0dp"
+                    android:orientation="vertical"
+                    android:elevation="-2dp"
 
-            <FrameLayout android:id="@+id/layout_rayon"
+                    app:layout_constraintTop_toBottomOf="@id/layout_carte"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintBottom_toTopOf="@id/espace" />
+
+                <Space android:id="@+id/espace"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/bottom_sheet_peek_height"
+
+                    app:layout_constraintBottom_toBottomOf="parent"/>
+
+            </android.support.constraint.ConstraintLayout>
+
+            <android.support.v4.widget.NestedScrollView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
 
-                app:layout_constraintTop_toBottomOf="@id/layout_central"
-                app:layout_constraintBottom_toBottomOf="parent"
+                app:behavior_peekHeight="@dimen/bottom_sheet_peek_height"
+                app:layout_behavior="@string/bottom_sheet_behavior">
 
-                tools:layout_height="50dp"/>
+                <LinearLayout android:id="@+id/bottom_sheet"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
 
-        </android.support.constraint.ConstraintLayout>
+                    android:background="@android:color/white"
+                    android:elevation="2dp">
+
+                </LinearLayout>
+
+            </android.support.v4.widget.NestedScrollView>
+
+        </android.support.design.widget.CoordinatorLayout>
 
         <!-- Panneau de navigation -->
         <android.support.design.widget.NavigationView android:id="@+id/drawer_nav"

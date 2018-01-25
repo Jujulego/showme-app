@@ -45,25 +45,31 @@
     </android.support.design.widget.AppBarLayout>
 
     <!-- Contenu -->
+    <fragment android:id="@+id/carte"
+        android:name="com.google.android.gms.maps.SupportMapFragment"
+        android:layout_width="@dimen/taille_carte"
+        android:layout_height="match_parent"
+        android:layout_marginTop="?attr/actionBarSize"
+
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+
+        tools:layout="@layout/dummy_map"/>
+
     <android.support.v4.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_marginStart="@dimen/taille_carte"
 
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
         <android.support.constraint.ConstraintLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-
-            <fragment android:id="@+id/carte"
-                android:name="com.google.android.gms.maps.SupportMapFragment"
-                android:layout_width="match_parent"
-                android:layout_height="@dimen/taille_carte"
-
-                tools:layout="@layout/dummy_map"/>
+            android:layout_height="match_parent">
 
             <TextView android:id="@+id/prix"
-                android:layout_width="match_parent"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:padding="16dp"
                 android:text="@string/inconnu"
@@ -72,10 +78,12 @@
                 android:drawableStart="@drawable/credit_card_details"
                 android:drawablePadding="16dp"
 
-                app:layout_constraintTop_toBottomOf="@id/carte" />
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"/>
 
             <TextView android:id="@+id/telephone"
-                android:layout_width="match_parent"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:padding="16dp"
                 android:text="@string/inconnu"
@@ -84,10 +92,12 @@
                 android:drawableStart="@drawable/phone_details"
                 android:drawablePadding="16dp"
 
-                app:layout_constraintTop_toBottomOf="@id/prix" />
+                app:layout_constraintTop_toBottomOf="@id/prix"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent" />
 
             <TextView android:id="@+id/site_web"
-                android:layout_width="match_parent"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:padding="16dp"
                 android:text="@string/inconnu"
@@ -96,7 +106,9 @@
                 android:drawableStart="@drawable/web_details"
                 android:drawablePadding="16dp"
 
-                app:layout_constraintTop_toBottomOf="@id/telephone" />
+                app:layout_constraintTop_toBottomOf="@id/telephone"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent" />
         </android.support.constraint.ConstraintLayout>
     </android.support.v4.widget.NestedScrollView>
 

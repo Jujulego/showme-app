@@ -7,7 +7,6 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,6 +15,10 @@ import android.widget.ExpandableListView;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
 
 import net.capellari.showme.db.Lieu;
 import net.capellari.showme.db.Type;
@@ -45,7 +48,11 @@ public class ResultatFragment extends Fragment {
     private CharSequence m_messagePreinit = "";
     private Status m_status = Status.VIDE;
 
+    private GoogleMap m_map = null;
+    private LieuxAdapter m_adapter = new LieuxAdapter();
     private LinkedList<Lieu> m_lieux = new LinkedList<>();
+
+    private int m_groupeOuvert = -1;
 
     // Events
     @Nullable @Override
@@ -59,7 +66,30 @@ public class ResultatFragment extends Fragment {
         m_message = view.findViewById(R.id.message);
 
         // Préparation liste
-        m_liste.setAdapter(new LieuxAdapter());
+        m_liste.setAdapter(m_adapter);
+
+        m_liste.setOnGroupClickListener(new ExpandableListView.OnGroupClickListener() {
+            @Override
+            public boolean onGroupClick(ExpandableListView expandableListView, View view, int groupPosition, long id) {
+                // Gardien
+                if (m_map == null) return false;
+
+                // gestion des marqueurs
+                ajouterMarqueurs();
+
+                return false;
+            }
+        });
+        m_liste.setOnGroupExpandListener(new ExpandableListView.OnGroupExpandListener() {
+            @Override
+            public void onGroupExpand(int groupe) {
+                if (groupe != m_groupeOuvert) {
+                    m_liste.collapseGroup(m_groupeOuvert);
+                }
+
+                m_groupeOuvert = groupe;
+            }
+        });
         m_liste.setOnChildClickListener(new ExpandableListView.OnChildClickListener() {
             @Override
             public boolean onChildClick(ExpandableListView expandableListView, View view, int groupPosition, int childPosition, long id) {
@@ -142,7 +172,8 @@ public class ResultatFragment extends Fragment {
 
             @Override
             protected void onPostExecute(Type.TypeNb[] types) {
-                m_liste.setAdapter(new LieuxAdapter(m_lieux, types));
+                m_adapter = new LieuxAdapter(m_lieux, types);
+                m_liste.setAdapter(m_adapter);
             }
         }.execute();
     }
@@ -184,6 +215,28 @@ public class ResultatFragment extends Fragment {
                 m_waiter.setVisibility(View.GONE);
                 m_message.setVisibility(View.GONE);
                 break;
+        }
+    }
+
+    public void setMap(GoogleMap map) {
+        m_map = map;
+        ajouterMarqueurs();
+    }
+    public void ajouterMarqueurs() {
+        // Gardiens
+        if (m_map == null) return;
+        if (m_groupeOuvert == -1) return;
+
+        // Vidage
+        m_map.clear();
+
+        // Ajout des marqueurs
+        List<Lieu> lieux = m_adapter.getLieux(m_groupeOuvert);
+        for (Lieu lieu : lieux) {
+            m_map.addMarker(new MarkerOptions()
+                    .position(new LatLng(lieu.coordonnees.latitude, lieu.coordonnees.longitude))
+                    .title(lieu.nom)
+            );
         }
     }
 
@@ -238,6 +291,22 @@ public class ResultatFragment extends Fragment {
             }
 
             return null;
+        }
+        public List<Lieu> getLieux(int groupPosition) {
+            long typeId = getGroupId(groupPosition);
+            List<Lieu> lieux = new LinkedList<>();
+
+            // Tri !
+            for (Lieu lieu : m_lieux) {
+                for (Type type : lieu.types) {
+                    if (type.id == typeId) {
+                        lieux.add(lieu);
+                        break;
+                    }
+                }
+            }
+
+            return lieux;
         }
 
         @Override public boolean hasStableIds() {

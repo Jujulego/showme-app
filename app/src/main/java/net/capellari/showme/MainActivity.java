@@ -255,7 +255,9 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onMapReady(GoogleMap googleMap) {
         m_map = googleMap;
+
         centrerCarte();
+        m_resultatFragment.setMap(m_map);
     }
 
     @Override
@@ -452,7 +454,7 @@ public class MainActivity extends AppCompatActivity
             case VIDE:
                 transaction.add(R.id.layout_central, m_resultatFragment, RESULTAT_TAG);
                 transaction.add(R.id.layout_carte, m_mapFragment, MAP_TAG);
-                transaction.add(R.id.layout_rayon, m_rayonFragment, RAYON_TAG);
+                transaction.add(R.id.bottom_sheet, m_rayonFragment, RAYON_TAG);
 
                 m_mapFragment.getMapAsync(this);
                 startLocationUpdates();
@@ -479,8 +481,8 @@ public class MainActivity extends AppCompatActivity
         switch (m_status) {
             case VIDE:
                 transaction.add(R.id.layout_central, m_resultatFragment, RESULTAT_TAG);
-                transaction.add(R.id.layout_carte, m_mapFragment, MAP_TAG);
-                transaction.add(R.id.layout_rayon, m_rayonFragment, RAYON_TAG);
+                transaction.add(R.id.layout_carte, m_mapFragment,   MAP_TAG);
+                transaction.add(R.id.bottom_sheet, m_rayonFragment, RAYON_TAG);
 
                 m_mapFragment.getMapAsync(this);
                 startLocationUpdates();
