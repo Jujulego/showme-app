@@ -57,20 +57,28 @@ public class TypesActivity extends AppCompatActivity {
         return true;
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+        // Fermeture de la base
+        if (m_db != null) m_db.close();
+    }
+
     // Taches
     static class DBInit extends AsyncTask<TypesActivity,Void,Void> {
         @Override
-        protected Void doInBackground(TypesActivity... activities) {
-            TypesActivity activity = activities[0];
+        protected Void doInBackground(TypesActivity... activites) {
+            TypesActivity activite = activites[0];
 
             AppDatabase db = Room.databaseBuilder(
-                    activity, AppDatabase.class,
-                    "showme.db"
+                    activite, AppDatabase.class,
+                    activite.getString(R.string.database)
             ).build();
 
             Log.i(TAG, "Database initialisée");
-            activity.m_typesFragment.getAdapter().setLiveData(db.getTypeDAO().recup());
-            activity.m_db = db;
+            activite.m_typesFragment.getAdapter().setLiveData(db.getTypeDAO().recup());
+            activite.m_db = db;
 
             return null;
         }

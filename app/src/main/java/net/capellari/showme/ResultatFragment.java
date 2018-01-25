@@ -1,10 +1,10 @@
 package net.capellari.showme;
 
 import android.annotation.SuppressLint;
-import android.graphics.drawable.StateListDrawable;
-import android.graphics.drawable.TransitionDrawable;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.util.Log;
@@ -49,7 +49,7 @@ public class ResultatFragment extends Fragment {
 
     // Events
     @Nullable @Override
-    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, Bundle savedInstanceState) {
         // Ajout du layout
         View view = inflater.inflate(R.layout.fragment_resultat, container, false);
 
@@ -60,12 +60,14 @@ public class ResultatFragment extends Fragment {
 
         // Préparation liste
         m_liste.setAdapter(new LieuxAdapter());
-        m_liste.setOnGroupClickListener(new ExpandableListView.OnGroupClickListener() {
+        m_liste.setOnChildClickListener(new ExpandableListView.OnChildClickListener() {
             @Override
-            public boolean onGroupClick(ExpandableListView parent, View v, int groupPosition, long id) {
+            public boolean onChildClick(ExpandableListView expandableListView, View view, int groupPosition, int childPosition, long id) {
+                Intent intent = new Intent(getActivity(), LieuActivity.class);
+                intent.putExtra(LieuActivity.INTENT_LIEU, id);
 
-
-                return false;
+                startActivity(intent);
+                return true;
             }
         });
 
@@ -279,9 +281,7 @@ public class ResultatFragment extends Fragment {
             TextView nom = view.findViewById(R.id.nom);
             Lieu lieu = (Lieu) getChild(groupPosition, childPosition);
 
-            if (lieu == null) {
-                nom.setText("null !");
-            } else {
+            if (lieu != null) {
                 nom.setText(lieu.nom);
             }
 
@@ -290,7 +290,7 @@ public class ResultatFragment extends Fragment {
 
         @Override
         public boolean isChildSelectable(int groupPosition, int childPosition) {
-            return false;
+            return true;
         }
     }
 }

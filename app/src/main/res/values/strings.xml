@@ -1,6 +1,7 @@
 <resources>
     <!-- Général -->
     <string name="app_name" translatable="false">ShowMe</string>
+    <string name="database" translatable="false">showme.db</string>
 
     <!-- Pas touche ! -->
     <string name="serveur" translatable="false">showme.capellari.net</string>
@@ -42,6 +43,9 @@
     <string name="vide">Aucun résultat</string>
     <string name="erreur">Erreur !</string>
 
+    <!-- Lieu -->
+    <string name="inconnu">Inconnu</string>
+
     <!-- Types -->
     <string name="types_activity">Catégories</string>
     <string name="nav_ajouter">Ajouter</string>
@@ -62,7 +66,7 @@
     <string name="pref_cat_energie">Energie</string>
     <string name="pref_txt_internet">Réduire Internet</string>
     <string name="pref_txt_gps">GPS</string>
-    <string name="title_activity_lieu">LieuActivity</string>
+
     <string name="large_text">
         "Material is the metaphor.\n\n"
 

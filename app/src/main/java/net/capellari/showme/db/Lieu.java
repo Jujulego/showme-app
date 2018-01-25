@@ -59,7 +59,6 @@ public class Lieu {
     public GeoPoint coordonnees = new GeoPoint();
 
     // Attributs
-    @Ignore public double distance;
     @Ignore public List<Type> types = new LinkedList<>();
 
     // Constructeur

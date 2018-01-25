@@ -794,18 +794,20 @@ public class MainActivity extends AppCompatActivity
     // Taches
     static class DBInit extends AsyncTask<MainActivity,Void,Void> {
         @Override
-        protected Void doInBackground(MainActivity... activities) {
-            MainActivity activity = activities[0];
+        protected Void doInBackground(MainActivity... activites) {
+            MainActivity activite = activites[0];
 
             // Initialisation
-            activity.m_db = Room.databaseBuilder(
-                    activity, AppDatabase.class,
-                    "showme.db"
+            activite.m_db = Room.databaseBuilder(
+                    activite, AppDatabase.class,
+                    activite.getString(R.string.database)
             ).build();
+
+            // log !
             Log.i(TAG, "Database initialisée");
 
             // Remplissage & mise à jour
-            activity.getTypes();
+            activite.getTypes();
             return null;
         }
     }

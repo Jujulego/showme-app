@@ -5,10 +5,11 @@
     <!-- icones dans le cercle bleu -->
     <dimen name="icone_margin">5dp</dimen>
 
+    <!-- Texte -->
+    <dimen name="text_margin">16dp</dimen>
     <dimen name="moyenne_police">15sp</dimen>
 
+    <!-- Elements -->
     <dimen name="taille_carte">200dp</dimen>
     <dimen name="app_bar_height">180dp</dimen>
-    <dimen name="fab_margin">16dp</dimen>
-    <dimen name="text_margin">16dp</dimen>
 </resources>
