@@ -284,8 +284,23 @@ public class MainActivity extends AppCompatActivity
         if (key.equals(getString(R.string.pref_gps))) {
             stopLocationUpdates();
             startLocationUpdates();
+
         } else if (key.equals(getString(R.string.pref_rayon_max))) {
             m_rayonFragment.set_max(m_preferences.getInt(getString(R.string.pref_rayon_max), 100));
+
+        } else if (key.equals(getString(R.string.pref_nombre))) {
+            boolean start = m_preferences.getBoolean(getString(R.string.pref_nombre), false);
+            Intent intent = new Intent(this, NombreService.class);
+
+            if (start) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    startForegroundService(intent);
+                } else {
+                    startService(intent);
+                }
+            } else {
+                stopService(intent);
+            }
         }
     }
 
@@ -342,7 +357,7 @@ public class MainActivity extends AppCompatActivity
     private void rafraichir() {
         if (m_status != Status.ACCUEIL && m_status != Status.RECHERCHE) return;
 
-        // Récupération de la postion
+        // Récupération de la position
         if (checkLocationPermission()) {
             m_map.setMyLocationEnabled(true);
 

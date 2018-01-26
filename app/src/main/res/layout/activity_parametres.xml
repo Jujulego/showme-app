@@ -11,6 +11,6 @@
     <fragment android:id="@+id/pref_fragment"
         android:name="net.capellari.showme.ParametresFragment"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
-
+        android:layout_height="match_parent"
+        android:layout_marginTop="12dp" />
 </android.support.constraint.ConstraintLayout>

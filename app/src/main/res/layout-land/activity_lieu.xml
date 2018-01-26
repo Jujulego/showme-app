@@ -33,6 +33,24 @@
                 android:scaleType="centerCrop"
                 android:elevation="4dp" />
 
+            <RatingBar android:id="@+id/note"
+                style="?android:attr/ratingBarStyleIndicator"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end"
+                android:layout_marginTop="8dp"
+                android:visibility="gone"
+
+                android:scaleX="0.8"
+                android:scaleY="0.8"
+
+                android:isIndicator="true"
+                android:numStars="5"
+                android:stepSize="0.5"
+                android:rating="5"
+
+                app:layout_collapseMode="pin"/>
+
             <android.support.v7.widget.Toolbar android:id="@+id/toolbar"
                 android:layout_width="match_parent"
                 android:layout_height="?attr/actionBarSize"
@@ -68,8 +86,18 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
+            <TextView android:id="@+id/adresse"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="16dp"
+                android:text="@string/inconnu"
+                android:enabled="false"
+
+                android:drawableStart="@drawable/map_details"
+                android:drawablePadding="16dp"/>
+
             <TextView android:id="@+id/prix"
-                android:layout_width="0dp"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:padding="16dp"
                 android:text="@string/inconnu"
@@ -78,12 +106,10 @@
                 android:drawableStart="@drawable/credit_card_details"
                 android:drawablePadding="16dp"
 
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"/>
+                app:layout_constraintTop_toBottomOf="@id/adresse" />
 
             <TextView android:id="@+id/telephone"
-                android:layout_width="0dp"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:padding="16dp"
                 android:text="@string/inconnu"
@@ -92,12 +118,10 @@
                 android:drawableStart="@drawable/phone_details"
                 android:drawablePadding="16dp"
 
-                app:layout_constraintTop_toBottomOf="@id/prix"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="parent" />
+                app:layout_constraintTop_toBottomOf="@id/prix"  />
 
             <TextView android:id="@+id/site_web"
-                android:layout_width="0dp"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:padding="16dp"
                 android:text="@string/inconnu"
@@ -106,9 +130,7 @@
                 android:drawableStart="@drawable/web_details"
                 android:drawablePadding="16dp"
 
-                app:layout_constraintTop_toBottomOf="@id/telephone"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="parent" />
+                app:layout_constraintTop_toBottomOf="@id/telephone" />
         </android.support.constraint.ConstraintLayout>
     </android.support.v4.widget.NestedScrollView>
 

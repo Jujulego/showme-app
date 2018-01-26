@@ -84,6 +84,9 @@
             <meta-data android:name="android.support.PARENT_ACTIVITY"
                 android:value=".MainActivity" />
         </activity>
+
+        <!-- Services -->
+        <service android:name=".NombreService" />
     </application>
 
 </manifest>

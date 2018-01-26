@@ -13,13 +13,17 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.NavUtils;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.preference.PreferenceManager;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
+import android.widget.RatingBar;
 import android.widget.TextView;
 
 import com.android.volley.toolbox.NetworkImageView;
@@ -54,7 +58,9 @@ public class LieuActivity extends AppCompatActivity implements OnMapReadyCallbac
     private GoogleMap m_map = null;
 
     private CollapsingToolbarLayout m_collapsingToolbar;
+    private RatingBar m_note;
     private SupportMapFragment m_mapFragment;
+    private TextView m_adresse;
     private TextView m_prix;
     private TextView m_telephone;
     private TextView m_siteWeb;
@@ -75,6 +81,8 @@ public class LieuActivity extends AppCompatActivity implements OnMapReadyCallbac
         setContentView(R.layout.activity_lieu);
 
         // Vues
+        m_note      = findViewById(R.id.note);
+        m_adresse   = findViewById(R.id.adresse);
         m_prix      = findViewById(R.id.prix);
         m_telephone = findViewById(R.id.telephone);
         m_siteWeb   = findViewById(R.id.site_web);
@@ -238,10 +246,25 @@ public class LieuActivity extends AppCompatActivity implements OnMapReadyCallbac
                 // Titre
                 m_collapsingToolbar.setTitle(lieu.nom);
 
+                // Adresse
+                String adresse = "";
+                if (m_lieu.adresse.numero.length() != 0) {
+                    adresse += m_lieu.adresse.numero;
+                }
+                if (m_lieu.adresse.rue.length() != 0) {
+                    if (adresse.length() != 0) adresse += " ";
+                    adresse += m_lieu.adresse.rue;
+                }
+                m_adresse.setText(adresse);
+
                 // Marker
                 if (m_map != null) setPlace();
 
                 // Infos
+                if (lieu.note != null) {
+                    m_note.setRating(lieu.note.floatValue());
+                    m_note.setVisibility(View.VISIBLE);
+                }
                 if (lieu.prix != null) {
                     m_prix.setText(lieu.getPrix());
                     m_prix.setEnabled(true);

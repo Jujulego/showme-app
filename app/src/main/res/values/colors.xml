@@ -7,5 +7,6 @@
     <color name="couleur_icone">@android:color/tertiary_text_light</color>
     <color name="couleur_police">@android:color/black</color>
 
+    <color name="couleur_ratingbar">@android:color/white</color>
     <color name="colorTextPrimary">#FFFFFF</color>
 </resources>

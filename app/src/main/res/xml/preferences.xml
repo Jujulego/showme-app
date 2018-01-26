@@ -4,11 +4,12 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
 
+    android:fragment="net.capellari.showme.ParametresFragment"
+    android:divider="@null"
+
     tools:context=".ParametresActivity">
 
-    <PreferenceCategory
-        android:title="@string/pref_cat_recherche">
-
+    <PreferenceCategory android:title="@string/pref_cat_recherche">
         <!--suppress AndroidElementNotAllowed -->
         <net.capellari.showme.RayonPreference
             android:key="@string/pref_rayon_max"
@@ -20,9 +21,14 @@
             app:rayon="100" />
 
     </PreferenceCategory>
+    <PreferenceCategory android:title="@string/pref_cat_economie">
 
-    <PreferenceCategory
-        android:title="@string/pref_cat_energie">
+        <!--suppress AndroidElementNotAllowed -->
+        <android.support.v7.preference.SwitchPreferenceCompat
+            android:key="@string/pref_gps"
+            android:title="@string/pref_txt_gps"
+
+            android:defaultValue="true"/>
 
         <!--suppress AndroidElementNotAllowed -->
         <android.support.v7.preference.SwitchPreferenceCompat
@@ -31,12 +37,14 @@
 
             android:defaultValue="false"/>
 
+    </PreferenceCategory>
+    <PreferenceCategory android:title="@string/pref_cat_service">
         <!--suppress AndroidElementNotAllowed -->
         <android.support.v7.preference.SwitchPreferenceCompat
-            android:key="@string/pref_gps"
-            android:title="@string/pref_txt_gps"
+            android:key="@string/pref_nombre"
+            android:title="@string/pref_txt_nombre"
 
-            android:defaultValue="true"/>
+            android:defaultValue="false" />
 
     </PreferenceCategory>
 </PreferenceScreen>
