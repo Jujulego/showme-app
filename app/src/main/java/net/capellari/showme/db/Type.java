@@ -46,8 +46,11 @@ public class Type {
     @Dao
     public interface TypeDAO {
         // Accès
-        @Query("select * from Type order by ordre")
+        @Query("select * from Type where ordre not null order by ordre")
         LiveData<List<Type>> recup();
+
+        @Query("select * from Type where ordre is null order by nom")
+        LiveData<List<Type>> recupNonOrdonnes();
 
         @Query("select * from Type where id == :id")
         Type recup(long id);

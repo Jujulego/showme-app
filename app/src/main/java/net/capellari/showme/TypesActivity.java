@@ -53,7 +53,7 @@ public class TypesActivity extends AppCompatActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu_types, menu);
+        getMenuInflater().inflate(R.menu.toolbar_types, menu);
         return true;
     }
 

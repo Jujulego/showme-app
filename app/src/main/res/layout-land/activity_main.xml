@@ -7,7 +7,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
 
-    tools:context="net.capellari.showme.MainActivity">
+    tools:context="net.capellari.showme.MainActivity"
+    tools:menu="toolbar_main">
 
     <!-- Toolbars -->
     <android.support.v7.widget.Toolbar android:id="@+id/toolbar"
@@ -18,7 +19,9 @@
         android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
 
         app:title="@string/app_name"
-        app:popupTheme="@style/ThemeOverlay.AppCompat.Light"/>
+        app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
+
+        tools:visibility="gone" />
 
     <android.support.v7.widget.Toolbar android:id="@+id/search_bar"
         android:layout_width="match_parent"

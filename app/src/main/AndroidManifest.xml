@@ -87,6 +87,11 @@
 
         <!-- Services -->
         <service android:name=".NombreService" />
+
+        <!-- ContentProvider -->
+        <provider android:name=".HistoriqueSuggestionProvider"
+            android:authorities="net.capellari.showme.HistoriqueSuggestionProvider"
+            android:exported="false" />
     </application>
 
 </manifest>

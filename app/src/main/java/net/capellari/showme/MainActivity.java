@@ -11,10 +11,12 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
+import android.database.Cursor;
 import android.location.Location;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.SearchRecentSuggestions;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
@@ -53,7 +55,6 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.tasks.OnSuccessListener;
 
 import net.capellari.showme.db.AppDatabase;
@@ -124,6 +125,8 @@ public class MainActivity extends AppCompatActivity
 
     private RequestManager m_requestManager;
     private AppDatabase m_db;
+
+    private String m_query = null;
 
     // Events
     @Override
@@ -236,7 +239,7 @@ public class MainActivity extends AppCompatActivity
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Ajout des options
-        getMenuInflater().inflate(R.menu.main_toolbar, menu);
+        getMenuInflater().inflate(R.menu.toolbar_main, menu);
         return true;
     }
 
@@ -344,12 +347,10 @@ public class MainActivity extends AppCompatActivity
 
     // Méthodes
     private void rechercher(final String query) {
-        if (m_status != Status.ACCUEIL && m_status != Status.RECHERCHE) return;
+        if (m_status != Status.RECHERCHE) return;
 
         // Récupération de la postion
         if (checkLocationPermission()) {
-            m_map.setMyLocationEnabled(true);
-
             m_locationClient.getLastLocation().addOnSuccessListener(new OnSuccessListener<Location>() {
                 @Override
                 public void onSuccess(Location location) {
@@ -364,6 +365,15 @@ public class MainActivity extends AppCompatActivity
                     getLieux(location, m_rayonFragment.get_rayon(), query);
                 }
             });
+
+            // Enregistrement !
+            SearchRecentSuggestions suggestions = new SearchRecentSuggestions(this,
+                    HistoriqueSuggestionProvider.AUTORITE,
+                    HistoriqueSuggestionProvider.MODE
+            );
+            suggestions.saveRecentQuery(query, null);
+
+            m_query = query;
         } else {
             m_rechercher = query;
         }
@@ -385,7 +395,11 @@ public class MainActivity extends AppCompatActivity
                     m_resultatFragment.refreshing();
                     m_resultatFragment.clearLieux();
 
-                    getLieux(location, m_rayonFragment.get_rayon());
+                    if (m_status == Status.RECHERCHE && m_query != null) {
+                        getLieux(location, m_rayonFragment.get_rayon(), m_query);
+                    } else {
+                        getLieux(location, m_rayonFragment.get_rayon());
+                    }
                 }
             });
         } else {
@@ -615,7 +629,7 @@ public class MainActivity extends AppCompatActivity
         }
 
         // Ajout du menu
-        m_searchBar.inflateMenu(R.menu.main_search);
+        m_searchBar.inflateMenu(R.menu.searchbar_main);
         Menu menu = m_searchBar.getMenu();
 
         // On renvoie les events à l'activité
@@ -662,6 +676,29 @@ public class MainActivity extends AppCompatActivity
             @Override
             public boolean onQueryTextChange(String newText) {
                 return false;
+            }
+        });
+        m_searchView.setOnSuggestionListener(new SearchView.OnSuggestionListener() {
+            @Override
+            public boolean onSuggestionSelect(int position) {
+                return false;
+            }
+
+            @Override
+            public boolean onSuggestionClick(int position) {
+                // Récupération du curseur
+                Cursor cursor = m_searchView.getSuggestionsAdapter().getCursor();
+                cursor.moveToPosition(position);
+
+                // Récupération & lancement de la recherche
+                String query = cursor.getString(2); // 3eme colonne !
+                rechercher(query);
+
+                // suivi de l'ecran !
+                m_searchView.clearFocus();
+                m_searchView.setQuery(query, false);
+
+                return true;
             }
         });
 
