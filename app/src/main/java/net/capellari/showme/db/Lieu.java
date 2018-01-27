@@ -163,7 +163,7 @@ public class Lieu {
         @Insert(onConflict = OnConflictStrategy.REPLACE)
         protected abstract void insert(Lieu... lieux);
 
-        @Insert
+        @Insert(onConflict = OnConflictStrategy.IGNORE)
         protected abstract void ajoutLienType(TypeLieu typeLieu);
 
         // Generales

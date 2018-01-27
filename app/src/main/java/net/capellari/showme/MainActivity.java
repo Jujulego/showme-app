@@ -84,9 +84,9 @@ public class MainActivity extends AppCompatActivity
     private static final String STATUS = "showme.STATUS";
     private static final String TAG    = "MainActivity";
 
-    private static final String MAP_TAG        = "map";
-    private static final String RESULTAT_TAG   = "resultat";
-    private static final String RAYON_TAG      = "rayon";
+    private static final String MAP_TAG      = "map";
+    private static final String RESULTAT_TAG = "resultat";
+    private static final String RAYON_TAG    = "rayon";
 
     private static final int RQ_PERM_LOCATION = 1;
 
