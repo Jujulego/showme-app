@@ -184,7 +184,6 @@ public class LieuActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         return true;
     }
-
     private void setPlace() {
         // Y'a une carte ?
         if (m_map == null) return;
@@ -203,14 +202,15 @@ public class LieuActivity extends AppCompatActivity implements OnMapReadyCallbac
                     CameraPosition.Builder builder = new CameraPosition.Builder();
                     builder.target(new LatLng(
                             location.getLatitude(), location.getLongitude()
-                    )).tilt(45);
+                    )).zoom(15).tilt(45);
 
                     m_map.moveCamera(CameraUpdateFactory.newCameraPosition(builder.build()));
 
                     // Marqueur
                     m_map.addMarker(new MarkerOptions()
                             .position(new LatLng(m_lieu.coordonnees.latitude, m_lieu.coordonnees.longitude))
-                    );
+                            .title(m_lieu.nom)
+                    ).showInfoWindow();
                 }
             });
         } else {
@@ -255,7 +255,12 @@ public class LieuActivity extends AppCompatActivity implements OnMapReadyCallbac
                     if (adresse.length() != 0) adresse += " ";
                     adresse += m_lieu.adresse.rue;
                 }
+                if (m_lieu.adresse.codePostal.length() != 0 && m_lieu.adresse.ville.length() != 0) {
+                    if (adresse.length() != 0) adresse += ", ";
+                    adresse += m_lieu.adresse.codePostal + " " + m_lieu.adresse.ville;
+                }
                 m_adresse.setText(adresse);
+                m_adresse.setEnabled(true);
 
                 // Marker
                 if (m_map != null) setPlace();

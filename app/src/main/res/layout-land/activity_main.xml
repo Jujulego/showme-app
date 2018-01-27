@@ -72,6 +72,14 @@
                     app:layout_constraintTop_toTopOf="parent"
                     app:layout_constraintStart_toEndOf="@id/layout_carte"
                     app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintBottom_toTopOf="@id/espace" />
+
+                <Space android:id="@+id/espace"
+                    android:layout_width="0dp"
+                    android:layout_height="@dimen/bottom_sheet_peek_height"
+
+                    app:layout_constraintStart_toEndOf="@id/layout_carte"
+                    app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintBottom_toBottomOf="parent" />
 
             </android.support.constraint.ConstraintLayout>

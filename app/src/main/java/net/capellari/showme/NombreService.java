@@ -172,8 +172,6 @@ public class NombreService extends Service implements SharedPreferences.OnShared
                 @Override
                 public void onResponse(JSONArray reponse) {
                     m_notifBuilder.setContentText(getString(R.string.notif_nombre_texte, reponse.length()));
-                    m_notifBuilder.setNumber(reponse.length());
-
                     m_notifManager.notify(NOTIFICATION_ID, m_notifBuilder.build());
                 }
             }, new Response.ErrorListener() {

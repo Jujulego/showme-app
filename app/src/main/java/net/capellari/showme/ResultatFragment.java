@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,6 +19,7 @@ import android.widget.TextView;
 
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import net.capellari.showme.db.Lieu;
@@ -26,6 +28,7 @@ import net.capellari.showme.db.Type;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Created by julien on 04/01/18.
@@ -41,12 +44,14 @@ public class ResultatFragment extends Fragment {
 
     // Attributs
     private TextView m_message;
+    private SwipeRefreshLayout m_swipeRefresh;
     private ExpandableListView m_liste;
     private ProgressBar m_waiter;
 
     private boolean m_init = false;
     private CharSequence m_messagePreinit = "";
     private Status m_status = Status.VIDE;
+    private SwipeRefreshLayout.OnRefreshListener m_listener = null;
 
     private GoogleMap m_map = null;
     private LieuxAdapter m_adapter = new LieuxAdapter();
@@ -67,27 +72,20 @@ public class ResultatFragment extends Fragment {
 
         // Préparation liste
         m_liste.setAdapter(m_adapter);
-
-        m_liste.setOnGroupClickListener(new ExpandableListView.OnGroupClickListener() {
-            @Override
-            public boolean onGroupClick(ExpandableListView expandableListView, View view, int groupPosition, long id) {
-                // Gardien
-                if (m_map == null) return false;
-
-                // gestion des marqueurs
-                ajouterMarqueurs();
-
-                return false;
-            }
-        });
         m_liste.setOnGroupExpandListener(new ExpandableListView.OnGroupExpandListener() {
             @Override
             public void onGroupExpand(int groupe) {
+                // Fermeture du groupe précédent
                 if (groupe != m_groupeOuvert) {
                     m_liste.collapseGroup(m_groupeOuvert);
                 }
-
                 m_groupeOuvert = groupe;
+
+                // Gestion des marqueurs
+                if (m_map != null) {
+                    ajouterMarqueurs();
+                }
+
             }
         });
         m_liste.setOnChildClickListener(new ExpandableListView.OnChildClickListener() {
@@ -101,6 +99,13 @@ public class ResultatFragment extends Fragment {
             }
         });
 
+        // Préparation refresh layout
+        m_swipeRefresh = view.findViewById(R.id.swipe_refresh);
+        if (m_listener != null) {
+            m_swipeRefresh.setOnRefreshListener(m_listener);
+            m_listener = null;
+        }
+
         // Mise à l'etat
         m_init = true;
         setStatus(m_status);
@@ -110,14 +115,24 @@ public class ResultatFragment extends Fragment {
     }
 
     // Méthodes
-    public void indetermine() {
-        m_waiter.setIndeterminate(true);
-        m_message.setText(R.string.chargement_indetermine);
+    public void setOnRefreshListener(SwipeRefreshLayout.OnRefreshListener listener) {
+        if (m_init) {
+            m_swipeRefresh.setOnRefreshListener(listener);
+        } else {
+            m_listener = listener;
+        }
     }
+    public void refreshing() {
+        m_swipeRefresh.setRefreshing(true);
+        m_waiter.setVisibility(View.GONE);
+        m_message.setText("");
+    }
+
     public void initProgress(int max) {
         m_waiter.setMax(max);
         m_waiter.setProgress(0);
-        m_waiter.setIndeterminate(false);
+        m_waiter.setVisibility(View.VISIBLE);
+        m_swipeRefresh.setRefreshing(false);
 
         m_message.setText(getString(R.string.chargement_determine, m_waiter.getProgress(), m_waiter.getMax()));
     }
@@ -193,7 +208,7 @@ public class ResultatFragment extends Fragment {
                 m_waiter.setVisibility(View.VISIBLE);
                 m_message.setVisibility(View.VISIBLE);
 
-                indetermine();
+                refreshing();
 
                 break;
 
@@ -221,6 +236,20 @@ public class ResultatFragment extends Fragment {
     public void setMap(GoogleMap map) {
         m_map = map;
         ajouterMarqueurs();
+
+        // Réactions
+        m_map.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
+            @Override
+            public void onInfoWindowClick(Marker marker) {
+                Long lieu_id = (Long) marker.getTag();
+
+                // Affichage du lieu
+                Intent intent = new Intent(getActivity(), LieuActivity.class);
+                intent.putExtra(LieuActivity.INTENT_LIEU, lieu_id);
+
+                startActivity(intent);
+            }
+        });
     }
     public void ajouterMarqueurs() {
         // Gardiens
@@ -233,10 +262,16 @@ public class ResultatFragment extends Fragment {
         // Ajout des marqueurs
         List<Lieu> lieux = m_adapter.getLieux(m_groupeOuvert);
         for (Lieu lieu : lieux) {
-            m_map.addMarker(new MarkerOptions()
-                    .position(new LatLng(lieu.coordonnees.latitude, lieu.coordonnees.longitude))
-                    .title(lieu.nom)
-            );
+            MarkerOptions opts = new MarkerOptions();
+            opts.position(new LatLng(lieu.coordonnees.latitude, lieu.coordonnees.longitude));
+            opts.title(lieu.nom);
+
+            if (lieu.note != null) {
+                opts.snippet(String.format(Locale.getDefault(), "Note : %.1f / 5", lieu.note));
+            }
+
+            // Ajout du marqueur
+            m_map.addMarker(opts).setTag(lieu.id);
         }
     }
 

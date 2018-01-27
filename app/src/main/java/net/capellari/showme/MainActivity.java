@@ -23,6 +23,7 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.DrawerLayout;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
@@ -52,6 +53,7 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.tasks.OnSuccessListener;
 
 import net.capellari.showme.db.AppDatabase;
@@ -194,6 +196,14 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
+    protected void onStart() {
+        super.onStart();
+
+        // Rafraichissement
+        rafraichir();
+    }
+
+    @Override
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
 
@@ -256,6 +266,7 @@ public class MainActivity extends AppCompatActivity
     public void onMapReady(GoogleMap googleMap) {
         m_map = googleMap;
 
+        // Paramétrage de la carte
         centrerCarte();
         m_resultatFragment.setMap(m_map);
     }
@@ -277,6 +288,9 @@ public class MainActivity extends AppCompatActivity
         SharedPreferences.Editor editor = m_preferences.edit();
         editor.putInt(getString(R.string.pref_rayon), rayon);
         editor.apply();
+
+        // Rafraichissement !
+        rafraichir();
     }
 
     @Override
@@ -344,7 +358,7 @@ public class MainActivity extends AppCompatActivity
 
                     // Chargement ...
                     m_resultatFragment.setStatus(ResultatFragment.Status.CHARGEMENT);
-                    m_resultatFragment.indetermine();
+                    m_resultatFragment.refreshing();
                     m_resultatFragment.clearLieux();
 
                     getLieux(location, m_rayonFragment.get_rayon(), query);
@@ -356,11 +370,10 @@ public class MainActivity extends AppCompatActivity
     }
     private void rafraichir() {
         if (m_status != Status.ACCUEIL && m_status != Status.RECHERCHE) return;
+        if (m_resultatFragment.getStatus() == ResultatFragment.Status.CHARGEMENT) return;
 
         // Récupération de la position
         if (checkLocationPermission()) {
-            m_map.setMyLocationEnabled(true);
-
             m_locationClient.getLastLocation().addOnSuccessListener(new OnSuccessListener<Location>() {
                 @Override
                 public void onSuccess(Location location) {
@@ -369,7 +382,7 @@ public class MainActivity extends AppCompatActivity
 
                     // Chargement ...
                     m_resultatFragment.setStatus(ResultatFragment.Status.CHARGEMENT);
-                    m_resultatFragment.indetermine();
+                    m_resultatFragment.refreshing();
                     m_resultatFragment.clearLieux();
 
                     getLieux(location, m_rayonFragment.get_rayon());
@@ -451,6 +464,13 @@ public class MainActivity extends AppCompatActivity
         if (m_resultatFragment == null) {
             m_resultatFragment = new ResultatFragment();
         }
+
+        m_resultatFragment.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                rafraichir();
+            }
+        });
 
         // Rayon
         if (m_rayonFragment == null) {
