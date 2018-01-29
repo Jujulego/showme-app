@@ -1,8 +1,13 @@
 package net.capellari.showme.db;
 
 import android.arch.persistence.room.Database;
+import android.arch.persistence.room.Room;
 import android.arch.persistence.room.RoomDatabase;
 import android.arch.persistence.room.TypeConverters;
+import android.content.Context;
+import android.support.annotation.NonNull;
+
+import net.capellari.showme.R;
 
 /**
  * Created by julien on 06/01/18.
@@ -18,8 +23,25 @@ import android.arch.persistence.room.TypeConverters;
 }, version = 1, exportSchema = false)
 @TypeConverters(Converters.class)
 public abstract class AppDatabase extends RoomDatabase {
+    // Attributs
+    private static AppDatabase m_instance;
+
     // DAOs
     public abstract Type.TypeDAO getTypeDAO();
     public abstract Lieu.LieuDAO getLieuDAO();
     public abstract Horaire.HoraireDAO getHoraireDAO();
+
+    // Méthodes
+    @NonNull
+    public static synchronized AppDatabase getInstance(Context context) {
+        // (Re)ouverture de la base
+        if (m_instance == null || !m_instance.isOpen()) {
+            m_instance = Room.databaseBuilder(
+                    context.getApplicationContext(), AppDatabase.class,
+                    context.getString(R.string.database)
+            ).build();
+        }
+
+        return m_instance;
+    }
 }

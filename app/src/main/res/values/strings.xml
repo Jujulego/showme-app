@@ -33,7 +33,7 @@
     <string name="nav_close">Fermer le panneau</string>
 
     <!-- Menu -->
-    <string name="menu_refresh">Rafraîchir</string>
+    <string name="nav_refresh">Rafraîchir</string>
 
     <!-- RayonFragment -->
     <string name="aff_rayon_defaut" translatable="false">10 m</string>
@@ -54,7 +54,12 @@
 
     <!-- Types -->
     <string name="types_activity">Catégories</string>
+
     <string name="nav_ajouter">Ajouter</string>
+    <string name="nav_tri">Tri</string>
+
+    <string name="ajouter_description">Bouton d\'ajout</string>
+    <string name="alphabet">ABCDEFGHIJKLMNOPQRSTUVWXYZ</string>
 
     <!-- Préférences -->
     <string name="parametres_activity">Paramètres</string>

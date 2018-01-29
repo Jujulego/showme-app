@@ -25,7 +25,7 @@ import static android.arch.persistence.room.ForeignKey.CASCADE;
 @Entity(foreignKeys = {
         @ForeignKey(
                 entity = Lieu.class,
-                parentColumns = "id",
+                parentColumns = "_id",
                 childColumns = "lieu_id",
                 onDelete = CASCADE
         )
@@ -33,7 +33,7 @@ import static android.arch.persistence.room.ForeignKey.CASCADE;
 public class Horaire {
     // Champs
     @PrimaryKey @ColumnInfo(index = true)
-    public long id;
+    public long _id;
 
     @ColumnInfo(index = true)
     public long lieu_id = -1L;

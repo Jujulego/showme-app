@@ -1,4 +1,4 @@
-package net.capellari.showme;
+package net.capellari.showme.net;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -15,18 +15,17 @@ import com.android.volley.toolbox.Volley;
  * Gestion des requetes HTTPS faites au serveur
  */
 
-public class RequestManager {
+public class RequeteManager {
     // Attributs
-    private static RequestManager m_instance; // Singleton !
-    private static Context m_context;
+    private static RequeteManager m_instance; // Singleton !
 
     private RequestQueue m_requestQueue;
     private ImageLoader m_imageLoader;
 
     // Constructeur
-    private RequestManager(Context context) {
-        m_context = context;
-        getRequestQueue();
+    private RequeteManager(Context context) {
+        // Setup RequestQueue
+        m_requestQueue = Volley.newRequestQueue(context);
 
         // Setup ImageLoader
         m_imageLoader = new ImageLoader(m_requestQueue, new ImageLoader.ImageCache() {
@@ -45,9 +44,9 @@ public class RequestManager {
     }
 
     // Méthodes statiques
-    public static synchronized RequestManager getInstance(Context context) {
+    public static synchronized RequeteManager getInstance(Context context) {
         if (m_instance == null) {
-            m_instance = new RequestManager(context);
+            m_instance = new RequeteManager(context.getApplicationContext());
         }
 
         return m_instance;
@@ -55,14 +54,8 @@ public class RequestManager {
 
     // Méthodes
     public RequestQueue getRequestQueue() {
-        // Initialisation request queue
-        if (m_requestQueue == null) {
-            m_requestQueue = Volley.newRequestQueue(m_context.getApplicationContext());
-        }
-
         return m_requestQueue;
     }
-
     public <T> void addRequest(Request<T> rq) {
         getRequestQueue().add(rq);
     }

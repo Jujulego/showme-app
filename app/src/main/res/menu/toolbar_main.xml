@@ -9,7 +9,7 @@
         app:showAsAction="always"/>
 
     <item android:id="@+id/nav_refresh"
-        android:title="@string/menu_refresh"
+        android:title="@string/nav_refresh"
         android:icon="@drawable/refresh_blanc"
 
         app:showAsAction="ifRoom"/>

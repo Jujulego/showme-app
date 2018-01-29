@@ -87,7 +87,7 @@ public class RayonFragment extends Fragment {
 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
-                if (m_listener != null) m_listener.onRayonChange(get_rayon());
+                if (m_listener != null) m_listener.onRayonChange(get_rayon(), true);
             }
         });
 
@@ -145,7 +145,7 @@ public class RayonFragment extends Fragment {
         m_seek_bar.setProgress((rayon - m_min) / m_fact);
         //m_valeur.setText(String.format(Locale.getDefault(), "%d m", get_rayon()));
 
-        if (m_listener != null) m_listener.onRayonChange(get_rayon());
+        if (m_listener != null) m_listener.onRayonChange(get_rayon(), false);
     }
 
     public void set_max(int max) {
@@ -202,6 +202,6 @@ public class RayonFragment extends Fragment {
     // Interface
     interface OnRayonChangeListener {
         void onRayonReady();
-        void onRayonChange(int rayon);
+        void onRayonChange(int rayon, boolean user);
     }
 }

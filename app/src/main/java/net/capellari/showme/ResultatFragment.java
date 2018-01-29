@@ -1,34 +1,22 @@
 package net.capellari.showme;
 
-import android.annotation.SuppressLint;
-import android.content.Intent;
-import android.os.AsyncTask;
+import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v7.widget.CardView;
+import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.BaseExpandableListAdapter;
-import android.widget.ExpandableListView;
-import android.widget.ImageView;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.Marker;
-import com.google.android.gms.maps.model.MarkerOptions;
-
 import net.capellari.showme.db.Lieu;
-import net.capellari.showme.db.Type;
 
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Locale;
+import java.util.ArrayList;
 
 /**
  * Created by julien on 04/01/18.
@@ -37,15 +25,185 @@ import java.util.Locale;
  */
 
 public class ResultatFragment extends Fragment {
+    // Attributs
+    private RecyclerView m_liste;
+    private SwipeRefreshLayout m_swipeRefresh;
+
+    private int m_refreshMenuItem;
+    private OnResultatListener m_listener;
+
+    private int m_compteur = 0; // inversé : mis au max puis réduit jusqu'à 0 => plein !
+    private LieuAdapter m_adapter = new LieuAdapter();
+
+    // Events
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        // Cool !
+        setHasOptionsMenu(true);
+    }
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+
+        // Listener !
+        m_listener = null;
+        if (context instanceof OnResultatListener) {
+            m_listener = (OnResultatListener) context;
+        }
+    }
+
+    @Nullable @Override
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        // Infalte !
+        View view = inflater.inflate(R.layout.fragment_resultat, container, false);
+
+        // Liste
+        m_liste = view.findViewById(R.id.liste);
+        m_liste.setAdapter(m_adapter);
+
+        // SwipeRefresh
+        m_swipeRefresh = view.findViewById(R.id.swipe_refresh);
+        m_swipeRefresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                if (m_listener != null) m_listener.onRefresh();
+            }
+        });
+
+        return view;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Refresh ?
+        if (item.getItemId() == m_refreshMenuItem) {
+            if (m_listener != null) m_listener.onRefresh();
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    // Méthodes
+    public void setRefreshMenuItem(int id) {
+        m_refreshMenuItem = id;
+    }
+
+    public void setRefreshing(boolean refresh) {
+        if (refresh) m_adapter.vider();
+        m_swipeRefresh.setRefreshing(refresh);
+    }
+    public void initCompteur(int nb) {
+        m_compteur += nb;
+
+        // On commence !
+        setRefreshing(true);
+    }
+    public void decrementer() {
+        decrementer(1);
+    }
+    public void decrementer(int v) {
+        m_compteur -= v;
+
+        if (m_compteur <= 0) {
+            m_compteur = 0;
+            setRefreshing(false);
+        }
+    }
+    public void ajouterLieu(Lieu lieu) {
+        m_adapter.ajouterLieu(lieu);
+
+        // Fini !
+        if (m_compteur == 0) setRefreshing(false);
+    }
+
+    // Listener
+    public interface OnResultatListener {
+        void onRefresh();
+        void onLieuClick(Lieu lieu);
+    }
+
+    // Classe
+    private class LieuViewHolder extends RecyclerView.ViewHolder {
+        // Attributs
+        private CardView m_card;
+        private TextView m_nom;
+
+        private Lieu m_lieu;
+
+        // Constructeur
+        public LieuViewHolder(View itemView) {
+            super(itemView);
+
+            // Carte
+            m_card = itemView.findViewById(R.id.card);
+            m_card.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    m_listener.onLieuClick(m_lieu);
+                }
+            });
+
+            // Récupération des vues
+            m_nom = itemView.findViewById(R.id.nom);
+        }
+
+        // Méthodes
+        public void setLieu(Lieu lieu) {
+            m_lieu = lieu;
+
+            // Contenu !
+            m_nom.setText(lieu.nom);
+        }
+    }
+    private class LieuAdapter extends RecyclerView.Adapter<LieuViewHolder> {
+        // Attributs
+        private ArrayList<Lieu> m_lieux = new ArrayList<>();
+
+        // Events
+        @Override
+        public LieuViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+            return new LieuViewHolder(
+                    getLayoutInflater().inflate(R.layout.card_lieu, parent, false)
+            );
+        }
+
+        @Override
+        public void onBindViewHolder(LieuViewHolder holder, int position) {
+            holder.setLieu(m_lieux.get(position));
+        }
+
+        // Méthodes
+        @Override
+        public int getItemCount() {
+            return m_lieux.size();
+        }
+
+        public void ajouterLieu(Lieu lieu) {
+            m_lieux.add(lieu);
+            notifyItemInserted(m_lieux.size() -1);
+        }
+
+        public void vider() {
+            int nb = m_lieux.size();
+            m_lieux.clear();
+
+            notifyItemRangeRemoved(0, nb-1);
+        }
+    }
+
     // Enumération
-    public enum Status {
+    /*public enum Status {
         VIDE, CHARGEMENT, MESSAGE, LISTE
     }
 
     // Attributs
     private TextView m_message;
     private SwipeRefreshLayout m_swipeRefresh;
-    private ExpandableListView m_liste;
+    private RecyclerView m_liste;
     private ProgressBar m_waiter;
 
     private boolean m_init = false;
@@ -56,6 +214,7 @@ public class ResultatFragment extends Fragment {
     private GoogleMap m_map = null;
     private LieuxAdapter m_adapter = new LieuxAdapter();
     private LinkedList<Lieu> m_lieux = new LinkedList<>();
+    private LiveData<Type.TypeNb[]> m_livedata;
 
     private int m_groupeOuvert = -1;
 
@@ -71,33 +230,6 @@ public class ResultatFragment extends Fragment {
         m_message = view.findViewById(R.id.message);
 
         // Préparation liste
-        m_liste.setAdapter(m_adapter);
-        m_liste.setOnGroupExpandListener(new ExpandableListView.OnGroupExpandListener() {
-            @Override
-            public void onGroupExpand(int groupe) {
-                // Fermeture du groupe précédent
-                if (groupe != m_groupeOuvert) {
-                    m_liste.collapseGroup(m_groupeOuvert);
-                }
-                m_groupeOuvert = groupe;
-
-                // Gestion des marqueurs
-                if (m_map != null) {
-                    ajouterMarqueurs();
-                }
-
-            }
-        });
-        m_liste.setOnChildClickListener(new ExpandableListView.OnChildClickListener() {
-            @Override
-            public boolean onChildClick(ExpandableListView expandableListView, View view, int groupPosition, int childPosition, long id) {
-                Intent intent = new Intent(getActivity(), LieuActivity.class);
-                intent.putExtra(LieuActivity.INTENT_LIEU, id);
-
-                startActivity(intent);
-                return true;
-            }
-        });
 
         // Préparation refresh layout
         m_swipeRefresh = view.findViewById(R.id.swipe_refresh);
@@ -172,27 +304,6 @@ public class ResultatFragment extends Fragment {
         return m_waiter.getMax() == m_lieux.size();
     }
 
-    @SuppressLint("StaticFieldLeak")
-    public void majListe(final Type.TypeDAO typeDAO) {
-        new AsyncTask<Void,Void,Type.TypeNb[]>() {
-            @Override
-            protected Type.TypeNb[] doInBackground(Void... voids) {
-                LinkedList<Long> ids = new LinkedList<>();
-                for (Lieu lieu : m_lieux) {
-                    ids.add(lieu.id);
-                }
-
-                return typeDAO.recupTypes(ids);
-            }
-
-            @Override
-            protected void onPostExecute(Type.TypeNb[] types) {
-                m_adapter = new LieuxAdapter(m_lieux, types);
-                m_liste.setAdapter(m_adapter);
-            }
-        }.execute();
-    }
-
     public Status getStatus() {
         return m_status;
     }
@@ -205,9 +316,7 @@ public class ResultatFragment extends Fragment {
         switch (status) {
             case CHARGEMENT:
                 m_liste.setVisibility(View.GONE);
-                m_waiter.setVisibility(View.VISIBLE);
                 m_message.setVisibility(View.VISIBLE);
-
                 refreshing();
 
                 break;
@@ -260,7 +369,7 @@ public class ResultatFragment extends Fragment {
         m_map.clear();
 
         // Ajout des marqueurs
-        List<Lieu> lieux = m_adapter.getLieux(m_groupeOuvert);
+        /*List<Lieu> lieux = m_adapter.getLieux(m_groupeOuvert);
         for (Lieu lieu : lieux) {
             MarkerOptions opts = new MarkerOptions();
             opts.position(new LatLng(lieu.coordonnees.latitude, lieu.coordonnees.longitude));
@@ -271,130 +380,7 @@ public class ResultatFragment extends Fragment {
             }
 
             // Ajout du marqueur
-            m_map.addMarker(opts).setTag(lieu.id);
-        }
-    }
-
-    // Classe
-    class LieuxAdapter extends BaseExpandableListAdapter {
-        // Attributs
-        private List<Lieu> m_lieux;
-        private Type.TypeNb[] m_types;
-
-        // Constructeurs
-        public LieuxAdapter() {
-            m_lieux = new LinkedList<>();
-            m_types = new Type.TypeNb[0];
-        }
-        public LieuxAdapter(List<Lieu> lieux, Type.TypeNb[] types) {
-            m_lieux = lieux;
-            m_types = types;
-        }
-
-        // Méthodes
-        @Override public int getGroupCount() {
-            return m_types.length;
-        }
-        @Override public int getChildrenCount(int groupPosition) {
-            return m_types[groupPosition].nb_lieux;
-        }
-
-        @Override public Object getGroup(int groupPosition) {
-            return m_types[groupPosition];
-        }
-        @Override public Object getChild(int groupPosition, int childPosition) {
-            long typeId = getGroupId(groupPosition);
-
-            for (Lieu lieu : m_lieux) {
-                // Bon type ?
-                boolean ok = false;
-                for (Type type : lieu.types) {
-                    if (type.id == typeId) {
-                        ok = true;
-                        break;
-                    }
-                }
-
-                // Bon lieu ?
-                if (ok) {
-                    if (childPosition == 0) {
-                        return lieu;
-                    }
-
-                    childPosition--;
-                }
-            }
-
-            return null;
-        }
-        public List<Lieu> getLieux(int groupPosition) {
-            long typeId = getGroupId(groupPosition);
-            List<Lieu> lieux = new LinkedList<>();
-
-            // Tri !
-            for (Lieu lieu : m_lieux) {
-                for (Type type : lieu.types) {
-                    if (type.id == typeId) {
-                        lieux.add(lieu);
-                        break;
-                    }
-                }
-            }
-
-            return lieux;
-        }
-
-        @Override public boolean hasStableIds() {
-            return true;
-        }
-        @Override public long getGroupId(int groupPosition) {
-            return m_types[groupPosition].id;
-        }
-        @Override public long getChildId(int groupPosition, int childPosition) {
-            return ((Lieu) getChild(groupPosition, childPosition)).id;
-        }
-
-        @Override
-        public View getGroupView(int groupPosition, boolean isExpanded, View view, ViewGroup parent) {
-            if (view == null) view = getLayoutInflater().inflate(R.layout.categorie_type, parent, false);
-
-            // Récupération du nom
-            TextView  nom    = view.findViewById(R.id.nom);
-            ImageView expand = view.findViewById(R.id.expand_icone);
-
-            // Remplissage
-            Type.TypeNb type = (Type.TypeNb) getGroup(groupPosition);
-
-            if (type.nb_lieux > 1) {
-                nom.setText(type.pluriel);
-            } else {
-                nom.setText(type.nom);
-            }
-
-            // Expand !
-            expand.setSelected(isExpanded);
-
-            return view;
-        }
-
-        @Override
-        public View getChildView(int groupPosition, int childPosition, boolean isLastChild, View view, ViewGroup parent) {
-            if (view == null) view = getLayoutInflater().inflate(R.layout.item_lieu, parent, false);
-
-            // Remplissage
-            TextView nom = view.findViewById(R.id.nom);
-            Lieu lieu = (Lieu) getChild(groupPosition, childPosition);
-
-            if (lieu != null) {
-                nom.setText(lieu.nom);
-            }
-
-            return view;
-        }
-
-        @Override
-        public boolean isChildSelectable(int groupPosition, int childPosition) {
-            return true;
-        }
-    }
+            m_map.addMarker(opts).setTag(lieu._id);
+        }* /
+    }*/
 }

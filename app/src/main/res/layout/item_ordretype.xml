@@ -7,6 +7,10 @@
     android:layout_height="wrap_content"
     android:padding="16dp"
 
+    android:drawableStart="@drawable/agence_immobiliaire"
     android:drawableEnd="@drawable/reorder_gris"
+    android:drawablePadding="16dp"
+
+    android:gravity="center_vertical"
 
     tools:text="Item !" />

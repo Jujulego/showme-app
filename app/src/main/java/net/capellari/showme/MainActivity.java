@@ -5,7 +5,8 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.SuppressLint;
 import android.app.SearchManager;
-import android.arch.persistence.room.Room;
+import android.arch.lifecycle.Observer;
+import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -60,6 +61,9 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import net.capellari.showme.db.AppDatabase;
 import net.capellari.showme.db.Lieu;
 import net.capellari.showme.db.Type;
+import net.capellari.showme.net.LieuxModel;
+import net.capellari.showme.net.LiveLieu;
+import net.capellari.showme.net.RequeteManager;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -75,6 +79,7 @@ import java.util.Locale;
 public class MainActivity extends AppCompatActivity
         implements OnMapReadyCallback,
                    RayonFragment.OnRayonChangeListener,
+                   ResultatFragment.OnResultatListener,
                    SharedPreferences.OnSharedPreferenceChangeListener {
 
     // Constantes
@@ -90,7 +95,7 @@ public class MainActivity extends AppCompatActivity
 
     private static final int RQ_PERM_LOCATION = 1;
 
-    // Enuméraion
+    // Enumération
     enum Status {
         VIDE, ACCUEIL, RECHERCHE
     }
@@ -123,10 +128,12 @@ public class MainActivity extends AppCompatActivity
     private ResultatFragment m_resultatFragment;
     private RayonFragment m_rayonFragment;
 
-    private RequestManager m_requestManager;
     private AppDatabase m_db;
+    private LieuxModel m_lieuxModel;
+    private RequeteManager m_requeteManager;
 
     private String m_query = null;
+    private boolean m_chargement = false;
 
     // Events
     @Override
@@ -136,6 +143,16 @@ public class MainActivity extends AppCompatActivity
         // Ouverture des préférences
         m_preferences = PreferenceManager.getDefaultSharedPreferences(this);
         m_preferences.registerOnSharedPreferenceChangeListener(this);
+
+        // Chargement DB
+        m_db = AppDatabase.getInstance(this);
+
+        // Models
+        m_lieuxModel = ViewModelProviders.of(this).get(LieuxModel.class);
+
+        // Initialisation gestion des requetes
+        m_requeteManager = RequeteManager.getInstance(this.getApplicationContext());
+        getTypes();
 
         // Ajout du layout
         setContentView(R.layout.activity_main);
@@ -149,13 +166,13 @@ public class MainActivity extends AppCompatActivity
             // Récupération de l'état
             m_status = Status.valueOf(savedInstanceState.getString(STATUS));
 
-            // Récupération des fragements
+            // Récupération des fragments
             m_mapFragment      = (SupportMapFragment) getSupportFragmentManager().findFragmentByTag(MAP_TAG);
             m_resultatFragment = (ResultatFragment)   getSupportFragmentManager().findFragmentByTag(RESULTAT_TAG);
             m_rayonFragment    = (RayonFragment)      getSupportFragmentManager().findFragmentByTag(RAYON_TAG);
         }
 
-        // Complète les fragements manquants
+        // Complète les fragments manquants
         prepareFragments();
 
         if (savedInstanceState == null) setupAccueil(); // Ne rien faire en cas de restoration
@@ -163,12 +180,6 @@ public class MainActivity extends AppCompatActivity
         // Mise en place de la toolbar
         setupToolbar();
         setupSearchbar();
-
-        // Initialisation gestion des requetes
-        m_requestManager = RequestManager.getInstance(this.getApplicationContext());
-
-        // Initialisation DB
-        new DBInit().execute(this);
     }
 
     @Override
@@ -199,20 +210,13 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
-    protected void onStart() {
-        super.onStart();
-
-        // Rafraichissement
-        rafraichir();
-    }
-
-    @Override
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
 
         m_drawerToggle.onConfigurationChanged(newConfig);
     }
 
+    // Permission
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         switch (requestCode) {
@@ -236,6 +240,7 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
+    // Menu
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Ajout des options
@@ -255,25 +260,22 @@ public class MainActivity extends AppCompatActivity
             case R.id.nav_recherche:
                 setupRecherche();
                 return true;
-
-            case R.id.nav_refresh:
-                rafraichir();
-                return true;
         }
 
         // Action par défaut
         return super.onOptionsItemSelected(item);
     }
 
+    // Carte
     @Override
     public void onMapReady(GoogleMap googleMap) {
         m_map = googleMap;
 
         // Paramétrage de la carte
         centrerCarte();
-        m_resultatFragment.setMap(m_map);
     }
 
+    // Rayon
     @Override
     public void onRayonReady() {
         // Suivi du rayon
@@ -286,16 +288,31 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
-    public void onRayonChange(int rayon) {
+    public void onRayonChange(int rayon, boolean user) {
         // Enregistrement
         SharedPreferences.Editor editor = m_preferences.edit();
         editor.putInt(getString(R.string.pref_rayon), rayon);
         editor.apply();
 
         // Rafraichissement !
+        if (user) rafraichir();
+    }
+
+    // Resultat
+    @Override
+    public void onRefresh() {
         rafraichir();
     }
 
+    @Override
+    public void onLieuClick(Lieu lieu) {
+        Intent intent = new Intent(this, LieuActivity.class);
+        intent.putExtra(LieuActivity.INTENT_LIEU, lieu._id);
+
+        startActivity(intent);
+    }
+
+    // Préférences
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
         if (key.equals(getString(R.string.pref_gps))) {
@@ -338,11 +355,11 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
-    protected void onDestroy() {
-        super.onDestroy();
+    protected void onStop() {
+        super.onStop();
 
-        // Fermeture de la base
-        if (m_db != null) m_db.close();
+        // Arrêt des requetes
+        m_requeteManager.getRequestQueue().cancelAll(TAG);
     }
 
     // Méthodes
@@ -358,18 +375,15 @@ public class MainActivity extends AppCompatActivity
                     if (location == null) return;
 
                     // Chargement ...
-                    m_resultatFragment.setStatus(ResultatFragment.Status.CHARGEMENT);
-                    m_resultatFragment.refreshing();
-                    m_resultatFragment.clearLieux();
-
+                    m_resultatFragment.setRefreshing(true);
                     getLieux(location, m_rayonFragment.get_rayon(), query);
                 }
             });
 
             // Enregistrement !
             SearchRecentSuggestions suggestions = new SearchRecentSuggestions(this,
-                    HistoriqueSuggestionProvider.AUTORITE,
-                    HistoriqueSuggestionProvider.MODE
+                    HistoriqueProvider.AUTORITE,
+                    HistoriqueProvider.MODE
             );
             suggestions.saveRecentQuery(query, null);
 
@@ -380,7 +394,8 @@ public class MainActivity extends AppCompatActivity
     }
     private void rafraichir() {
         if (m_status != Status.ACCUEIL && m_status != Status.RECHERCHE) return;
-        if (m_resultatFragment.getStatus() == ResultatFragment.Status.CHARGEMENT) return;
+        if (m_chargement) return;
+        m_chargement = true;
 
         // Récupération de la position
         if (checkLocationPermission()) {
@@ -391,9 +406,7 @@ public class MainActivity extends AppCompatActivity
                     if (location == null) return;
 
                     // Chargement ...
-                    m_resultatFragment.setStatus(ResultatFragment.Status.CHARGEMENT);
-                    m_resultatFragment.refreshing();
-                    m_resultatFragment.clearLieux();
+                    m_resultatFragment.setRefreshing(true);
 
                     if (m_status == Status.RECHERCHE && m_query != null) {
                         getLieux(location, m_rayonFragment.get_rayon(), m_query);
@@ -413,7 +426,7 @@ public class MainActivity extends AppCompatActivity
         if (m_preferences.getBoolean(getString(R.string.pref_internet), false)) return;
 
         // Requete
-        m_requestManager.addRequest(new JsonArrayRequest(getString(R.string.url_types, getString(R.string.serveur)), new Response.Listener<JSONArray>() {
+        m_requeteManager.addRequest(new JsonArrayRequest(getString(R.string.url_types, getString(R.string.serveur)), new Response.Listener<JSONArray>() {
             @Override
             public void onResponse(JSONArray reponse) {
                 Type[] types = new Type[reponse.length()];
@@ -452,7 +465,7 @@ public class MainActivity extends AppCompatActivity
         if (m_preferences.getBoolean(getString(R.string.pref_internet), false)) return;
 
         // Requete
-        m_requestManager.addRequest(new LieuxRequete(location, rayon));
+        m_requeteManager.addRequest(new LieuxRequete(location, rayon));
     }
     private void getLieux(Location location, int rayon, String query) {
         // Check pref
@@ -460,7 +473,7 @@ public class MainActivity extends AppCompatActivity
 
         // Requete
         try {
-            m_requestManager.addRequest(new LieuxRequete(location, rayon, query));
+            m_requeteManager.addRequest(new LieuxRequete(location, rayon, query));
         } catch (UnsupportedEncodingException err) {
             Log.w(TAG, "Erreur !", err);
         }
@@ -479,12 +492,7 @@ public class MainActivity extends AppCompatActivity
             m_resultatFragment = new ResultatFragment();
         }
 
-        m_resultatFragment.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-            @Override
-            public void onRefresh() {
-                rafraichir();
-            }
-        });
+        m_resultatFragment.setRefreshMenuItem(R.id.nav_refresh);
 
         // Rayon
         if (m_rayonFragment == null) {
@@ -508,8 +516,6 @@ public class MainActivity extends AppCompatActivity
                 m_mapFragment.getMapAsync(this);
                 startLocationUpdates();
         }
-
-        m_resultatFragment.setStatus(ResultatFragment.Status.VIDE);
 
         transaction.commit();
 
@@ -538,9 +544,6 @@ public class MainActivity extends AppCompatActivity
 
                 break;
         }
-
-        m_resultatFragment.setMessage(getString(R.string.rechr_tuto));
-        m_resultatFragment.setStatus(ResultatFragment.Status.MESSAGE);
 
         transaction.commit();
 
@@ -865,61 +868,22 @@ public class MainActivity extends AppCompatActivity
         anim.start();
     }
 
-    // Taches
-    static class DBInit extends AsyncTask<MainActivity,Void,Void> {
-        @Override
-        protected Void doInBackground(MainActivity... activites) {
-            MainActivity activite = activites[0];
-
-            // Initialisation
-            activite.m_db = Room.databaseBuilder(
-                    activite, AppDatabase.class,
-                    activite.getString(R.string.database)
-            ).build();
-
-            // log !
-            Log.i(TAG, "Database initialisée");
-
-            // Remplissage & mise à jour
-            activite.getTypes();
-            return null;
-        }
-    }
-
+    // Requetes
     class LieuxRequete extends JsonArrayRequest {
-        protected  LieuxRequete(String url) {
-            super(url, new Response.Listener<JSONArray>() {
-                        @Override
-                        public void onResponse(JSONArray reponse) {
-                    Long[] ids = new Long[reponse.length()];
-                    m_resultatFragment.initProgress(reponse.length());
-
-                    // Récupération des IDs
-                    for (int i = 0; i < reponse.length(); ++i) {
-                        try {
-                            ids[i] = reponse.getLong(i);
-
-                        } catch (JSONException err) {
-                            ids[i] = null;
-                            m_resultatFragment.incrementProgress(1);
-
-                            Log.e(TAG, "Erreur JSON lieux", err);
-                        }
-                    }
-
-                    // Tache
-                    new LieuxTask().execute(ids);
-                }
-            }, new Response.ErrorListener() {
+        private LieuxRequete(String url) {
+            super(url, new LieuxListener(), new Response.ErrorListener() {
                 @Override
                 public void onErrorResponse(VolleyError error) {
                     Log.w(TAG, error.toString());
 
                     // Message d'erreur
-                    m_resultatFragment.setMessage(getString(R.string.erreur));
-                    m_resultatFragment.setStatus(ResultatFragment.Status.MESSAGE);
+                    m_resultatFragment.setRefreshing(false);
+                    //m_resultatFragment.setMessage(getString(R.string.erreur));
+                    //m_resultatFragment.setStatus(ResultatFragment.Status.MESSAGE);
                 }
             });
+
+            setTag(TAG);
         }
 
         public LieuxRequete(Location location, int rayon) {
@@ -938,104 +902,44 @@ public class MainActivity extends AppCompatActivity
             ));
         }
     }
-    class LieuRequete<Progress,Result> extends JsonObjectRequest {
-        public LieuRequete(final long id, final AsyncTask<JSONObject,Progress,Result> task) {
-            super(Method.GET, getString(R.string.url_lieu, getString(R.string.serveur), id), new JSONObject(), new Response.Listener<JSONObject>() {
-                @Override
-                public void onResponse(JSONObject reponse) {
-                    task.execute(reponse);
-                }
-            }, new Response.ErrorListener() {
-                @Override
-                public void onErrorResponse(VolleyError error) {
-                    Log.w(TAG, error.toString());
 
-                    // Il ne sera pas récupéré
-                    m_resultatFragment.incrementProgress(1);
-                    if (m_resultatFragment.plein()) {
-                        m_resultatFragment.majListe(m_db.getTypeDAO());
-                        m_resultatFragment.setStatus(ResultatFragment.Status.LISTE);
-                    }
-                }
-            });
-        }
-    }
-
-    @SuppressLint("StaticFieldLeak")
-    class LieuxTask extends AsyncTask<Long,Lieu,Integer> {
+    class LieuxListener implements Response.Listener<JSONArray> {
         @Override
-        protected Integer doInBackground(Long... ids) {
-            // Extraction de tous ceux qui existent dans la db
-            LinkedList<Long> list = new LinkedList<>(Arrays.asList(ids));
-            List<Lieu> lieux = m_db.getLieuDAO().recup(ids);
-            int nb = lieux.size();
+        public void onResponse(JSONArray reponse) {
+            Long[] ids = new Long[reponse.length()];
 
-            for (Lieu l : lieux) {
-                list.remove(l.id);
-            }
-
-            publishProgress(lieux.toArray(new Lieu[lieux.size()]));
-
-            // Récupération des autres
-            for (Long id : list) {
-                if (id == null) continue;
-                m_requestManager.addRequest(new LieuRequete<>(id, new LieuTask()));
-            }
-
-            return nb;
-        }
-
-        @Override
-        protected void onProgressUpdate(Lieu... lieux) {
-            m_resultatFragment.ajouterLieux(lieux);
-        }
-
-        @Override
-        protected void onPostExecute(Integer nb) {
-            // Fini ?
-            if (nb == 0) {
-                m_resultatFragment.setMessage(getString(R.string.vide));
-                m_resultatFragment.setStatus(ResultatFragment.Status.MESSAGE);
-
-            } else {
-                if (m_resultatFragment.plein()) {
-                    m_resultatFragment.majListe(m_db.getTypeDAO());
-                    m_resultatFragment.setStatus(ResultatFragment.Status.LISTE);
-                }
-            }
-        }
-    }
-
-    @SuppressLint("StaticFieldLeak")
-    class LieuTask extends AsyncTask<JSONObject,Lieu,Void> {
-        @Override
-        protected Void doInBackground(JSONObject... objets) {
-            // Construction des objets
-            Lieu[] lieux = new Lieu[objets.length];
-
-            for (int i = 0; i < objets.length; ++i) {
+            // Récupération des IDs
+            for (int i = 0; i < reponse.length(); ++i) {
                 try {
-                    lieux[i] = new Lieu(MainActivity.this, m_db.getTypeDAO(), objets[i]);
+                    ids[i] = reponse.getLong(i);
+
                 } catch (JSONException err) {
-                    Log.e(TAG, "Erreur JSON lieu", err);
+                    ids[i] = null;
+                    Log.e(TAG, "Erreur JSON lieux", err);
                 }
             }
 
-            // Ajout à la base
-            m_db.getLieuDAO().ajouter(lieux);
-            publishProgress(lieux);
+            // Récupération des lieux
+            m_resultatFragment.initCompteur(ids.length);
 
-            return null;
-        }
+            for (Long id : ids) {
+                // Cas spéciaux
+                if (id == null) {
+                    m_resultatFragment.decrementer();
+                    continue;
+                }
 
-        @Override
-        protected void onProgressUpdate(Lieu... lieux) {
-            m_resultatFragment.ajouterLieux(lieux);
+                // Récupération du suivant !
+                m_lieuxModel.recup(id).observe(MainActivity.this, new Observer<Lieu>() {
+                    @Override
+                    public void onChanged(@Nullable Lieu lieu) {
+                        m_resultatFragment.decrementer();
 
-            // Fini ?
-            if (m_resultatFragment.plein()) {
-                m_resultatFragment.majListe(m_db.getTypeDAO());
-                m_resultatFragment.setStatus(ResultatFragment.Status.LISTE);
+                        if (lieu != null) {
+                            m_resultatFragment.ajouterLieu(lieu);
+                        }
+                    }
+                });
             }
         }
     }

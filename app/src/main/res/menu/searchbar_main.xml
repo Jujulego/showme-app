@@ -10,7 +10,7 @@
         app:actionViewClass="android.support.v7.widget.SearchView"/>
 
     <item android:id="@+id/nav_refresh"
-        android:title="@string/menu_refresh"
+        android:title="@string/nav_refresh"
         android:icon="@drawable/ic_refresh_black_48dp"
 
         app:showAsAction="ifRoom"/>

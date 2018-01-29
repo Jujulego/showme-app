@@ -1,27 +1,23 @@
 package net.capellari.showme;
 
 import android.Manifest;
-import android.annotation.SuppressLint;
-import android.arch.persistence.room.Room;
+import android.arch.lifecycle.Observer;
+import android.arch.lifecycle.ViewModelProviders;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.NavUtils;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.preference.PreferenceManager;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.RatingBar;
 import android.widget.TextView;
@@ -38,8 +34,9 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnSuccessListener;
 
-import net.capellari.showme.db.AppDatabase;
 import net.capellari.showme.db.Lieu;
+import net.capellari.showme.net.LieuxModel;
+import net.capellari.showme.net.RequeteManager;
 
 public class LieuActivity extends AppCompatActivity implements OnMapReadyCallback {
     // Constantes
@@ -49,10 +46,10 @@ public class LieuActivity extends AppCompatActivity implements OnMapReadyCallbac
     private static final int RQ_PERM_LOCATION = 1;
 
     // Attributs
-    private Lieu m_lieu = null;
+    private Lieu m_lieu;
+    private LieuxModel m_lieuxModel;
 
-    private AppDatabase m_db;
-    private RequestManager m_requestManager;
+    private RequeteManager m_requeteManager;
     private SharedPreferences m_preferences;
     private FusedLocationProviderClient m_locationClient;
     private GoogleMap m_map = null;
@@ -79,8 +76,6 @@ public class LieuActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         // Inflate !
         setContentView(R.layout.activity_lieu);
-
-        // Vues
         m_note      = findViewById(R.id.note);
         m_adresse   = findViewById(R.id.adresse);
         m_prix      = findViewById(R.id.prix);
@@ -125,10 +120,69 @@ public class LieuActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
 
         // Initialisation gestion des requetes
-        m_requestManager = RequestManager.getInstance(this.getApplicationContext());
+        m_requeteManager = RequeteManager.getInstance(this.getApplicationContext());
 
-        // Init DB
-        new RecupLieu().execute();
+        // Récupération du lieu
+        m_lieuxModel = ViewModelProviders.of(this).get(LieuxModel.class);
+
+        Intent intent = getIntent();
+        long idLieu = intent.getLongExtra(INTENT_LIEU, -1);
+
+        if (idLieu != -1) {
+            m_lieuxModel.recup(idLieu).observe(this, new Observer<Lieu>() {
+                @Override
+                public void onChanged(@Nullable Lieu lieu) {
+                    // Enregistrement !
+                    m_lieu = lieu;
+                    if (lieu == null) return;
+                    
+                    // Titre
+                    m_collapsingToolbar.setTitle(lieu.nom);
+
+                    // Adresse
+                    String adresse = "";
+                    if (m_lieu.adresse.numero.length() != 0) {
+                        adresse += m_lieu.adresse.numero;
+                    }
+                    if (m_lieu.adresse.rue.length() != 0) {
+                        if (adresse.length() != 0) adresse += " ";
+                        adresse += m_lieu.adresse.rue;
+                    }
+                    if (m_lieu.adresse.codePostal.length() != 0 && m_lieu.adresse.ville.length() != 0) {
+                        if (adresse.length() != 0) adresse += ", ";
+                        adresse += m_lieu.adresse.codePostal + " " + m_lieu.adresse.ville;
+                    }
+                    m_adresse.setText(adresse);
+                    m_adresse.setEnabled(true);
+
+                    // Marker
+                    if (m_map != null) setPlace();
+
+                    // Infos
+                    if (lieu.note != null) {
+                        m_note.setRating(lieu.note.floatValue());
+                        m_note.setVisibility(View.VISIBLE);
+                    }
+                    if (lieu.prix != null) {
+                        m_prix.setText(lieu.getPrix());
+                        m_prix.setEnabled(true);
+                    }
+                    if (lieu.telephone != null) {
+                        m_telephone.setText(lieu.telephone);
+                        m_telephone.setEnabled(true);
+                    }
+                    if (lieu.site != null) {
+                        m_siteWeb.setText(lieu.site.getHost());
+                        m_siteWeb.setEnabled(true);
+                    }
+
+                    // Image
+                    if (lieu.photo != null) {
+                        m_image.setImageUrl(lieu.photo.toString(), m_requeteManager.getImageLoader());
+                    }
+                }
+            });
+        }
     }
 
     @Override
@@ -152,14 +206,6 @@ public class LieuActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void onMapReady(GoogleMap googleMap) {
         m_map = googleMap;
         if (m_lieu != null) setPlace();
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-
-        // Fermeture de la base
-        if (m_db != null) m_db.close();
     }
 
     // Méthodes
@@ -215,79 +261,6 @@ public class LieuActivity extends AppCompatActivity implements OnMapReadyCallbac
             });
         } else {
             m_setPlace = true;
-        }
-    }
-
-    // Taches
-    @SuppressLint("StaticFieldLeak")
-    class RecupLieu extends AsyncTask<Void,Void,Lieu> {
-        @Override
-        protected Lieu doInBackground(Void... voids) {
-            m_db = Room.databaseBuilder(
-                    LieuActivity.this, AppDatabase.class,
-                    getString(R.string.database)
-            ).build();
-
-            // Log !
-            Log.i(TAG, "Database initialisée");
-
-            // Récupération du lieu
-            Intent intent = getIntent();
-            long idLieu = intent.getLongExtra(INTENT_LIEU, -1);
-
-            return m_db.getLieuDAO().recup(idLieu);
-        }
-
-        @Override
-        protected void onPostExecute(Lieu lieu) {
-            m_lieu = lieu;
-
-            if (lieu != null) {
-                // Titre
-                m_collapsingToolbar.setTitle(lieu.nom);
-
-                // Adresse
-                String adresse = "";
-                if (m_lieu.adresse.numero.length() != 0) {
-                    adresse += m_lieu.adresse.numero;
-                }
-                if (m_lieu.adresse.rue.length() != 0) {
-                    if (adresse.length() != 0) adresse += " ";
-                    adresse += m_lieu.adresse.rue;
-                }
-                if (m_lieu.adresse.codePostal.length() != 0 && m_lieu.adresse.ville.length() != 0) {
-                    if (adresse.length() != 0) adresse += ", ";
-                    adresse += m_lieu.adresse.codePostal + " " + m_lieu.adresse.ville;
-                }
-                m_adresse.setText(adresse);
-                m_adresse.setEnabled(true);
-
-                // Marker
-                if (m_map != null) setPlace();
-
-                // Infos
-                if (lieu.note != null) {
-                    m_note.setRating(lieu.note.floatValue());
-                    m_note.setVisibility(View.VISIBLE);
-                }
-                if (lieu.prix != null) {
-                    m_prix.setText(lieu.getPrix());
-                    m_prix.setEnabled(true);
-                }
-                if (lieu.telephone != null) {
-                    m_telephone.setText(lieu.telephone);
-                    m_telephone.setEnabled(true);
-                }
-                if (lieu.site != null) {
-                    m_siteWeb.setText(lieu.site.getHost());
-                    m_siteWeb.setEnabled(true);
-                }
-
-                // Image
-                if (lieu.photo != null) m_image.setImageUrl(lieu.photo.toString(), m_requestManager.getImageLoader());
-            } else {
-                Log.d(TAG, "lieu == null !");
-            }
         }
     }
 }

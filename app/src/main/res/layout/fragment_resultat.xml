@@ -13,15 +13,16 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <ExpandableListView android:id="@+id/liste"
+        <android.support.v7.widget.RecyclerView android:id="@+id/liste"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:groupIndicator="@null"
 
-            tools:listitem="@layout/categorie_type"/>
+            app:layoutManager="LinearLayoutManager"
+
+            tools:listitem="@layout/card_lieu"/>
     </android.support.v4.widget.SwipeRefreshLayout>
 
-    <TextView android:id="@+id/message"
+    <!-- <TextView android:id="@+id/message"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="30dp"
@@ -48,6 +49,6 @@
 
         app:layout_constraintTop_toBottomOf="@id/message"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent" /> -->
 
 </android.support.constraint.ConstraintLayout>

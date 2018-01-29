@@ -3,6 +3,7 @@ package net.capellari.showme;
 import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.Observer;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.RecyclerView;
@@ -24,25 +25,25 @@ import java.util.List;
  * Gestion catégories
  */
 
-public class TypesFragment extends Fragment {
+public class OrdreTypesFragment extends Fragment {
     // Attributs
     private TypesAdapter m_adapter;
-    private RecyclerView m_recycler;
+    private RecyclerView m_liste;
 
     // Events
     @Nullable @Override
-    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_types, container, false);
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        View view = inflater.inflate(R.layout.fragment_ordretypes, container, false);
 
         // Récupération des vues
-        m_recycler = view.findViewById(R.id.recycler);
+        m_liste = view.findViewById(R.id.liste);
 
         if (m_adapter == null) m_adapter = new TypesAdapter();
-        m_recycler.setAdapter(m_adapter);
+        m_liste.setAdapter(m_adapter);
 
         ItemTouchHelper.Callback callback = new TypesTouchCallback(m_adapter);
         ItemTouchHelper touchHelper = new ItemTouchHelper(callback);
-        touchHelper.attachToRecyclerView(m_recycler);
+        touchHelper.attachToRecyclerView(m_liste);
 
         return view;
     }
@@ -77,7 +78,7 @@ public class TypesFragment extends Fragment {
         // Events
         @Override
         public TypeViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-            View view = getLayoutInflater().inflate(R.layout.item_type, parent, false);
+            View view = getLayoutInflater().inflate(R.layout.item_ordretype, parent, false);
             return new TypeViewHolder(view);
         }
 
@@ -108,10 +109,10 @@ public class TypesFragment extends Fragment {
         }
 
         public void setLiveData(LiveData<List<Type>> livedata) {
-            if (m_livedata != null) m_livedata.removeObservers(TypesFragment.this);
+            if (m_livedata != null) m_livedata.removeObservers(OrdreTypesFragment.this);
 
             m_livedata = livedata;
-            m_livedata.observe(TypesFragment.this, new Observer<List<Type>>() {
+            m_livedata.observe(OrdreTypesFragment.this, new Observer<List<Type>>() {
                 @Override
                 public void onChanged(@Nullable List<Type> types) {
                     m_types = types;

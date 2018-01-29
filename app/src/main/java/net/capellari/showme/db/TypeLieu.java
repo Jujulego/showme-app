@@ -5,6 +5,7 @@ import android.arch.persistence.room.Dao;
 import android.arch.persistence.room.Entity;
 import android.arch.persistence.room.ForeignKey;
 import android.arch.persistence.room.Index;
+import android.arch.persistence.room.PrimaryKey;
 import android.support.annotation.NonNull;
 
 import static android.arch.persistence.room.ForeignKey.CASCADE;
@@ -18,17 +19,21 @@ import static android.arch.persistence.room.ForeignKey.CASCADE;
 @Entity(foreignKeys = {
         @ForeignKey(
                 entity = Lieu.class,
-                parentColumns = "id",
+                parentColumns = "_id",
                 childColumns = "lieu_id"
         ),
         @ForeignKey(
                 entity = Type.class,
-                parentColumns = "id",
+                parentColumns = "_id",
                 childColumns = "type_id"
         )
-}, primaryKeys = {"lieu_id", "type_id"})
+})
 public class TypeLieu {
     // Champs
+    @PrimaryKey
+    @ColumnInfo(index = true)
+    public long _id;
+
     @ColumnInfo(index = true)
     public long lieu_id;
 

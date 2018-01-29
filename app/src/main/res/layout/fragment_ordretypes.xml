@@ -7,11 +7,11 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <android.support.v7.widget.RecyclerView android:id="@+id/recycler"
+    <android.support.v7.widget.RecyclerView android:id="@+id/liste"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
 
         app:layoutManager="LinearLayoutManager"
 
-        tools:listitem="@layout/item_type" />
+        tools:listitem="@layout/item_ordretype" />
 </android.support.constraint.ConstraintLayout>

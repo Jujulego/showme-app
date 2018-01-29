@@ -1,16 +1,16 @@
 package net.capellari.showme.db;
 
+import android.arch.lifecycle.ComputableLiveData;
+import android.arch.lifecycle.LiveData;
 import android.arch.persistence.room.ColumnInfo;
 import android.arch.persistence.room.Dao;
 import android.arch.persistence.room.Embedded;
 import android.arch.persistence.room.Entity;
 import android.arch.persistence.room.Ignore;
-import android.arch.persistence.room.Index;
 import android.arch.persistence.room.Insert;
 import android.arch.persistence.room.OnConflictStrategy;
 import android.arch.persistence.room.PrimaryKey;
 import android.arch.persistence.room.Query;
-import android.arch.persistence.room.Update;
 import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -39,7 +39,7 @@ import java.util.Locale;
 public class Lieu {
     // Champs
     @PrimaryKey @ColumnInfo(index = true)
-    public long id;
+    public long _id;
 
     @NonNull
     public Date date = new Date(); // Date d'ajout, permet le nettoyage
@@ -59,22 +59,12 @@ public class Lieu {
     @Embedded @NonNull
     public GeoPoint coordonnees = new GeoPoint();
 
-    // Attributs
-    @Ignore public List<Type> types = new LinkedList<>();
-
     // Constructeur
     public Lieu() {}
-    public Lieu(Context context, Type.TypeDAO typeDAO, JSONObject obj) throws JSONException {
+    public Lieu(Context context, JSONObject obj) throws JSONException {
         // Obligatoire
-        id  = obj.getInt("id");
+        _id = obj.getInt("id");
         nom = obj.getString("nom");
-
-        // Types
-        JSONArray jsonTypes = obj.getJSONArray("types");
-        for (int i = 0; i < jsonTypes.length(); ++i) {
-            long id = jsonTypes.getLong(i);
-            types.add(typeDAO.recup(id));
-        }
 
         // Position
         coordonnees.latitude  = obj.getJSONObject("pos").getDouble("lat");
@@ -99,14 +89,14 @@ public class Lieu {
             site = obj.has("site") ? new URL(obj.getString("site")) : null;
         } catch (MalformedURLException err) {
             site = null;
-            Log.w("Lieu", String.format(Locale.getDefault(),"Erreur format URL (site, id = %d)", id), err);
+            Log.w("Lieu", String.format(Locale.getDefault(),"Erreur format URL (site, _id = %d)", _id), err);
         }
 
         try {
             photo = obj.has("photo") ? new URL("https", context.getString(R.string.serveur), "media/" + obj.getString("photo")) : null;
         } catch (MalformedURLException err) {
             photo = null;
-            Log.w("Lieu", String.format(Locale.getDefault(),"Erreur format URL (photo, id = %d)", id), err);
+            Log.w("Lieu", String.format(Locale.getDefault(),"Erreur format URL (photo, _id = %d)", _id), err);
         }
     }
 
@@ -153,53 +143,17 @@ public class Lieu {
     @Dao
     public static abstract class LieuDAO {
         // Acces
-        @Query("select * from Lieu where id == :id")
-        protected abstract Lieu select(long id);
+        @Query("select * from Lieu where _id == :id")
+        public abstract Lieu select(long id);
 
-        @Query("select Type.* from TypeLieu join Type on TypeLieu.type_id == Type.id where lieu_id == :id")
-        protected abstract List<Type> selectTypes(long id);
+        @Query("select Type.* from TypeLieu join Type on TypeLieu.type_id == Type._id where lieu_id == :id")
+        public abstract List<Type> selectTypes(long id);
 
         // Modif
         @Insert(onConflict = OnConflictStrategy.REPLACE)
-        protected abstract void insert(Lieu... lieux);
+        public abstract void ajouter(Lieu... lieux);
 
         @Insert(onConflict = OnConflictStrategy.IGNORE)
-        protected abstract void ajoutLienType(TypeLieu typeLieu);
-
-        // Generales
-        public Lieu recup(long id) {
-            Lieu lieu = select(id);
-
-            // Récupération des types
-            if (lieu != null) lieu.types = selectTypes(id);
-
-            return lieu;
-        }
-        public List<Lieu> recup(Long... ids) {
-            List<Lieu> lieux = new LinkedList<>();
-
-            for (Long id : ids) {
-                Lieu lieu = recup(id);
-                if (lieu != null) lieux.add(lieu);
-            }
-
-            return lieux;
-        }
-
-        public void ajouter(Lieu... lieux) {
-            // Ajout à la base
-            insert(lieux);
-
-            // Lien avec les types
-            for (Lieu lieu : lieux) {
-                for (Type type : lieu.types) {
-                    TypeLieu tl = new TypeLieu();
-                    tl.lieu_id = lieu.id;
-                    tl.type_id = type.id;
-
-                    ajoutLienType(tl);
-                }
-            }
-        }
+        public abstract void ajoutLienType(TypeLieu typeLieu);
     }
 }

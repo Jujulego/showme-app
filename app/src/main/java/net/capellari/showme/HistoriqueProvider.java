@@ -8,13 +8,13 @@ import android.content.SearchRecentSuggestionsProvider;
  * Historique des recherches
  */
 
-public class HistoriqueSuggestionProvider extends SearchRecentSuggestionsProvider {
+public class HistoriqueProvider extends SearchRecentSuggestionsProvider {
     // Constantes
-    public final static String AUTORITE = "net.capellari.showme.HistoriqueSuggestionProvider";
+    public final static String AUTORITE = "net.capellari.showme.historique";
     public final static int MODE        = DATABASE_MODE_QUERIES;
 
     // Constructeur
-    public HistoriqueSuggestionProvider() {
+    public HistoriqueProvider() {
         setupSuggestions(AUTORITE, MODE);
     }
 }

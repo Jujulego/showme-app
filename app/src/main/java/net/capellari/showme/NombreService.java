@@ -27,6 +27,8 @@ import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
 
+import net.capellari.showme.net.RequeteManager;
+
 import org.json.JSONArray;
 
 import java.util.Locale;
@@ -46,7 +48,7 @@ public class NombreService extends Service implements SharedPreferences.OnShared
 
     // Attributs
     private SharedPreferences m_preferences;
-    private RequestManager m_requestManager;
+    private RequeteManager m_requeteManager;
 
     private NotificationCompat.Builder m_notifBuilder;
     private NotificationChannel m_notifChannel;
@@ -68,7 +70,7 @@ public class NombreService extends Service implements SharedPreferences.OnShared
             @Override
             public void onLocationResult(LocationResult locationResult) {
                 // Envoi d'une requete
-                m_requestManager.addRequest(new LieuxRequete(
+                m_requeteManager.addRequest(new LieuxRequete(
                         locationResult.getLastLocation(),
                         m_preferences.getInt(getString(R.string.pref_rayon), 10)
                 ));
@@ -79,7 +81,7 @@ public class NombreService extends Service implements SharedPreferences.OnShared
         };
 
         // Initialisation gestion des requetes
-        m_requestManager = RequestManager.getInstance(this.getApplicationContext());
+        m_requeteManager = RequeteManager.getInstance(this.getApplicationContext());
 
         // Initialisation Notif Channel
         m_notifManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
@@ -147,6 +149,7 @@ public class NombreService extends Service implements SharedPreferences.OnShared
                         .setContentTitle(getText(R.string.notif_nombre_titre))
                         .setContentText(getString(R.string.notif_nombre_texte, 0))
                         .setSmallIcon(R.drawable.icone_notif)
+                        .setColor(getColor(R.color.colorPrimary))
                         .setContentIntent(pendingIntent);
 
                 startForeground(NOTIFICATION_ID, m_notifBuilder.build());
