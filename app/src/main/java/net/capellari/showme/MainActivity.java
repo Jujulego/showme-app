@@ -5,6 +5,7 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.SuppressLint;
 import android.app.SearchManager;
+import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
@@ -128,12 +129,13 @@ public class MainActivity extends AppCompatActivity
     private ResultatFragment m_resultatFragment;
     private RayonFragment m_rayonFragment;
 
-    private AppDatabase m_db;
     private LieuxModel m_lieuxModel;
+    private FiltreModel m_filtreModel;
+
+    private AppDatabase m_db;
     private RequeteManager m_requeteManager;
 
     private String m_query = null;
-    private boolean m_chargement = false;
 
     // Events
     @Override
@@ -148,7 +150,8 @@ public class MainActivity extends AppCompatActivity
         m_db = AppDatabase.getInstance(this);
 
         // Models
-        m_lieuxModel = ViewModelProviders.of(this).get(LieuxModel.class);
+        m_lieuxModel  = ViewModelProviders.of(this).get(LieuxModel.class);
+        m_filtreModel = ViewModelProviders.of(this).get(FiltreModel.class);
 
         // Initialisation gestion des requetes
         m_requeteManager = RequeteManager.getInstance(this.getApplicationContext());
@@ -180,6 +183,9 @@ public class MainActivity extends AppCompatActivity
         // Mise en place de la toolbar
         setupToolbar();
         setupSearchbar();
+
+        // Service
+        gestionService();
     }
 
     @Override
@@ -214,6 +220,30 @@ public class MainActivity extends AppCompatActivity
         super.onConfigurationChanged(newConfig);
 
         m_drawerToggle.onConfigurationChanged(newConfig);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+
+        // Arret des maj
+        stopLocationUpdates();
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+
+        // Enregistrement du status
+        outState.putString(STATUS, m_status.name());
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+
+        // Arrêt des requetes
+        m_requeteManager.getRequestQueue().cancelAll(TAG);
     }
 
     // Permission
@@ -323,47 +353,13 @@ public class MainActivity extends AppCompatActivity
             m_rayonFragment.set_max(m_preferences.getInt(getString(R.string.pref_rayon_max), 100));
 
         } else if (key.equals(getString(R.string.pref_nombre))) {
-            boolean start = m_preferences.getBoolean(getString(R.string.pref_nombre), false);
-            Intent intent = new Intent(this, NombreService.class);
-
-            if (start) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    startForegroundService(intent);
-                } else {
-                    startService(intent);
-                }
-            } else {
-                stopService(intent);
-            }
+            gestionService();
         }
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-
-        // Arret des maj
-        stopLocationUpdates();
-    }
-
-    @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-
-        // Enregistrement du status
-        outState.putString(STATUS, m_status.name());
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-
-        // Arrêt des requetes
-        m_requeteManager.getRequestQueue().cancelAll(TAG);
     }
 
     // Méthodes
     private void rechercher(final String query) {
+        // Gardien
         if (m_status != Status.RECHERCHE) return;
 
         // Récupération de la postion
@@ -393,9 +389,8 @@ public class MainActivity extends AppCompatActivity
         }
     }
     private void rafraichir() {
+        // Gardien
         if (m_status != Status.ACCUEIL && m_status != Status.RECHERCHE) return;
-        if (m_chargement) return;
-        m_chargement = true;
 
         // Récupération de la position
         if (checkLocationPermission()) {
@@ -490,13 +485,30 @@ public class MainActivity extends AppCompatActivity
         // Résultat
         if (m_resultatFragment == null) {
             m_resultatFragment = new ResultatFragment();
+        } else {
+            m_resultatFragment.vider();
         }
 
         m_resultatFragment.setRefreshMenuItem(R.id.nav_refresh);
+        m_resultatFragment.ajouterLieux(m_filtreModel.getlieux());
 
         // Rayon
         if (m_rayonFragment == null) {
             m_rayonFragment = new RayonFragment();
+        }
+    }
+    private void gestionService() {
+        boolean start = m_preferences.getBoolean(getString(R.string.pref_nombre), false);
+        Intent intent = new Intent(this, NombreService.class);
+
+        if (start) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                startForegroundService(intent);
+            } else {
+                startService(intent);
+            }
+        } else {
+            stopService(intent);
         }
     }
 
@@ -639,7 +651,7 @@ public class MainActivity extends AppCompatActivity
         m_searchBar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem item) {
-                return onOptionsItemSelected(item);
+                return m_resultatFragment.onOptionsItemSelected(item) || onOptionsItemSelected(item);
             }
         });
 
@@ -878,8 +890,6 @@ public class MainActivity extends AppCompatActivity
 
                     // Message d'erreur
                     m_resultatFragment.setRefreshing(false);
-                    //m_resultatFragment.setMessage(getString(R.string.erreur));
-                    //m_resultatFragment.setStatus(ResultatFragment.Status.MESSAGE);
                 }
             });
 
@@ -902,10 +912,20 @@ public class MainActivity extends AppCompatActivity
             ));
         }
     }
-
     class LieuxListener implements Response.Listener<JSONArray> {
         @Override
         public void onResponse(JSONArray reponse) {
+            // Vidage
+            m_resultatFragment.vider();
+            m_filtreModel.vider();
+
+            // Cas de la réponse vide :
+            if (reponse.length() == 0) {
+                m_resultatFragment.setRefreshing(false);
+                return;
+            }
+
+            // Traitement
             Long[] ids = new Long[reponse.length()];
 
             // Récupération des IDs
@@ -930,14 +950,19 @@ public class MainActivity extends AppCompatActivity
                 }
 
                 // Récupération du suivant !
-                m_lieuxModel.recup(id).observe(MainActivity.this, new Observer<Lieu>() {
+                final LiveData<Lieu> liveData = m_lieuxModel.recup(id);
+                liveData.observe(MainActivity.this, new Observer<Lieu>() {
                     @Override
                     public void onChanged(@Nullable Lieu lieu) {
                         m_resultatFragment.decrementer();
 
                         if (lieu != null) {
+                            Log.d(TAG, "Hey !");
                             m_resultatFragment.ajouterLieu(lieu);
+                            m_filtreModel.ajouterLieu(lieu);
                         }
+
+                        liveData.removeObserver(this);
                     }
                 });
             }
