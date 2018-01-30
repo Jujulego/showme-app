@@ -13,6 +13,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
@@ -41,7 +42,9 @@ import net.capellari.showme.net.RequeteManager;
 public class LieuActivity extends AppCompatActivity implements OnMapReadyCallback {
     // Constantes
     public  static final String INTENT_LIEU = "lieu";
-    private static final String TAG = "LieuActivity";
+    private static final String TAG         = "LieuActivity";
+
+    private static final String MAP_TAG = "map";
 
     private static final int RQ_PERM_LOCATION = 1;
 
@@ -103,10 +106,20 @@ public class LieuActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         });
 
-        // Carte
-        m_locationClient = LocationServices.getFusedLocationProviderClient(this);
+        // Récupération / Création du fragment
+        if (savedInstanceState != null) {
+            m_mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentByTag(MAP_TAG);
+        } else {
+            m_mapFragment = new SupportMapFragment();
 
-        m_mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.carte);
+            // Ajout !
+            FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+            transaction.replace(R.id.layout_carte, m_mapFragment, MAP_TAG);
+            transaction.commit();
+        }
+
+        // Récupération de la carte
+        m_locationClient = LocationServices.getFusedLocationProviderClient(this);
         m_mapFragment.getMapAsync(this);
 
         // Toolbar
