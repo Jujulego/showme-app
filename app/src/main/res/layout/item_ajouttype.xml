@@ -12,7 +12,7 @@
         android:layout_weight="1"
         android:padding="16dp"
 
-        android:drawableStart="@drawable/agence_immobiliaire"
+        android:drawableStart="@drawable/agence_immobiliere"
         android:drawablePadding="16dp"
 
         android:gravity="center_vertical"

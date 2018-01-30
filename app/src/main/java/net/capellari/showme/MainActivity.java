@@ -194,7 +194,7 @@ public class MainActivity extends AppCompatActivity
 
         // Restauration de l'état recherche
         if (m_status == Status.RECHERCHE) {
-            m_searchMenuItem.expandActionView();
+            setupRecherche();
         }
     }
 

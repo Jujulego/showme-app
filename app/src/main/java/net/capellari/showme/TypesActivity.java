@@ -82,6 +82,24 @@ public class TypesActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+
+        // Enregistrement du status
+        outState.putString(STATUS, m_status.name());
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+
+        // Restauration de l'état recherche
+        if (m_status == Status.AJOUT) {
+            setupAjout();
+        }
+    }
+
+    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         m_menuItem = menu.add(R.string.nav_ajouter);
         m_menuItem.setIcon(R.drawable.add_blanc);

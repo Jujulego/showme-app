@@ -55,7 +55,7 @@ public class AjoutTypesFragment extends Fragment {
     // Classes
     class TypeViewHolder extends RecyclerView.ViewHolder {
         // Attributs
-        public TextView nom;
+        private TextView nom;
 
         // Constructeur
         public TypeViewHolder(View itemView) {
@@ -63,6 +63,16 @@ public class AjoutTypesFragment extends Fragment {
 
             // Récupération des vues
             nom = itemView.findViewById(R.id.nom);
+        }
+
+        // Méthodes
+        public void setType(Type type) {
+            // Remplissage
+            nom.setText(type.nom);
+            nom.setCompoundDrawablesRelativeWithIntrinsicBounds(
+                    Type.getIconRessource((int) type._id),
+                    0, 0, 0
+            );
         }
     }
     class TypesAdapter extends RecyclerView.Adapter<TypeViewHolder> {
@@ -82,7 +92,7 @@ public class AjoutTypesFragment extends Fragment {
 
         @Override
         public void onBindViewHolder(TypeViewHolder holder, int position) {
-            holder.nom.setText(m_types.get(position).nom);
+            holder.setType(m_types.get(position));
         }
 
         @Override

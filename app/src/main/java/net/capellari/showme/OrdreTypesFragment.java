@@ -57,7 +57,7 @@ public class OrdreTypesFragment extends Fragment {
     // Classes
     class TypeViewHolder extends RecyclerView.ViewHolder {
         // Attributs
-        public TextView nom;
+        private TextView nom;
 
         // Constructeur
         public TypeViewHolder(View itemView) {
@@ -65,6 +65,15 @@ public class OrdreTypesFragment extends Fragment {
 
             // Récupération des vues
             nom = itemView.findViewById(R.id.nom);
+        }
+
+        // Méthodes
+        public void setType(Type type) {
+            nom.setText(type.nom);
+            nom.setCompoundDrawablesRelativeWithIntrinsicBounds(
+                    Type.getIconRessource((int) type._id),
+                    0, 0, 0
+            );
         }
     }
     class TypesAdapter extends RecyclerView.Adapter<TypeViewHolder> {
@@ -84,7 +93,7 @@ public class OrdreTypesFragment extends Fragment {
 
         @Override
         public void onBindViewHolder(TypeViewHolder holder, int position) {
-            holder.nom.setText(m_types.get(position).nom);
+            holder.setType(m_types.get(position));
         }
 
         public boolean onItemMove(int from, int to) {
