@@ -3,7 +3,9 @@ package net.capellari.showme.net;
 import android.annotation.SuppressLint;
 import android.arch.lifecycle.LiveData;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
+import android.support.v7.preference.PreferenceManager;
 import android.util.Log;
 
 import com.android.volley.Response;
@@ -38,6 +40,7 @@ public class LiveLieu extends LiveData<Lieu> {
 
     private AppDatabase m_db;
     private RequeteManager m_requeteManager;
+    private SharedPreferences m_preferences;
 
     // Constructeur
     public LiveLieu(Context context, long id) {
@@ -48,6 +51,9 @@ public class LiveLieu extends LiveData<Lieu> {
         // Outils
         m_db = AppDatabase.getInstance(context);
         m_requeteManager = RequeteManager.getInstance(context);
+
+        // Ouverture des préférences
+        m_preferences = PreferenceManager.getDefaultSharedPreferences(m_context);
     }
 
     // Events
@@ -107,9 +113,11 @@ public class LiveLieu extends LiveData<Lieu> {
         protected void onPostExecute(Lieu lieu) {
             if (lieu != null) {
                 setValue(lieu);
-            } else {
+            } else if (m_preferences.getBoolean(m_context.getString(R.string.pref_internet), true)) {
                 m_requete = new Requete();
                 m_requeteManager.addRequest(m_requete);
+            } else {
+                setValue(null);
             }
         }
     }
@@ -133,12 +141,14 @@ public class LiveLieu extends LiveData<Lieu> {
                 TypeLieu tl = new TypeLieu();
 
                 for (int i = 0; i < types.length(); ++i) {
+                    tl._id = 0;
                     tl.type_id = types.getLong(i);
                     tl.lieu_id = lieu._id;
 
                     dao.ajoutLienType(tl);
                 }
 
+                m_db.setTransactionSuccessful();
             } catch (JSONException err) {
                 Log.e(TAG, "Erreur JSON", err);
 

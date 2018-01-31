@@ -190,7 +190,7 @@ public class LieuActivity extends AppCompatActivity implements OnMapReadyCallbac
                     }
 
                     // Image
-                    if (lieu.photo != null) {
+                    if (lieu.photo != null && m_preferences.getBoolean(getString(R.string.pref_internet), true)) {
                         m_image.setImageUrl(lieu.photo.toString(), m_requeteManager.getImageLoader());
                     }
                 }

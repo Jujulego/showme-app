@@ -27,7 +27,6 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.DrawerLayout;
-import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
@@ -45,7 +44,6 @@ import android.widget.ImageView;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonArrayRequest;
-import com.android.volley.toolbox.JsonObjectRequest;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
@@ -63,18 +61,13 @@ import net.capellari.showme.db.AppDatabase;
 import net.capellari.showme.db.Lieu;
 import net.capellari.showme.db.Type;
 import net.capellari.showme.net.LieuxModel;
-import net.capellari.showme.net.LiveLieu;
 import net.capellari.showme.net.RequeteManager;
 
 import org.json.JSONArray;
 import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity
@@ -123,7 +116,6 @@ public class MainActivity extends AppCompatActivity
 
     private Status m_status = Status.VIDE;
     private GoogleMap m_map;
-    private SharedPreferences m_preferences;
 
     private SupportMapFragment m_mapFragment;
     private ResultatFragment m_resultatFragment;
@@ -134,6 +126,7 @@ public class MainActivity extends AppCompatActivity
 
     private AppDatabase m_db;
     private RequeteManager m_requeteManager;
+    private SharedPreferences m_preferences;
 
     private String m_query = null;
 
@@ -418,7 +411,9 @@ public class MainActivity extends AppCompatActivity
     @SuppressLint("StaticFieldLeak")
     private void getTypes() {
         // Check pref
-        if (m_preferences.getBoolean(getString(R.string.pref_internet), false)) return;
+        if (!m_preferences.getBoolean(getString(R.string.pref_internet), true)) {
+            return;
+        }
 
         // Requete
         m_requeteManager.addRequest(new JsonArrayRequest(getString(R.string.url_types, getString(R.string.serveur)), new Response.Listener<JSONArray>() {
@@ -457,14 +452,20 @@ public class MainActivity extends AppCompatActivity
     }
     private void getLieux(Location location, int rayon) {
         // Check pref
-        if (m_preferences.getBoolean(getString(R.string.pref_internet), false)) return;
+        /*if (!m_preferences.getBoolean(getString(R.string.pref_internet), true)) {
+            m_resultatFragment.setRefreshing(false);
+            return;
+        }*/
 
         // Requete
         m_requeteManager.addRequest(new LieuxRequete(location, rayon));
     }
     private void getLieux(Location location, int rayon, String query) {
         // Check pref
-        if (m_preferences.getBoolean(getString(R.string.pref_internet), false)) return;
+        /*if (!m_preferences.getBoolean(getString(R.string.pref_internet), true)) {
+            m_resultatFragment.setRefreshing(false);
+            return;
+        }*/
 
         // Requete
         try {

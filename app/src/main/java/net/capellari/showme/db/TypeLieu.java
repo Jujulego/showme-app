@@ -30,7 +30,7 @@ import static android.arch.persistence.room.ForeignKey.CASCADE;
 })
 public class TypeLieu {
     // Champs
-    @PrimaryKey
+    @PrimaryKey(autoGenerate = true)
     @ColumnInfo(index = true)
     public long _id;
 
