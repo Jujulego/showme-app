@@ -10,10 +10,10 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
-        android:padding="16dp"
+        android:padding="@dimen/text_margin"
 
         android:drawableStart="@drawable/agence_immobiliere"
-        android:drawablePadding="16dp"
+        android:drawablePadding="@dimen/text_margin"
 
         android:gravity="center_vertical"
 
@@ -25,8 +25,8 @@
         android:layout_gravity="center_vertical"
 
         android:background="?android:attr/selectableItemBackgroundBorderless"
-        android:paddingStart="16dp"
-        android:paddingEnd="16dp"
+        android:paddingStart="@dimen/text_margin"
+        android:paddingEnd="@dimen/text_margin"
 
         android:src="@drawable/add_gris"
         android:contentDescription="@string/ajouter_description" />

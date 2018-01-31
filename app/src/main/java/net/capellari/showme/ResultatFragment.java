@@ -98,7 +98,7 @@ public class ResultatFragment extends Fragment {
     }
 
     // Méthodes
-    public void setRefreshMenuItem(int id) {
+    public void setRefreshMenuItem(@SuppressWarnings("SameParameterValue") int id) {
         m_refreshMenuItem = id;
     }
 
@@ -121,7 +121,7 @@ public class ResultatFragment extends Fragment {
         // Fini !
         if (m_compteur == 0) setRefreshing(false);
     }
-    public void decrementer(int v) {
+    public void decrementer(@SuppressWarnings("SameParameterValue") int v) {
         m_compteur -= v;
 
         if (m_compteur <= 0) {

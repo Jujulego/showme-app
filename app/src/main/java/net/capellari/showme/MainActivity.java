@@ -830,7 +830,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-    public void circleReveal(int viewID, int posFromRight, final boolean isShow) {
+    public void circleReveal(@SuppressWarnings("SameParameterValue") int viewID, @SuppressWarnings("SameParameterValue") int posFromRight, final boolean isShow) {
         final View myView = findViewById(viewID);
         if (!myView.isAttachedToWindow()) {
             if (isShow) {

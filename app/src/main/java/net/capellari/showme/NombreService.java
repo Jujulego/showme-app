@@ -147,7 +147,7 @@ public class NombreService extends Service implements SharedPreferences.OnShared
 
                 m_notifBuilder = new NotificationCompat.Builder(this, NOTIFCHANNEL_ID)
                         .setContentTitle(getText(R.string.notif_nombre_titre))
-                        .setContentText(getString(R.string.notif_nombre_texte, 0))
+                        .setContentText(getResources().getQuantityString(R.plurals.notif_nombre_texte, 0, 0))
                         .setSmallIcon(R.drawable.icone_notif)
                         .setColor(getColor(R.color.colorPrimary))
                         .setContentIntent(pendingIntent);
@@ -174,7 +174,7 @@ public class NombreService extends Service implements SharedPreferences.OnShared
             super(url, new Response.Listener<JSONArray>() {
                 @Override
                 public void onResponse(JSONArray reponse) {
-                    m_notifBuilder.setContentText(getString(R.string.notif_nombre_texte, reponse.length()));
+                    m_notifBuilder.setContentText(getResources().getQuantityString(R.plurals.notif_nombre_texte, reponse.length(), reponse.length()));
                     m_notifManager.notify(NOTIFICATION_ID, m_notifBuilder.build());
                 }
             }, new Response.ErrorListener() {

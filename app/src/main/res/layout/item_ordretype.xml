@@ -5,11 +5,11 @@
 
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:padding="16dp"
+    android:padding="@dimen/text_margin"
 
     android:drawableStart="@drawable/agence_immobiliere"
     android:drawableEnd="@drawable/reorder_gris"
-    android:drawablePadding="16dp"
+    android:drawablePadding="@dimen/text_margin"
 
     android:gravity="center_vertical"
 

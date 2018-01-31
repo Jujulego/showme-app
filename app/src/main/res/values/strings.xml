@@ -18,7 +18,10 @@
     <string name="channel_name">ShowMe channel</string>
 
     <string name="notif_nombre_titre">ShowMe</string>
-    <string name="notif_nombre_texte">%d lieu(x)</string>
+    <plurals name="notif_nombre_texte">
+        <item quantity="one">%d lieu</item>
+        <item quantity="other">%d lieux</item>
+    </plurals>
 
     <!-- Accueil -->
     <!-- Panneau de navigation -->
@@ -28,6 +31,9 @@
     <string name="nav_perso">Personalisation</string>
     <string name="nav_types">Catégories</string>
     <string name="nav_parametres">Paramètres</string>
+
+    <string name="nav_debogage">Débogage</string>
+    <string name="nav_lieu">Lieu !</string>
 
     <string name="nav_open">Ouvrir le panneau</string>
     <string name="nav_close">Fermer le panneau</string>
@@ -60,7 +66,6 @@
     <string name="nav_tri">Tri</string>
 
     <string name="ajouter_description">Bouton d\'ajout</string>
-    <string name="alphabet">ABCDEFGHIJKLMNOPQRSTUVWXYZ</string>
 
     <!-- Préférences -->
     <string name="parametres_activity">Paramètres</string>

@@ -44,9 +44,9 @@ dependencies {
     implementation 'com.android.volley:volley:1.1.0'
 
     // Lifecycle
-    implementation 'android.arch.lifecycle:extensions:1.0.0'
-    annotationProcessor 'android.arch.lifecycle:compiler:1.0.0'
-    testImplementation 'android.arch.core:core-testing:1.0.0'
+    implementation 'android.arch.lifecycle:extensions:1.1.0'
+    annotationProcessor 'android.arch.lifecycle:compiler:1.1.0'
+    testImplementation 'android.arch.core:core-testing:1.1.0'
 
     // Room
     implementation 'android.arch.persistence.room:runtime:1.0.0'

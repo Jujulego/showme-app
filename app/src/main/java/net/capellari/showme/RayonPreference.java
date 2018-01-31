@@ -98,6 +98,7 @@ public class RayonPreference extends Preference {
         }
     };
 
+    @SuppressWarnings("SameParameterValue")
     public RayonPreference(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
 
@@ -114,9 +115,11 @@ public class RayonPreference extends Preference {
 
         a.recycle();
     }
+    @SuppressWarnings("SameParameterValue")
     public RayonPreference(Context context, AttributeSet attrs, int defStyleAttr) {
         this(context, attrs, defStyleAttr, 0);
     }
+    @SuppressWarnings("SameParameterValue")
     public RayonPreference(Context context, AttributeSet attrs) {
         this(context, attrs, R.attr.seekBarPreferenceStyle);
     }
