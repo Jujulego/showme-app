@@ -13,4 +13,6 @@
     <dimen name="taille_carte">200dp</dimen>
     <dimen name="app_bar_height">180dp</dimen>
     <dimen name="bottom_sheet_peek_height">52dp</dimen>
+    <dimen name="card_margin">4dp</dimen>
+    <dimen name="land_bottom_sheet_start_margin">204dp</dimen> <!-- taille carte + card_margin -->
 </resources>

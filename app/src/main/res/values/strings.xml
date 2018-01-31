@@ -51,6 +51,7 @@
 
     <!-- Lieu -->
     <string name="inconnu">Inconnu</string>
+    <string name="distance">%.0f m</string>
 
     <!-- Types -->
     <string name="types_activity">Catégories</string>

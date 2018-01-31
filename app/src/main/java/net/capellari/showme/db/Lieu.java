@@ -12,6 +12,7 @@ import android.arch.persistence.room.OnConflictStrategy;
 import android.arch.persistence.room.PrimaryKey;
 import android.arch.persistence.room.Query;
 import android.content.Context;
+import android.location.Location;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
@@ -120,6 +121,13 @@ public class Lieu {
         }
 
         return null;
+    }
+    public Location getLocation() {
+        Location location = new Location("net.capellari.showme");
+        location.setLatitude(coordonnees.latitude);
+        location.setLongitude(coordonnees.longitude);
+
+        return location;
     }
 
     // Classes

@@ -741,10 +741,12 @@ public class MainActivity extends AppCompatActivity
 
                 // Centrage
                 Location location = locationResult.getLastLocation();
-
                 m_map.animateCamera(CameraUpdateFactory.newLatLng(new LatLng(
                         location.getLatitude(), location.getLongitude()
                 )));
+
+                // Maj distances
+                m_resultatFragment.majDistances(location);
             }
         };
     }

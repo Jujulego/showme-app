@@ -2,4 +2,5 @@
 <resources>
     <!-- MainActivity -->
     <dimen name="taille_carte">250dp</dimen>
+    <dimen name="land_bottom_sheet_start_margin">254dp</dimen> <!-- taille carte + card_margin -->
 </resources>

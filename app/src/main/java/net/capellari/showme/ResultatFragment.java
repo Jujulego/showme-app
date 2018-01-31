@@ -1,7 +1,7 @@
 package net.capellari.showme;
 
-import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
+import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -14,19 +14,21 @@ import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.RatingBar;
 import android.widget.TextView;
 
 import net.capellari.showme.db.Lieu;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Created by julien on 04/01/18.
  *
  * Présente les résultats
  */
-
 public class ResultatFragment extends Fragment {
     // Constantes
     private static final String TAG = "ResultatFragment";
@@ -40,8 +42,6 @@ public class ResultatFragment extends Fragment {
 
     private int m_compteur = 0; // inversé : mis au max puis réduit jusqu'à 0 => plein !
     private LieuAdapter m_adapter = new LieuAdapter();
-
-    private FiltreModel m_filtreModel;
 
     // Events
     @Override
@@ -136,6 +136,9 @@ public class ResultatFragment extends Fragment {
     public void ajouterLieux(List<Lieu> lieux) {
         m_adapter.ajouterLieux(lieux);
     }
+    public void majDistances(Location location) {
+        m_adapter.majDistances(location);
+    }
     public void vider() {
         m_adapter.vider();
     }
@@ -151,6 +154,8 @@ public class ResultatFragment extends Fragment {
         // Attributs
         private CardView m_card;
         private TextView m_nom;
+        private RatingBar m_note;
+        private TextView m_distance;
 
         private Lieu m_lieu;
 
@@ -168,7 +173,9 @@ public class ResultatFragment extends Fragment {
             });
 
             // Récupération des vues
-            m_nom = itemView.findViewById(R.id.nom);
+            m_nom  = itemView.findViewById(R.id.nom);
+            m_note = itemView.findViewById(R.id.note);
+            m_distance = itemView.findViewById(R.id.distance);
         }
 
         // Méthodes
@@ -177,11 +184,25 @@ public class ResultatFragment extends Fragment {
 
             // Contenu !
             m_nom.setText(lieu.nom);
+
+            if (lieu.note != null) {
+                m_note.setVisibility(View.VISIBLE);
+                m_note.setRating(lieu.note.floatValue());
+            } else {
+                m_note.setVisibility(View.GONE);
+            }
+        }
+
+        public void majDistance(@NonNull Location location) {
+            m_distance.setText(getString(R.string.distance, location.distanceTo(m_lieu.getLocation())));
         }
     }
     private class LieuAdapter extends RecyclerView.Adapter<LieuViewHolder> {
         // Attributs
         private ArrayList<Lieu> m_lieux = new ArrayList<>();
+        private Location m_location;
+
+        private Set<LieuViewHolder> m_viewHolders = new HashSet<>();
 
         // Events
         @Override
@@ -194,6 +215,14 @@ public class ResultatFragment extends Fragment {
         @Override
         public void onBindViewHolder(LieuViewHolder holder, int position) {
             holder.setLieu(m_lieux.get(position));
+            if (m_location != null) holder.majDistance(m_location);
+
+            m_viewHolders.add(holder);
+        }
+
+        @Override
+        public void onViewRecycled(LieuViewHolder holder) {
+            m_viewHolders.remove(holder);
         }
 
         // Méthodes
@@ -213,6 +242,14 @@ public class ResultatFragment extends Fragment {
             m_lieux.addAll(lieux);
 
             notifyItemRangeInserted(deb, m_lieux.size());
+        }
+
+        public void majDistances(Location location) {
+            m_location = location;
+
+            for (LieuViewHolder holder : m_viewHolders) {
+                holder.majDistance(location);
+            }
         }
 
         public void vider() {
