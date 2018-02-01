@@ -19,9 +19,7 @@
         android:theme="@style/AppTheme.AppBarOverlay"
 
         app:title="@string/app_name"
-        app:popupTheme="@style/AppTheme.PopupOverlay"
-
-        tools:visibility="gone" />
+        app:popupTheme="@style/AppTheme.PopupOverlay" />
 
     <android.support.v7.widget.Toolbar android:id="@+id/search_bar"
         android:layout_width="match_parent"

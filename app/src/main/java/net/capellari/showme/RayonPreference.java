@@ -4,6 +4,9 @@ import android.content.Context;
 import android.content.res.TypedArray;
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.support.annotation.ArrayRes;
+import android.support.annotation.AttrRes;
+import android.support.annotation.StyleRes;
 import android.support.v7.preference.Preference;
 import android.support.v7.preference.PreferenceViewHolder;
 import android.util.AttributeSet;
@@ -22,6 +25,9 @@ import java.util.Locale;
  */
 
 public class RayonPreference extends Preference {
+    // Constante
+    private static final String TAG = "RayonPreference";
+
     // Attributs
     private int m_seekBarValue;
     private boolean m_trackingTouch;
@@ -34,8 +40,6 @@ public class RayonPreference extends Preference {
     private int m_seekBarIncrement = 0;
     private boolean m_adjustable = true; // whether the seekbar should respond to the left/right keys
     private boolean m_showSeekBarValue = true; // whether to show the seekbar value TextView next to the bar
-
-    private static final String TAG = "RayonPreference";
 
     /**
      * Listener reacting to the SeekBar changing value by the user
@@ -99,8 +103,11 @@ public class RayonPreference extends Preference {
     };
 
     @SuppressWarnings("SameParameterValue")
-    public RayonPreference(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
+    public RayonPreference(Context context, AttributeSet attrs, @AttrRes int defStyleAttr, @StyleRes int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
+
+        // Set layout
+        setLayoutResource(R.layout.preference_rayon);
 
         // Traitement des attributs
         TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.RayonFragment, defStyleAttr, defStyleRes);
@@ -116,7 +123,7 @@ public class RayonPreference extends Preference {
         a.recycle();
     }
     @SuppressWarnings("SameParameterValue")
-    public RayonPreference(Context context, AttributeSet attrs, int defStyleAttr) {
+    public RayonPreference(Context context, AttributeSet attrs, @AttrRes int defStyleAttr) {
         this(context, attrs, defStyleAttr, 0);
     }
     @SuppressWarnings("SameParameterValue")
@@ -135,8 +142,8 @@ public class RayonPreference extends Preference {
 
         view.itemView.setOnKeyListener(mSeekBarKeyListener);
 
-        m_seekBar = (SeekBar) view.findViewById(android.support.v7.preference.R.id.seekbar);
-        m_seekBarValueTextView = (TextView) view.findViewById(android.support.v7.preference.R.id.seekbar_value);
+        m_seekBar = (SeekBar) view.findViewById(R.id.seekbar);
+        m_seekBarValueTextView = (TextView) view.findViewById(R.id.valeur);
 
         if (m_showSeekBarValue) {
             m_seekBarValueTextView.setVisibility(View.VISIBLE);
@@ -313,7 +320,7 @@ public class RayonPreference extends Preference {
         val *= m_factor;
 
         if (m_seekBarValueTextView != null) {
-            m_seekBarValueTextView.setText(String.format(Locale.getDefault(), "%d m", val));
+            m_seekBarValueTextView.setText(getContext().getString(R.string.distance, val));
         }
     }
 

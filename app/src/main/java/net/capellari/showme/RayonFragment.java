@@ -78,7 +78,7 @@ public class RayonFragment extends Fragment {
         m_seek_bar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                m_valeur.setText(String.format(Locale.getDefault(), "%d m", get_rayon()));
+                m_valeur.setText(getString(R.string.distance, get_rayon()));
             }
 
             @Override

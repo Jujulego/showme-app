@@ -7,8 +7,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
 
-    tools:context=".TypesActivity"
-    tools:menu="toolbar_types">
+    tools:context=".TypesActivity">
 
     <android.support.v7.widget.Toolbar android:id="@+id/toolbar"
         android:layout_width="match_parent"
@@ -18,9 +17,7 @@
         android:theme="@style/AppTheme.AppBarOverlay"
 
         app:title="@string/app_name"
-        app:popupTheme="@style/AppTheme.PopupOverlay"
-
-        tools:visibility="gone"/>
+        app:popupTheme="@style/AppTheme.PopupOverlay" />
 
     <FrameLayout android:id="@+id/layout"
         android:layout_width="0dp"

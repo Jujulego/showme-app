@@ -150,7 +150,12 @@ public class NombreService extends Service implements SharedPreferences.OnShared
                         .setContentText(getResources().getQuantityString(R.plurals.notif_nombre_texte, 0, 0))
                         .setSmallIcon(R.drawable.icone_notif)
                         .setColor(getColor(R.color.colorPrimary))
-                        .setContentIntent(pendingIntent);
+                        .setContentIntent(pendingIntent)
+                        .setVisibility(NotificationCompat.VISIBILITY_PUBLIC);
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    m_notifBuilder.setChannelId(m_notifChannel.getId());
+                }
 
                 startForeground(NOTIFICATION_ID, m_notifBuilder.build());
             }

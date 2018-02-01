@@ -194,7 +194,7 @@ public class ResultatFragment extends Fragment {
         }
 
         public void majDistance(@NonNull Location location) {
-            m_distance.setText(getString(R.string.distance, location.distanceTo(m_lieu.getLocation())));
+            m_distance.setText(getString(R.string.distance, Math.round(location.distanceTo(m_lieu.getLocation()))));
         }
     }
     private class LieuAdapter extends RecyclerView.Adapter<LieuViewHolder> {

@@ -12,5 +12,7 @@
         android:name="net.capellari.showme.ParametresFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginTop="12dp" />
+        android:layout_marginTop="12dp"
+
+        tools:visibility="gone"/>
 </android.support.constraint.ConstraintLayout>
