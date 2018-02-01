@@ -4,7 +4,6 @@ import android.content.Context;
 import android.content.res.TypedArray;
 import android.os.Parcel;
 import android.os.Parcelable;
-import android.support.annotation.ArrayRes;
 import android.support.annotation.AttrRes;
 import android.support.annotation.StyleRes;
 import android.support.v7.preference.Preference;
@@ -102,6 +101,7 @@ public class RayonPreference extends Preference {
         }
     };
 
+    // Constructeurs
     @SuppressWarnings("SameParameterValue")
     public RayonPreference(Context context, AttributeSet attrs, @AttrRes int defStyleAttr, @StyleRes int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
@@ -130,12 +130,12 @@ public class RayonPreference extends Preference {
     public RayonPreference(Context context, AttributeSet attrs) {
         this(context, attrs, R.attr.seekBarPreferenceStyle);
     }
-
     @SuppressWarnings("unused")
     public RayonPreference(Context context) {
         this(context, null);
     }
 
+    // Events
     @Override
     public void onBindViewHolder(PreferenceViewHolder view) {
         super.onBindViewHolder(view);
@@ -175,6 +175,7 @@ public class RayonPreference extends Preference {
 
         m_seekBar.setEnabled(isEnabled());
     }
+
 
     @Override
     protected void onSetInitialValue(boolean restoreValue, Object defaultValue) {

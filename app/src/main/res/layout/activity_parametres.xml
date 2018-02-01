@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout
+<android.support.design.widget.CoordinatorLayout android:id="@+id/coordinator"
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
 
@@ -11,8 +11,5 @@
     <fragment android:id="@+id/pref_fragment"
         android:name="net.capellari.showme.ParametresFragment"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_marginTop="12dp"
-
-        tools:visibility="gone"/>
-</android.support.constraint.ConstraintLayout>
+        android:layout_height="match_parent" />
+</android.support.design.widget.CoordinatorLayout>

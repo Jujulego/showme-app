@@ -2,13 +2,18 @@ package net.capellari.showme;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
-import android.content.SharedPreferences;
+import android.os.AsyncTask;
 import android.os.Bundle;
-import android.preference.PreferenceFragment;
+import android.provider.SearchRecentSuggestions;
+import android.support.design.widget.Snackbar;
+import android.support.v4.app.DialogFragment;
 import android.support.v7.preference.Preference;
 import android.support.v7.preference.PreferenceFragmentCompat;
 import android.support.v7.preference.SwitchPreferenceCompat;
 import android.util.Log;
+import android.view.View;
+
+import net.capellari.showme.db.AppDatabase;
 
 /**
  * Created by julien on 01/01/18.
@@ -46,5 +51,77 @@ public class ParametresFragment extends PreferenceFragmentCompat {
                 return true;
             }
         });
+    }
+
+    @Override
+    public void onDisplayPreferenceDialog(Preference preference) {
+        // Récupération du dialog
+        DialogFragment fragment = null;
+        if (preference instanceof NettoyagePreference) {
+            if (preference.getKey().equals(getString(R.string.pref_cache))) {
+                // Cache
+                fragment = NettoyagePreferenceDialog.newInstance(
+                        preference.getKey(), new NettoyagePreferenceDialog.OnDialogClosed() {
+                            @Override
+                            public void onDialogClosed(boolean positiveResult) {
+                                if (positiveResult) {
+                                    // Nettoyage !
+                                    new ViderTask().execute();
+                                }
+                            }
+                        }
+                );
+            } else if (preference.getKey().equals(getString(R.string.pref_historique))) {
+                // Historique
+                fragment = NettoyagePreferenceDialog.newInstance(
+                        preference.getKey(), new NettoyagePreferenceDialog.OnDialogClosed() {
+                            @Override
+                            public void onDialogClosed(boolean positiveResult) {
+                                if (positiveResult) {
+                                    // Nettoyage !
+                                    SearchRecentSuggestions suggestions = new SearchRecentSuggestions(
+                                            getContext(),
+                                            HistoriqueProvider.AUTORITE, HistoriqueProvider.MODE
+                                    );
+
+                                    suggestions.clearHistory();
+                                }
+                            }
+                        }
+                );
+            }
+        }
+
+        if (fragment != null) {
+            // Dialog custom
+            fragment.setTargetFragment(this, 0);
+            fragment.show(this.getFragmentManager(),
+                    "android.support.v7.preference.PreferenceFragment.DIALOG");
+        } else {
+            super.onDisplayPreferenceDialog(preference);
+        }
+    }
+
+    // Taches
+    private class ViderTask extends AsyncTask<Void,Void,Void> {
+        @Override
+        protected Void doInBackground(Void... voids) {
+            // Vidage ... :(
+            AppDatabase.getInstance(getContext()).getLieuDAO().viderLieux();
+
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            View view = getView();
+
+            if (view != null) {
+                Snackbar.make(getView(), R.string.pref_snackbar_cache, Snackbar.LENGTH_LONG)
+                        .show();
+            } else {
+                Log.i(TAG, getString(R.string.pref_snackbar_cache));
+            }
+        }
     }
 }

@@ -79,6 +79,10 @@
 
     <string name="pref_nombre" translatable="false">NOMBRE SERVICE</string>
 
+    <!-- "Fausses" préférences : apparaissent dans l'ecran de paramètre sans correspondre à un champ réel du fichier -->
+    <string name="pref_cache" translatable="false">CACHE</string>
+    <string name="pref_historique" translatable="false">HISTORIQUE</string>
+
     <!-- Texte -->
     <string name="pref_cat_recherche">Recherches</string>
     <string name="pref_txt_rayon_max">Rayon maximal</string>
@@ -86,6 +90,13 @@
     <string name="pref_cat_economie">Économies</string>
     <string name="pref_txt_gps">GPS</string>
     <string name="pref_txt_internet">Internet</string>
+
+    <string name="pref_txt_cache">Vider le cache</string>
+    <string name="pref_dialog_cache">"Vider le cache permet de liberer de l'espace de stockage, mais va ralentir les prochaines requêtes, et va augmenter l'utilisation d'internet."</string>
+    <string name="pref_snackbar_cache">Cache vidé !</string>
+
+    <string name="pref_txt_historique">"Vider l'historique"</string>
+    <string name="pref_dialog_historique">Vous êtes sûr ?</string>
 
     <string name="pref_cat_service">Services</string>
     <string name="pref_txt_nombre">NombreService</string>

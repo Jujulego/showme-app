@@ -20,12 +20,14 @@ import static android.arch.persistence.room.ForeignKey.CASCADE;
         @ForeignKey(
                 entity = Lieu.class,
                 parentColumns = "_id",
-                childColumns = "lieu_id"
+                childColumns = "lieu_id",
+                onDelete = CASCADE
         ),
         @ForeignKey(
                 entity = Type.class,
                 parentColumns = "_id",
-                childColumns = "type_id"
+                childColumns = "type_id",
+                onDelete = CASCADE
         )
 })
 public class TypeLieu {

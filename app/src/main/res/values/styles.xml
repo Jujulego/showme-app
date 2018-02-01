@@ -8,7 +8,6 @@
 
         <!-- Texte -->
         <item name="android:textSize">@dimen/moyenne_police</item>
-        <item name="android:textColor">@color/couleur_police</item>
 
         <!-- Préférences -->
         <item name="preferenceTheme">@style/AppTheme.PreferenceThemeOverlay</item>
@@ -35,6 +34,7 @@
     <!-- Préférences -->
     <style name="AppTheme.PreferenceThemeOverlay" parent="PreferenceThemeOverlay">
         <item name="switchPreferenceCompatStyle">@style/Preference.SwitchPreferenceCompat</item>
+        <item name="android:dividerHeight">0dp</item>
     </style>
 
     <!-- Toolbars -->

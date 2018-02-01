@@ -4,6 +4,7 @@ import android.arch.lifecycle.ComputableLiveData;
 import android.arch.lifecycle.LiveData;
 import android.arch.persistence.room.ColumnInfo;
 import android.arch.persistence.room.Dao;
+import android.arch.persistence.room.Delete;
 import android.arch.persistence.room.Embedded;
 import android.arch.persistence.room.Entity;
 import android.arch.persistence.room.Ignore;
@@ -163,5 +164,9 @@ public class Lieu {
 
         @Insert(onConflict = OnConflictStrategy.IGNORE)
         public abstract void ajoutLienType(TypeLieu typeLieu);
+
+        // Vider
+        @Query("delete from Lieu")
+        public abstract void viderLieux();
     }
 }
