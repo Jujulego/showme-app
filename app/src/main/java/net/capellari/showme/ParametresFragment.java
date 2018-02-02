@@ -2,6 +2,7 @@ package net.capellari.showme;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.SearchRecentSuggestions;
@@ -11,6 +12,9 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.preference.Preference;
 import android.support.v7.preference.PreferenceFragmentCompat;
 import android.support.v7.preference.SwitchPreferenceCompat;
+import android.text.SpannableStringBuilder;
+import android.text.Spanned;
+import android.text.style.ForegroundColorSpan;
 import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
@@ -119,12 +123,16 @@ public class ParametresFragment extends PreferenceFragmentCompat {
             View view = getView();
 
             if (view != null) {
-                Snackbar snackbar = Snackbar.make(getView(), R.string.pref_snackbar_cache, Snackbar.LENGTH_LONG);
+                // Préparation texte
+                String texte = getString(R.string.pref_snackbar_cache);
+                SpannableStringBuilder ssb = new SpannableStringBuilder();
+                ssb.append(texte);
+                ssb.setSpan(new ForegroundColorSpan(Color.WHITE), 0,
+                        texte.length(),
+                        Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
 
-                // Chg de couleur (noir par défaut => blanc)
-                TextView texte = (TextView) snackbar.getView();
-                texte.setTextColor(ContextCompat.getColor(snackbar.getContext(), android.R.color.white));
-
+                // Snack !
+                Snackbar snackbar = Snackbar.make(getView(), ssb, Snackbar.LENGTH_LONG);
                 snackbar.show();
             } else {
                 Log.i(TAG, getString(R.string.pref_snackbar_cache));

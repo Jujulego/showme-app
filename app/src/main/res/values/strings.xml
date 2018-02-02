@@ -45,6 +45,9 @@
     <!-- RayonFragment -->
     <string name="aff_rayon_defaut" translatable="false">10 m</string>
 
+    <!-- FiltresFragment -->
+    <string name="filtrer_types">Filtrer par catégories</string>
+
     <!-- Recherches -->
     <!-- Champ de texte -->
     <string name="champ_hint">Quoi ?</string>

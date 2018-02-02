@@ -1,5 +1,7 @@
 package net.capellari.showme.net;
 
+import android.arch.lifecycle.LiveData;
+import android.arch.lifecycle.MutableLiveData;
 import android.arch.lifecycle.ViewModel;
 
 import net.capellari.showme.db.Lieu;
@@ -12,9 +14,15 @@ import java.util.List;
  *
  * Enregistre la liste des lieux et les filtres
  */
-public class FiltreModel extends ViewModel {
+public class FiltresModel extends ViewModel {
     // Attributs
     private List<Lieu> m_lieux = new LinkedList<>();
+    private MutableLiveData<Boolean> m_filtres_types = new MutableLiveData<>();
+
+    // Constructeur
+    public FiltresModel() {
+        m_filtres_types.setValue(true); // par défaut !
+    }
 
     // Méthodes
     public void ajouterLieu(Lieu lieu) {
@@ -29,5 +37,12 @@ public class FiltreModel extends ViewModel {
     }
     public void setLieux(List<Lieu> lieux) {
         m_lieux = lieux;
+    }
+
+    public LiveData<Boolean> getFiltreTypes() {
+        return m_filtres_types;
+    }
+    public void setFiltresTypes(boolean actif) {
+        m_filtres_types.setValue(actif);
     }
 }

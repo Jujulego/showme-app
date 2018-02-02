@@ -155,8 +155,8 @@ public class Lieu {
         @Query("select * from Lieu where _id == :id")
         public abstract Lieu select(long id);
 
-        @Query("select Type.* from TypeLieu join Type on TypeLieu.type_id == Type._id where lieu_id == :id")
-        public abstract List<Type> selectTypes(long id);
+        @Query("select TypeLieu.type_id from TypeLieu where lieu_id = :id")
+        public abstract List<Long> selectTypes(long id);
 
         // Modif
         @Insert(onConflict = OnConflictStrategy.REPLACE)

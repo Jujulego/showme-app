@@ -160,10 +160,8 @@ public class Type {
         LiveData<TypeNb[]> recupTypes(List<Long> lieux);
 
         // Edition
-        @Insert(onConflict = OnConflictStrategy.REPLACE)
-        void insert(Type... types);
-
-        @Update void maj(Type type);
+        @Insert void insert(Type... types);
+        @Update void maj(Type... types);
     }
 
     // Pojo retour

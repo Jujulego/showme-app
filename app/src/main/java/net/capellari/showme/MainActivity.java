@@ -14,6 +14,7 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteConstraintException;
 import android.location.Location;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -60,9 +61,10 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import net.capellari.showme.db.AppDatabase;
 import net.capellari.showme.db.Lieu;
 import net.capellari.showme.db.Type;
-import net.capellari.showme.net.FiltreModel;
+import net.capellari.showme.net.FiltresModel;
 import net.capellari.showme.net.LieuxModel;
 import net.capellari.showme.net.RequeteManager;
+import net.capellari.showme.net.TypesModel;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -87,6 +89,7 @@ public class MainActivity extends AppCompatActivity
     private static final String MAP_TAG      = "map";
     private static final String RESULTAT_TAG = "resultat";
     private static final String RAYON_TAG    = "rayon";
+    private static final String FILTRES_TAG  = "filtres";
 
     private static final int RQ_PERM_LOCATION = 1;
 
@@ -121,15 +124,18 @@ public class MainActivity extends AppCompatActivity
     private SupportMapFragment m_mapFragment;
     private ResultatFragment m_resultatFragment;
     private RayonFragment m_rayonFragment;
+    private FiltresFragment m_filtresFragment;
 
     private LieuxModel m_lieuxModel;
-    private FiltreModel m_filtreModel;
+    private FiltresModel m_filtresModel;
+    private TypesModel m_typesModel;
 
     private AppDatabase m_db;
     private RequeteManager m_requeteManager;
     private SharedPreferences m_preferences;
 
     private String m_query = null;
+    private LiveData<Boolean> m_filtrertypes;
 
     // Events
     @Override
@@ -145,7 +151,8 @@ public class MainActivity extends AppCompatActivity
 
         // Models
         m_lieuxModel  = ViewModelProviders.of(this).get(LieuxModel.class);
-        m_filtreModel = ViewModelProviders.of(this).get(FiltreModel.class);
+        m_filtresModel = ViewModelProviders.of(this).get(FiltresModel.class);
+        m_typesModel  = ViewModelProviders.of(this).get(TypesModel.class);
 
         // Initialisation gestion des requetes
         m_requeteManager = RequeteManager.getInstance(this.getApplicationContext());
@@ -167,6 +174,7 @@ public class MainActivity extends AppCompatActivity
             m_mapFragment      = (SupportMapFragment) getSupportFragmentManager().findFragmentByTag(MAP_TAG);
             m_resultatFragment = (ResultatFragment)   getSupportFragmentManager().findFragmentByTag(RESULTAT_TAG);
             m_rayonFragment    = (RayonFragment)      getSupportFragmentManager().findFragmentByTag(RAYON_TAG);
+            m_filtresFragment  = (FiltresFragment)    getSupportFragmentManager().findFragmentByTag(FILTRES_TAG);
         }
 
         // Complète les fragments manquants
@@ -439,7 +447,23 @@ public class MainActivity extends AppCompatActivity
                 new AsyncTask<Type,Void,Void>() {
                     @Override
                     protected Void doInBackground(Type... types) {
-                        m_db.getTypeDAO().insert(types);
+                        Type.TypeDAO dao = m_db.getTypeDAO();
+                        m_db.beginTransaction();
+
+                        try {
+                            for (Type t : types) {
+                                try {
+                                    dao.insert(t);
+                                } catch (SQLiteConstraintException err) {
+                                    dao.maj(t);
+                                }
+                            }
+
+                            m_db.setTransactionSuccessful();
+                        } finally {
+                            m_db.endTransaction();
+                        }
+
                         return null;
                     }
                 }.execute(types);
@@ -492,12 +516,33 @@ public class MainActivity extends AppCompatActivity
         }
 
         m_resultatFragment.setRefreshMenuItem(R.id.nav_refresh);
-        m_resultatFragment.ajouterLieux(m_filtreModel.getlieux());
+        m_resultatFragment.ajouterLieux(m_filtresModel.getlieux());
+        m_resultatFragment.setLiveData(m_typesModel.getTypes());
 
         // Rayon
         if (m_rayonFragment == null) {
             m_rayonFragment = new RayonFragment();
         }
+
+        // Filtres
+        if (m_filtresFragment == null) {
+            m_filtresFragment = new FiltresFragment();
+        }
+
+        // Communication Filtres -> Resultat
+        m_filtrertypes = m_filtresModel.getFiltreTypes();
+        m_filtrertypes.observe(this, new Observer<Boolean>() {
+            @Override
+            public void onChanged(@Nullable Boolean actif) {
+                if (actif != null) {
+                    m_resultatFragment.setFiltrer(actif);
+
+                    // Rafraichissement
+                    m_resultatFragment.vider();
+                    m_resultatFragment.ajouterLieux(m_filtresModel.getlieux());
+                }
+            }
+        });
     }
     private void gestionService() {
         boolean start = m_preferences.getBoolean(getString(R.string.pref_nombre), false);
@@ -524,8 +569,9 @@ public class MainActivity extends AppCompatActivity
         switch (m_status) {
             case VIDE:
                 transaction.add(R.id.layout_central, m_resultatFragment, RESULTAT_TAG);
-                transaction.add(R.id.layout_carte, m_mapFragment, MAP_TAG);
-                transaction.add(R.id.bottom_sheet, m_rayonFragment, RAYON_TAG);
+                transaction.add(R.id.layout_carte, m_mapFragment,        MAP_TAG);
+                transaction.add(R.id.bottom_sheet, m_rayonFragment,      RAYON_TAG);
+                transaction.add(R.id.bottom_sheet, m_filtresFragment,    FILTRES_TAG);
 
                 m_mapFragment.getMapAsync(this);
                 startLocationUpdates();
@@ -550,8 +596,9 @@ public class MainActivity extends AppCompatActivity
         switch (m_status) {
             case VIDE:
                 transaction.add(R.id.layout_central, m_resultatFragment, RESULTAT_TAG);
-                transaction.add(R.id.layout_carte, m_mapFragment,   MAP_TAG);
-                transaction.add(R.id.bottom_sheet, m_rayonFragment, RAYON_TAG);
+                transaction.add(R.id.layout_carte, m_mapFragment,        MAP_TAG);
+                transaction.add(R.id.bottom_sheet, m_rayonFragment,      RAYON_TAG);
+                transaction.add(R.id.bottom_sheet, m_filtresFragment,    FILTRES_TAG);
 
                 m_mapFragment.getMapAsync(this);
                 startLocationUpdates();
@@ -921,7 +968,7 @@ public class MainActivity extends AppCompatActivity
         public void onResponse(JSONArray reponse) {
             // Vidage
             m_resultatFragment.vider();
-            m_filtreModel.vider();
+            m_filtresModel.vider();
 
             // Cas de la réponse vide :
             if (reponse.length() == 0) {
@@ -961,12 +1008,12 @@ public class MainActivity extends AppCompatActivity
                         m_resultatFragment.decrementer();
 
                         if (lieu != null) {
-                            Log.d(TAG, "Hey !");
                             m_resultatFragment.ajouterLieu(lieu);
-                            m_filtreModel.ajouterLieu(lieu);
-                        }
+                            m_filtresModel.ajouterLieu(lieu);
+                            Log.d(TAG, "Cool !");
 
-                        liveData.removeObserver(this);
+                            liveData.removeObserver(this);
+                        }
                     }
                 });
             }
