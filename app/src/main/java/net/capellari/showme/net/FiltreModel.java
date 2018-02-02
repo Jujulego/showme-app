@@ -1,4 +1,4 @@
-package net.capellari.showme;
+package net.capellari.showme.net;
 
 import android.arch.lifecycle.ViewModel;
 

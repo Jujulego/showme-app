@@ -13,5 +13,5 @@
 
         app:layoutManager="LinearLayoutManager"
 
-        tools:listitem="@layout/item_ajouttype" />
+        tools:listitem="@layout/item_typeajout" />
 </android.support.constraint.ConstraintLayout>

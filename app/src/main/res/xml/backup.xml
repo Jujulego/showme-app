@@ -2,4 +2,7 @@
 <full-backup-content>
     <!-- Préférences -->
     <include domain="sharedpref" path="." />
+
+    <!-- Base de données -->
+    <include domain="database" path="@string/param_database" />
 </full-backup-content>

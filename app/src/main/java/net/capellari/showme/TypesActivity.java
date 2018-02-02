@@ -1,16 +1,11 @@
 package net.capellari.showme;
 
-import android.annotation.SuppressLint;
-import android.arch.persistence.room.Room;
-import android.database.Cursor;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
@@ -27,20 +22,20 @@ public class TypesActivity extends AppCompatActivity {
     private static final String STATUS = "showme.STATUS";
     private static final String TAG    = "TypesActivity";
 
-    private static final String ORDRE_TAG = "ordre";
+    private static final String LISTE_TAG = "liste";
     private static final String AJOUT_TAG = "ajout";
 
     // Enumération
     enum Status {
-        VIDE, ORDRE, AJOUT
+        VIDE, LISTE, AJOUT
     }
 
     // Attributs
     private Status m_status = Status.VIDE;
     private MenuItem m_menuItem;
 
-    private OrdreTypesFragment m_ordreTypesFragment;
-    private AjoutTypesFragment m_ajoutTypesFragment;
+    private TypesFragment m_typesFragment;
+    private TypeAjoutFragment m_typeAjoutFragment;
 
     private AppDatabase m_db;
 
@@ -61,15 +56,15 @@ public class TypesActivity extends AppCompatActivity {
             m_status = Status.valueOf(savedInstanceState.getString(STATUS));
 
             // Récupération des fragments
-            m_ordreTypesFragment = (OrdreTypesFragment) getSupportFragmentManager().findFragmentByTag(ORDRE_TAG);
-            m_ajoutTypesFragment = (AjoutTypesFragment) getSupportFragmentManager().findFragmentByTag(AJOUT_TAG);
+            m_typesFragment = (TypesFragment) getSupportFragmentManager().findFragmentByTag(LISTE_TAG);
+            m_typeAjoutFragment = (TypeAjoutFragment) getSupportFragmentManager().findFragmentByTag(AJOUT_TAG);
         }
 
         // Complète les fragments manquants
         prepareFragments();
 
         // Défaut : Ordre
-        if (savedInstanceState == null) setupOrdre();
+        if (savedInstanceState == null) setupListe();
 
         // Toolbar
         Toolbar toolbar = findViewById(R.id.toolbar);
@@ -112,14 +107,9 @@ public class TypesActivity extends AppCompatActivity {
     public boolean onPrepareOptionsMenu(Menu menu) {
         menu.removeItem(m_menuItem.getItemId());
 
-        if (m_status == Status.ORDRE) {
+        if (m_status == Status.LISTE) {
             m_menuItem = menu.add(R.string.nav_ajouter);
             m_menuItem.setIcon(R.drawable.add_blanc);
-            m_menuItem.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
-
-        } else {
-            m_menuItem = menu.add(R.string.nav_tri);
-            m_menuItem.setIcon(R.drawable.sort_blanc);
             m_menuItem.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
         }
 
@@ -130,14 +120,13 @@ public class TypesActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         // Ajout ?
         if (item == m_menuItem) {
-            if (m_status == Status.ORDRE) {
-                setupAjout();
-            } else {
-                setupOrdre();
-            }
+            setupAjout();
+            return true;
+        }
 
-            invalidateOptionsMenu();
-
+        // Retour arrière
+        if (item.getItemId() == android.R.id.home && m_status == Status.AJOUT) {
+            setupListe();
             return true;
         }
 
@@ -155,23 +144,14 @@ public class TypesActivity extends AppCompatActivity {
     // Méthodes
     private void prepareFragments() {
         // Ordre
-        if (m_ordreTypesFragment == null) {
-            m_ordreTypesFragment = new OrdreTypesFragment();
+        if (m_typesFragment == null) {
+            m_typesFragment = new TypesFragment();
         }
 
         // Ajout
-        if (m_ajoutTypesFragment == null) {
-            m_ajoutTypesFragment = new AjoutTypesFragment();
+        if (m_typeAjoutFragment == null) {
+            m_typeAjoutFragment = new TypeAjoutFragment();
         }
-
-        // Requetes !
-        m_ordreTypesFragment.getAdapter().setLiveData(
-                m_db.getTypeDAO().recupOrdonnes()
-        );
-
-        m_ajoutTypesFragment.getAdapter().setLiveData(
-                m_db.getTypeDAO().recupNonOrdonnes()
-        );
     }
 
     private void setupAjout() {
@@ -181,23 +161,25 @@ public class TypesActivity extends AppCompatActivity {
         // Evolution des fragments
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
 
-        transaction.replace(R.id.layout, m_ajoutTypesFragment, AJOUT_TAG);
+        transaction.replace(R.id.layout, m_typeAjoutFragment, AJOUT_TAG);
         transaction.commit();
 
         // Chg de status
         m_status = Status.AJOUT;
+        invalidateOptionsMenu();
     }
-    private void setupOrdre() {
+    private void setupListe() {
         // Gardien
-        if (m_status == Status.ORDRE) return;
+        if (m_status == Status.LISTE) return;
 
         // Evolution des fragments
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
 
-        transaction.replace(R.id.layout, m_ordreTypesFragment, ORDRE_TAG);
+        transaction.replace(R.id.layout, m_typesFragment, LISTE_TAG);
         transaction.commit();
 
         // Chg de status
-        m_status = Status.ORDRE;
+        m_status = Status.LISTE;
+        invalidateOptionsMenu();
     }
 }

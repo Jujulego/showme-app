@@ -10,35 +10,30 @@ import android.support.annotation.NonNull;
 import net.capellari.showme.R;
 
 /**
- * Created by julien on 06/01/18.
+ * Created by julien on 02/02/18.
  *
- * Définition de la base de données générale
+ * Base regroupant les paramètres (notamment autour des types !)
  */
 
 @Database(entities = {
-        Lieu.class,
-        Type.class,
-        TypeLieu.class,
-        Horaire.class
+        TypeParam.class
 }, version = 1, exportSchema = false)
 @TypeConverters(Converters.class)
-public abstract class AppDatabase extends RoomDatabase {
+public abstract class ParamDatabase extends RoomDatabase {
     // Attributs
-    private static AppDatabase m_instance;
+    private static ParamDatabase m_instance;
 
     // DAOs
-    public abstract Type.TypeDAO getTypeDAO();
-    public abstract Lieu.LieuDAO getLieuDAO();
-    public abstract Horaire.HoraireDAO getHoraireDAO();
+    public abstract TypeParam.TypeParamDAO getTypeDAO();
 
     // Méthodes
     @NonNull
-    public static synchronized AppDatabase getInstance(@NonNull Context context) {
+    public static synchronized ParamDatabase getInstance(@NonNull Context context) {
         // (Re)ouverture de la base
         if (m_instance == null || !m_instance.isOpen()) {
             m_instance = Room.databaseBuilder(
-                    context.getApplicationContext(), AppDatabase.class,
-                    context.getString(R.string.database)
+                    context.getApplicationContext(), ParamDatabase.class,
+                    context.getString(R.string.param_database)
             ).build();
         }
 

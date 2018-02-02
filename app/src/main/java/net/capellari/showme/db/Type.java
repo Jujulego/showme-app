@@ -33,7 +33,6 @@ public class Type {
     // Champs
     @PrimaryKey @ColumnInfo(index = true)
     public long _id;
-    public Integer ordre;
 
     @NonNull public String nom = "";
     @NonNull public String pluriel = "";
@@ -154,16 +153,10 @@ public class Type {
         @Query("select * from Type order by nom")
         LiveData<List<Type>> recup();
 
-        @Query("select * from Type where ordre not null order by ordre")
-        LiveData<List<Type>> recupOrdonnes();
-
-        @Query("select * from Type where ordre is null order by nom")
-        LiveData<List<Type>> recupNonOrdonnes();
-
         @Query("select * from Type where _id == :id")
         Type recup(long id);
 
-        @Query("select Type._id,Type.nom,Type.pluriel,count(distinct TypeLieu.lieu_id) as nb_lieux from TypeLieu join Type on type_id = Type._id where lieu_id in (:lieux) group by Type._id order by Type.ordre")
+        @Query("select Type._id,Type.nom,Type.pluriel,count(distinct TypeLieu.lieu_id) as nb_lieux from TypeLieu join Type on type_id = Type._id where lieu_id in (:lieux) group by Type._id order by Type.nom")
         LiveData<TypeNb[]> recupTypes(List<Long> lieux);
 
         // Edition

@@ -2,6 +2,7 @@
     <!-- Général -->
     <string name="app_name" translatable="false">ShowMe</string>
     <string name="database" translatable="false">showme.db</string>
+    <string name="param_database" translatable="false">params.db</string>
 
     <!-- Pas touche ! -->
     <string name="serveur" translatable="false">showme.capellari.net</string>
@@ -63,7 +64,6 @@
     <string name="types_activity">Catégories</string>
 
     <string name="nav_ajouter">Ajouter</string>
-    <string name="nav_tri">Tri</string>
 
     <string name="ajouter_description">Bouton d\'ajout</string>
 

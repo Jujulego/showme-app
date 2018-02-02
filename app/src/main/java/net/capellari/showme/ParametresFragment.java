@@ -7,11 +7,13 @@ import android.os.Bundle;
 import android.provider.SearchRecentSuggestions;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.DialogFragment;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.preference.Preference;
 import android.support.v7.preference.PreferenceFragmentCompat;
 import android.support.v7.preference.SwitchPreferenceCompat;
 import android.util.Log;
 import android.view.View;
+import android.widget.TextView;
 
 import net.capellari.showme.db.AppDatabase;
 
@@ -117,8 +119,13 @@ public class ParametresFragment extends PreferenceFragmentCompat {
             View view = getView();
 
             if (view != null) {
-                Snackbar.make(getView(), R.string.pref_snackbar_cache, Snackbar.LENGTH_LONG)
-                        .show();
+                Snackbar snackbar = Snackbar.make(getView(), R.string.pref_snackbar_cache, Snackbar.LENGTH_LONG);
+
+                // Chg de couleur (noir par défaut => blanc)
+                TextView texte = (TextView) snackbar.getView();
+                texte.setTextColor(ContextCompat.getColor(snackbar.getContext(), android.R.color.white));
+
+                snackbar.show();
             } else {
                 Log.i(TAG, getString(R.string.pref_snackbar_cache));
             }

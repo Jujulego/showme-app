@@ -60,6 +60,7 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import net.capellari.showme.db.AppDatabase;
 import net.capellari.showme.db.Lieu;
 import net.capellari.showme.db.Type;
+import net.capellari.showme.net.FiltreModel;
 import net.capellari.showme.net.LieuxModel;
 import net.capellari.showme.net.RequeteManager;
 
