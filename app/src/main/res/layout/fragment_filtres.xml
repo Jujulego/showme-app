@@ -1,7 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <android.support.constraint.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+
+    android:layout_width="match_parent"
     android:layout_height="match_parent">
+
+    <fragment android:id="@+id/selecttype"
+        android:name="net.capellari.showme.SelectTypeFragment"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+
+        app:selecttype_actif="true"
+
+        tools:layout="@layout/fragment_selecttype"/>
 
     <CheckBox android:id="@+id/filtrer_types"
         android:layout_width="match_parent"
@@ -9,5 +22,7 @@
         android:padding="@dimen/text_margin"
 
         android:text="@string/filtrer_types"
-        android:checked="true" />
+        android:checked="true"
+
+        app:layout_constraintTop_toBottomOf="@id/selecttype" />
 </android.support.constraint.ConstraintLayout>

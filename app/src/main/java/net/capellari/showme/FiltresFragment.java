@@ -1,17 +1,24 @@
 package net.capellari.showme;
 
+import android.arch.lifecycle.LiveData;
+import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 
+import net.capellari.showme.db.Type;
+import net.capellari.showme.db.TypeBase;
 import net.capellari.showme.net.FiltresModel;
+
+import java.util.List;
 
 /**
  * Created by julien on 02/02/18.
@@ -20,6 +27,9 @@ import net.capellari.showme.net.FiltresModel;
  */
 
 public class FiltresFragment extends Fragment {
+    // Constantes
+    private static final String TAG = "FiltresFragment";
+
     // Attributs
     private CheckBox m_filtrerTypes;
 
@@ -43,7 +53,7 @@ public class FiltresFragment extends Fragment {
         m_filtrerTypes.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                m_filtresModel.setFiltresTypes(isChecked);
+                m_filtresModel.setFiltreParam(isChecked);
             }
         });
 

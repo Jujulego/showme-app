@@ -78,6 +78,7 @@ public class RayonFragment extends Fragment {
         m_seek_bar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                if (isDetached()) return;
                 m_valeur.setText(getString(R.string.distance, get_rayon()));
             }
 
@@ -105,6 +106,23 @@ public class RayonFragment extends Fragment {
         listener.onRayonReady();
 
         return view;
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+
+        // Vidage
+        m_seek_bar = null;
+        m_valeur   = null;
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+
+        // Vidage
+        m_listener = null;
     }
 
     // Méthodes

@@ -7,4 +7,9 @@
         <attr name="rayon_fact" format="integer" />
         <attr name="rayon"      format="integer" />
     </declare-styleable>
+
+    <!-- SelectTypeFragment -->
+    <declare-styleable name="SelectTypeFragment">
+        <attr name="selecttype_actif" format="boolean" />
+    </declare-styleable>
 </resources>

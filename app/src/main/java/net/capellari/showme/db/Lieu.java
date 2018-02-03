@@ -131,6 +131,15 @@ public class Lieu {
         return location;
     }
 
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof Lieu) {
+            return ((Lieu) obj)._id == _id;
+        }
+
+        return super.equals(obj);
+    }
+
     // Classes
     public static class GeoPoint {
         // Champs
@@ -157,6 +166,12 @@ public class Lieu {
 
         @Query("select TypeLieu.type_id from TypeLieu where lieu_id = :id")
         public abstract List<Long> selectTypes(long id);
+
+        @Query("select Type._id,Type.nom from TypeLieu join Type on TypeLieu.type_id = Type._id where lieu_id = :id")
+        public abstract List<TypeBase> selectTypesData(long id);
+
+        @Query("select Type._id,Type.nom from TypeLieu join Type on TypeLieu.type_id = Type._id where lieu_id = :id")
+        public abstract LiveData<List<TypeBase>> selectLiveTypes(long id);
 
         // Modif
         @Insert(onConflict = OnConflictStrategy.REPLACE)

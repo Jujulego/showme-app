@@ -18,15 +18,9 @@ import java.util.List;
  * Parametres associés aux types
  */
 
-@Entity(tableName = "Type")
-public class TypeParam {
+@Entity(tableName = "Type", inheritSuperIndices = true)
+public class TypeParam extends TypeBase {
     // Champs
-    @PrimaryKey
-    @ColumnInfo(index = true)
-    public long _id;
-
-    @NonNull
-    public String nom = "";
 
     // DAO
     @Dao

@@ -7,6 +7,9 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.DefaultItemAnimator;
+import android.support.v7.widget.DividerItemDecoration;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -17,6 +20,7 @@ import android.widget.TextView;
 
 import net.capellari.showme.db.AppDatabase;
 import net.capellari.showme.db.Type;
+import net.capellari.showme.db.TypeBase;
 import net.capellari.showme.db.TypeParam;
 import net.capellari.showme.net.TypesModel;
 
@@ -66,6 +70,14 @@ public class TypeAjoutFragment extends Fragment {
         m_liste = view.findViewById(R.id.liste);
         m_liste.setAdapter(m_adapter);
 
+        // dividers
+        LinearLayoutManager layoutManager = (LinearLayoutManager) m_liste.getLayoutManager();
+        m_liste.addItemDecoration(new DividerItemDecoration(
+                m_liste.getContext(),
+                layoutManager.getOrientation()
+        ));
+        m_liste.setItemAnimator(new DefaultItemAnimator());
+
         return view;
     }
 
@@ -80,7 +92,6 @@ public class TypeAjoutFragment extends Fragment {
         // Attributs
         private Type m_type;
         private TextView m_nom;
-        private ImageButton m_bouton;
 
         // Constructeur
         public TypeViewHolder(View itemView) {
@@ -88,7 +99,8 @@ public class TypeAjoutFragment extends Fragment {
 
             // Récupération des vues
             m_nom = itemView.findViewById(R.id.nom);
-            m_bouton = itemView.findViewById(R.id.ajouter);
+            m_nom.setSelected(true);
+
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -108,8 +120,8 @@ public class TypeAjoutFragment extends Fragment {
             // Remplissage
             m_nom.setText(type.nom);
             m_nom.setCompoundDrawablesRelativeWithIntrinsicBounds(
-                    Type.getIconRessource((int) type._id),
-                    0, 0,0
+                    TypeBase.getIconRessource((int) type._id),
+                    0, R.drawable.add_gris,0
             );
         }
     }
@@ -118,7 +130,7 @@ public class TypeAjoutFragment extends Fragment {
         private LiveData<List<Type>> m_livedata;
         private LiveData<List<TypeParam>> m_param_livedata;
 
-        private List<Type> m_types            = new LinkedList<>();
+        private List<Type> m_types       = new LinkedList<>();
         private List<TypeParam> m_params = new LinkedList<>();
 
         // Constructeur
@@ -127,7 +139,7 @@ public class TypeAjoutFragment extends Fragment {
         // Events
         @Override
         public TypeViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-            View view = getLayoutInflater().inflate(R.layout.item_typeajout, parent, false);
+            View view = getLayoutInflater().inflate(R.layout.item_type, parent, false);
             return new TypeViewHolder(view);
         }
 
@@ -149,9 +161,9 @@ public class TypeAjoutFragment extends Fragment {
                 @Override
                 public void onChanged(@Nullable List<Type> types) {
                     m_types = types;
-                    filtrage();
-
                     notifyDataSetChanged();
+
+                    filtrage();
                 }
             });
         }
@@ -165,18 +177,22 @@ public class TypeAjoutFragment extends Fragment {
                 public void onChanged(@Nullable List<TypeParam> types) {
                     m_params = types;
                     filtrage();
-
-                    notifyDataSetChanged();
                 }
             });
         }
 
         private void filtrage() {
             // filtrage des types !
-            for (TypeParam tp : m_params) {
-                for (Type t : m_types) {
-                    if (t._id == tp._id) {
-                        m_types.remove(t);
+            for (TypeParam param : m_params) {
+
+                // Parcous des types
+                for (int i = 0; i < m_types.size(); ++i) {
+                    Type t = m_types.get(i);
+
+                    if (t._id == param._id) {
+                        m_types.remove(i);
+                        notifyItemRemoved(i);
+
                         break;
                     }
                 }

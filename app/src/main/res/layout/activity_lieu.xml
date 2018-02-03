@@ -84,53 +84,65 @@
 
                 app:layout_constraintGuide_begin="@dimen/taille_carte"/>
 
-            <TextView android:id="@+id/adresse"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:padding="@dimen/text_margin"
-                android:text="@string/inconnu"
-                android:enabled="false"
+                android:orientation="vertical"
 
-                android:drawableStart="@drawable/map_details"
-                android:drawablePadding="@dimen/text_margin"
+                android:divider="@drawable/divider"
+                android:showDividers="middle"
 
-                app:layout_constraintTop_toBottomOf="@id/guideline"/>
+                app:layout_constraintTop_toBottomOf="@id/guideline" >
 
-            <TextView android:id="@+id/prix"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:padding="@dimen/text_margin"
-                android:text="@string/inconnu"
-                android:enabled="false"
+                <fragment android:id="@+id/selecttype"
+                    android:name="net.capellari.showme.SelectTypeFragment"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
 
-                android:drawableStart="@drawable/credit_card_details"
-                android:drawablePadding="@dimen/text_margin"
+                    app:selecttype_actif="false"
 
-                app:layout_constraintTop_toBottomOf="@id/adresse" />
+                    tools:layout="@layout/fragment_selecttype"/>
 
-            <TextView android:id="@+id/telephone"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:padding="@dimen/text_margin"
-                android:text="@string/inconnu"
-                android:enabled="false"
+                <TextView android:id="@+id/adresse"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="@dimen/text_margin"
+                    android:text="@string/inconnu"
+                    android:enabled="false"
 
-                android:drawableStart="@drawable/phone_details"
-                android:drawablePadding="@dimen/text_margin"
+                    android:drawableStart="@drawable/map_details"
+                    android:drawablePadding="@dimen/text_margin" />
 
-                app:layout_constraintTop_toBottomOf="@id/prix" />
+                <TextView android:id="@+id/prix"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="@dimen/text_margin"
+                    android:text="@string/inconnu"
+                    android:enabled="false"
 
-            <TextView android:id="@+id/site_web"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:padding="@dimen/text_margin"
-                android:text="@string/inconnu"
-                android:enabled="false"
+                    android:drawableStart="@drawable/credit_card_details"
+                    android:drawablePadding="@dimen/text_margin" />
 
-                android:drawableStart="@drawable/web_details"
-                android:drawablePadding="@dimen/text_margin"
+                <TextView android:id="@+id/telephone"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="@dimen/text_margin"
+                    android:text="@string/inconnu"
+                    android:enabled="false"
 
-                app:layout_constraintTop_toBottomOf="@id/telephone" />
+                    android:drawableStart="@drawable/phone_details"
+                    android:drawablePadding="@dimen/text_margin" />
+
+                <TextView android:id="@+id/site_web"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="@dimen/text_margin"
+                    android:text="@string/inconnu"
+                    android:enabled="false"
+
+                    android:drawableStart="@drawable/web_details"
+                    android:drawablePadding="@dimen/text_margin" />
+            </LinearLayout>
         </android.support.constraint.ConstraintLayout>
     </android.support.v4.widget.NestedScrollView>
 

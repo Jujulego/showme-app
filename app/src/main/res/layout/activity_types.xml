@@ -16,7 +16,7 @@
         android:elevation="4dp"
         android:theme="@style/AppTheme.AppBarOverlay"
 
-        app:title="@string/app_name"
+        app:title="@string/types_activity"
         app:popupTheme="@style/AppTheme.PopupOverlay" />
 
     <FrameLayout android:id="@+id/layout"

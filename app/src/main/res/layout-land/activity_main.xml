@@ -86,16 +86,34 @@
                 android:layout_marginStart="@dimen/land_bottom_sheet_start_margin"
                 android:layout_marginEnd="@dimen/card_margin"
 
-                android:background="@android:color/white"
+                android:background="@android:color/background_light"
                 android:elevation="2dp"
 
                 app:behavior_peekHeight="@dimen/bottom_sheet_peek_height"
                 app:layout_behavior="@string/bottom_sheet_behavior">
 
-                <LinearLayout android:id="@+id/bottom_sheet"
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical">
+
+                    <!-- Fragments -->
+                    <LinearLayout android:id="@+id/bottom_sheet"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+
+                        android:divider="@drawable/divider"
+                        android:showDividers="middle" />
+
+                    <!-- Bouton refresh -->
+                    <Button android:id="@+id/button_refresh"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:padding="@dimen/text_margin"
+
+                        android:text="@string/nav_refresh"
+                        android:drawableStart="@drawable/ic_refresh_black_24dp" />
                 </LinearLayout>
 
             </android.support.v4.widget.NestedScrollView>

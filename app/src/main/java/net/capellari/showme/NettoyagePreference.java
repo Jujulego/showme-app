@@ -45,12 +45,6 @@ public class NettoyagePreference extends DialogPreference {
     public void onBindViewHolder(final PreferenceViewHolder view) {
         super.onBindViewHolder(view);
 
-        if (view.itemView.getId() == R.id.layout) {
-            Log.d(TAG, "Hein !?");
-        } else {
-            Log.d(TAG, "Pas cool !");
-        }
-
         view.findViewById(R.id.titre_layout).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

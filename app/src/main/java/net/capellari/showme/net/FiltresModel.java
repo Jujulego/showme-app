@@ -1,11 +1,22 @@
 package net.capellari.showme.net;
 
+import android.app.Application;
+import android.arch.lifecycle.AndroidViewModel;
 import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.MutableLiveData;
-import android.arch.lifecycle.ViewModel;
+import android.os.AsyncTask;
+import android.support.design.widget.TabLayout;
+import android.util.Log;
+import android.util.LongSparseArray;
 
+import net.capellari.showme.db.AppDatabase;
 import net.capellari.showme.db.Lieu;
+import net.capellari.showme.db.ParamDatabase;
+import net.capellari.showme.db.Type;
+import net.capellari.showme.db.TypeBase;
+import net.capellari.showme.db.TypeParam;
 
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -14,35 +25,238 @@ import java.util.List;
  *
  * Enregistre la liste des lieux et les filtres
  */
-public class FiltresModel extends ViewModel {
+public class FiltresModel extends AndroidViewModel {
+    // Constantes
+    private static final String TAG = "FiltresModel";
+
     // Attributs
+    // - données brutes
     private List<Lieu> m_lieux = new LinkedList<>();
-    private MutableLiveData<Boolean> m_filtres_types = new MutableLiveData<>();
+    private LongSparseArray<List<TypeBase>> m_typesLieux = new LongSparseArray<>();
+
+    // - filtres
+    private boolean m_filtreParams = true;
+    private List<TypeParam> m_typesParam = new LinkedList<>();
+
+    private List<TypeBase> m_types = new LinkedList<>();
+    private LongSparseArray<Boolean> m_typesAffiches = new LongSparseArray<>();
+
+    // - données filtrées
+    private List<Lieu>     m_lieuxFiltres = new LinkedList<>();
+    private List<TypeBase> m_typesFiltres = new LinkedList<>();
+
+    // - livedata
+    private MutableLiveData<List<Lieu>>     m_live_lieux = new MutableLiveData<>();
+    private MutableLiveData<List<TypeBase>> m_live_types = new MutableLiveData<>();
+
+    // - outils
+    private AppDatabase m_appdb;
+    private ParamDatabase m_paramdb;
+    private List<SelectTypesTask> m_taches = new LinkedList<>();
 
     // Constructeur
-    public FiltresModel() {
-        m_filtres_types.setValue(true); // par défaut !
+    public FiltresModel(Application application) {
+        super(application);
+
+        // ouverture des bases
+        m_appdb   = AppDatabase.getInstance(application);
+        m_paramdb = ParamDatabase.getInstance(application);
+
+        // récupération des parametres
+        new RecupTypeParamTask().execute();
+    }
+
+    // Events
+    @Override
+    protected void onCleared() {
+        // Arrêt des taches
+        stopTaches();
+
+        // Fermeture des bases
+        m_appdb.close();
+        m_paramdb.close();
     }
 
     // Méthodes
+    // - accès aux données filtrées
+    public LiveData<List<Lieu>>     recupLieux() {
+        return m_live_lieux;
+    }
+    public LiveData<List<TypeBase>> recupTypes() {
+        return m_live_types;
+    }
+
+    // - gestion du contenu
     public void ajouterLieu(Lieu lieu) {
-        m_lieux.add(lieu);
+        if (!m_lieux.contains(lieu)) {
+            // Ajout !
+            m_lieux.add(lieu);
+
+            // Récupération des types associés
+            SelectTypesTask tache = new SelectTypesTask(lieu);
+            tache.execute();
+
+            m_taches.add(tache);
+        }
     }
     public void vider() {
+        // Reset !
         m_lieux.clear();
+        m_types.clear();
+        m_typesLieux.clear();
+        m_typesAffiches.clear();
+        m_lieuxFiltres.clear();
+        m_typesFiltres.clear();
+
+        // Arrêt des taches
+        stopTaches();
     }
 
-    public List<Lieu> getlieux() {
-        return m_lieux;
-    }
-    public void setLieux(List<Lieu> lieux) {
-        m_lieux = lieux;
+    // - gestion des filtres
+    public void setFiltreParam(boolean actif) {
+        if (m_filtreParams != actif) {
+            m_filtreParams = actif;
+            filtrerTout();
+        }
     }
 
-    public LiveData<Boolean> getFiltreTypes() {
-        return m_filtres_types;
+    public boolean getFiltreType(long type) {
+        return m_typesAffiches.get(type, false);
     }
-    public void setFiltresTypes(boolean actif) {
-        m_filtres_types.setValue(actif);
+    public void setFiltreType(long type, boolean affiche) {
+        m_typesAffiches.put(type, affiche);
+        filtrerLieux();
+    }
+
+    // traitement interne
+    private void ajouterTypes(Collection<TypeBase> types) {
+        boolean modif = false;
+
+        for (TypeBase type : types) {
+            // Ajout au tableau affichés si jamais traités
+            if (!m_types.contains(type)) {
+                m_types.add(type);
+                m_typesAffiches.put(type._id, true);
+            }
+
+            // filtrage !
+            modif |= filtrerType(type);
+        }
+
+        if (modif) {
+            m_live_types.setValue(m_typesFiltres);
+        }
+    }
+    private boolean filtrerType(TypeBase type) {
+        // Déjà présent ?
+        if (m_typesFiltres.contains(type)) return false;
+
+        // Type sélectionné ?
+        //noinspection SuspiciousMethodCalls
+        if (m_filtreParams && !m_typesParam.contains(type)) return false;
+
+        // Ajout !
+        m_typesFiltres.add(type);
+        return true;
+    }
+
+    private boolean filtrerLieu(Lieu lieu) {
+        // Déjà présent ?
+        if (m_lieuxFiltres.contains(lieu)) return false;
+
+        // Récupération des types
+        List<TypeBase> types = m_typesLieux.get(lieu._id, null);
+        if (types == null) return false;
+
+        // Test
+        boolean ok = false;
+        for (TypeBase type : types) {
+            ok = m_typesFiltres.contains(type) && m_typesAffiches.get(type._id, false);
+            if (ok) break;
+        }
+
+        // Ajout
+        if (ok) {
+            m_lieuxFiltres.add(lieu);
+        }
+
+        return ok;
+    }
+    private void filtrerLieux() {
+        // Filtrage
+        m_lieuxFiltres = new LinkedList<>();
+        for (Lieu lieu : m_lieux) {
+            filtrerLieu(lieu);
+        }
+
+        // Maj UI
+        m_live_lieux.setValue(m_lieuxFiltres);
+    }
+
+    private void filtrerTout() {
+        // Types
+        m_typesFiltres = new LinkedList<>();
+        for (TypeBase type : m_types) {
+            filtrerType(type);
+        }
+
+        // Lieux
+        m_lieuxFiltres = new LinkedList<>();
+        filtrerLieux();
+
+        // Maj UI
+        m_live_types.setValue(m_typesFiltres);
+    }
+
+    private void stopTaches() {
+        for (SelectTypesTask tache : m_taches) {
+            tache.cancel(true);
+        }
+
+        m_taches.clear();
+    }
+
+    // Taches
+    private class RecupTypeParamTask extends AsyncTask<Void,Void,List<TypeParam>> {
+        // Events
+        @Override
+        protected void onPostExecute(List<TypeParam> typesParam) {
+            m_typesParam = typesParam;
+            filtrerTout();
+        }
+
+        // Méthodes
+        @Override
+        protected List<TypeParam> doInBackground(Void... voids) {
+            return m_paramdb.getTypeDAO().recup();
+        }
+    }
+    private class SelectTypesTask extends AsyncTask<Void,Void,List<TypeBase>> {
+        // Attributs
+        private Lieu m_lieu;
+
+        // Constructeur
+        public SelectTypesTask(Lieu lieu) {
+            m_lieu = lieu;
+        }
+
+        // Events
+        @Override
+        protected void onPostExecute(List<TypeBase> types) {
+            // Sauvegarde du résultat
+            m_typesLieux.put(m_lieu._id, types);
+
+            // Traitements
+            ajouterTypes(types);
+            if (filtrerLieu(m_lieu)) {
+                m_live_lieux.setValue(m_lieuxFiltres);
+            }
+        }
+
+        // Méthodes
+        @Override
+        protected List<TypeBase> doInBackground(Void... voids) {
+            return m_appdb.getLieuDAO().selectTypesData(m_lieu._id);
+        }
     }
 }

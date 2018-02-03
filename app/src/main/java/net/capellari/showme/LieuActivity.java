@@ -36,8 +36,13 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnSuccessListener;
 
 import net.capellari.showme.db.Lieu;
+import net.capellari.showme.db.Type;
+import net.capellari.showme.db.TypeBase;
 import net.capellari.showme.net.LieuxModel;
 import net.capellari.showme.net.RequeteManager;
+
+import java.util.Collection;
+import java.util.List;
 
 public class LieuActivity extends AppCompatActivity implements OnMapReadyCallback {
     // Constantes
@@ -60,6 +65,7 @@ public class LieuActivity extends AppCompatActivity implements OnMapReadyCallbac
     private CollapsingToolbarLayout m_collapsingToolbar;
     private RatingBar m_note;
     private SupportMapFragment m_mapFragment;
+    private SelectTypeFragment m_selectTypeFragment;
     private TextView m_adresse;
     private TextView m_prix;
     private TextView m_telephone;
@@ -85,6 +91,9 @@ public class LieuActivity extends AppCompatActivity implements OnMapReadyCallbac
         m_telephone = findViewById(R.id.telephone);
         m_siteWeb   = findViewById(R.id.site_web);
         m_image     = findViewById(R.id.image);
+
+        // Fragment
+        m_selectTypeFragment = (SelectTypeFragment) getSupportFragmentManager().findFragmentById(R.id.selecttype);
 
         // Clicks !
         m_telephone.setOnClickListener(new View.OnClickListener() {
@@ -151,6 +160,17 @@ public class LieuActivity extends AppCompatActivity implements OnMapReadyCallbac
                     
                     // Titre
                     m_collapsingToolbar.setTitle(lieu.nom);
+
+                    // Typesb
+                    m_lieuxModel.recupTypes(lieu._id).observe(LieuActivity.this, new Observer<List<TypeBase>>() {
+                        @Override
+                        public void onChanged(@Nullable List<TypeBase> types) {
+                            if (types == null) return;
+
+                            m_selectTypeFragment.vider();
+                            m_selectTypeFragment.ajouterTypes(types);
+                        }
+                    });
 
                     // Adresse
                     String adresse = "";

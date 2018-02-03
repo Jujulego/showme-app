@@ -2,6 +2,7 @@ package net.capellari.showme;
 
 import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.Observer;
+import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
 import android.location.Location;
 import android.os.AsyncTask;
@@ -11,6 +12,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.CardView;
+import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -22,6 +24,7 @@ import android.widget.TextView;
 import net.capellari.showme.db.AppDatabase;
 import net.capellari.showme.db.Lieu;
 import net.capellari.showme.db.TypeParam;
+import net.capellari.showme.net.FiltresModel;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -52,6 +55,8 @@ public class ResultatFragment extends Fragment {
     private LieuAdapter m_adapter = new LieuAdapter();
 
     private AppDatabase m_db;
+    private FiltresModel m_filtresModel;
+    private LiveData<List<Lieu>> m_livedata;
 
     // Events
     @Override
@@ -63,6 +68,18 @@ public class ResultatFragment extends Fragment {
 
         // Ouverture de la base
         m_db = AppDatabase.getInstance(getContext());
+
+        // Récupération du model
+        m_filtresModel = ViewModelProviders.of(getActivity()).get(FiltresModel.class);
+
+        m_livedata = m_filtresModel.recupLieux();
+        m_livedata.observe(this, new Observer<List<Lieu>>() {
+            @Override
+            public void onChanged(@Nullable List<Lieu> lieux) {
+                m_adapter.vider();
+                m_adapter.ajouterLieux(lieux);
+            }
+        });
     }
 
     @Override
@@ -84,6 +101,7 @@ public class ResultatFragment extends Fragment {
         // Liste
         m_liste = view.findViewById(R.id.liste);
         m_liste.setAdapter(m_adapter);
+        m_liste.setItemAnimator(new DefaultItemAnimator());
 
         // SwipeRefresh
         m_swipeRefresh = view.findViewById(R.id.swipe_refresh);
@@ -103,8 +121,8 @@ public class ResultatFragment extends Fragment {
     public void onDestroy() {
         super.onDestroy();
 
-        // Arrets des taches
-        m_adapter.stopFiltrage();
+        // Arret reception maj
+        m_livedata.removeObservers(this);
     }
 
     // Menu
@@ -154,24 +172,11 @@ public class ResultatFragment extends Fragment {
         }
     }
 
-    public void ajouterLieu(Lieu lieu) {
-        m_adapter.ajouterLieu(lieu);
-    }
-    public void ajouterLieux(List<Lieu> lieux) {
-        m_adapter.ajouterLieux(lieux);
-    }
     public void majDistances(Location location) {
         m_adapter.majDistances(location);
     }
     public void vider() {
         m_adapter.vider();
-    }
-
-    public void setFiltrer(boolean actif) {
-        m_filtrer = actif;
-    }
-    public void setLiveData(LiveData<List<TypeParam>> livedata) {
-        m_adapter.setLiveData(livedata);
     }
 
     // Listener
@@ -230,13 +235,8 @@ public class ResultatFragment extends Fragment {
     }
     private class LieuAdapter extends RecyclerView.Adapter<LieuViewHolder> {
         // Attributs
-        private ArrayList<Lieu> m_lieux = new ArrayList<>();
         private Location m_location;
-
-        private LiveData<List<TypeParam>> m_livedata;
-        private List<TypeParam> m_types = new LinkedList<>();
-        private FiltrageTask m_filtrage;
-
+        private ArrayList<Lieu> m_lieux = new ArrayList<>();
         private Set<LieuViewHolder> m_viewHolders = new HashSet<>();
 
         // Events
@@ -267,10 +267,15 @@ public class ResultatFragment extends Fragment {
         }
 
         public void ajouterLieu(Lieu lieu) {
-            new AjoutTask().execute(lieu);
+            m_lieux.add(lieu);
+
+            notifyItemInserted(m_lieux.size() -1);
         }
         public void ajouterLieux(List<Lieu> lieux) {
-            new AjoutTask().execute(lieux.toArray(new Lieu[lieux.size()]));
+            int taille = m_lieux.size();
+            m_lieux.addAll(lieux);
+
+            notifyItemRangeInserted(taille-1, lieux.size());
         }
 
         public void majDistances(Location location) {
@@ -288,109 +293,6 @@ public class ResultatFragment extends Fragment {
             m_lieux.clear();
 
             notifyItemRangeRemoved(0, taille);
-            stopFiltrage();
-        }
-
-        public void setLiveData(LiveData<List<TypeParam>> livedata) {
-            if (m_livedata != null) m_livedata.removeObservers(ResultatFragment.this);
-
-            m_livedata = livedata;
-            m_livedata.observe(ResultatFragment.this, new Observer<List<TypeParam>>() {
-                @Override
-                public void onChanged(@Nullable List<TypeParam> types) {
-                    m_types = types;
-                    lancerFiltrage();
-                }
-            });
-        }
-
-        public void lancerFiltrage() {
-            // Gardien
-            if (!m_filtrer) return;
-
-            stopFiltrage();
-            m_filtrage = new FiltrageTask();
-            m_filtrage.execute();
-        }
-        public void stopFiltrage() {
-            if (m_filtrage != null) {
-                m_filtrage.cancel(true);
-            }
-        }
-
-        // Tache
-        private class AjoutTask extends AsyncTask<Lieu,Lieu,Void> {
-            @Override
-            protected Void doInBackground(Lieu... lieux) {
-                for (Lieu l : lieux) {
-                    boolean ok = !m_filtrer;
-
-                    // Test !
-                    if (m_filtrer) {
-                        List<Long> types = m_db.getLieuDAO().selectTypes(l._id);
-
-                        for (TypeParam tp : m_types) {
-                            if (types.contains(tp._id)) {
-                                ok = true;
-                                break;
-                            }
-                        }
-                    }
-
-                    // Ajout !
-                    if (ok) {
-                        publishProgress(l);
-                    }
-                }
-
-                return null;
-            }
-
-            @Override
-            protected void onProgressUpdate(Lieu... lieux) {
-                Lieu lieu = lieux[0]; // y en a tjs qu'un seul
-
-                m_lieux.add(lieu);
-                notifyItemInserted(m_lieux.size()-1);
-            }
-        }
-
-        private class FiltrageTask extends AsyncTask<Void,Integer,Void> {
-            @Override
-            protected Void doInBackground(Void... voids) {
-                for (int i = 0; i < m_lieux.size(); ++i) {
-                    // Test !
-                    List<Long> types = m_db.getLieuDAO().selectTypes(m_lieux.get(i)._id);
-
-                    boolean ok = false;
-                    for (TypeParam tp : m_types) {
-                        if (types.contains(tp._id)) {
-                            ok = true;
-                            break;
-                        }
-                    }
-
-                    // Suppression !
-                    if (!ok) {
-                        m_lieux.remove(i);
-                        publishProgress(i);
-
-                        --i;
-                    }
-
-                    // Interrompu !?
-                    if (isCancelled()) {
-                        break;
-                    }
-                }
-
-                return null;
-            }
-
-            @Override
-            protected void onProgressUpdate(Integer... values) {
-                notifyItemRemoved(values[0]);
-            }
         }
     }
 

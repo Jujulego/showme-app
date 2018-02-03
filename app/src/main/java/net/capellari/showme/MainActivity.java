@@ -23,11 +23,13 @@ import android.provider.SearchRecentSuggestions;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
+import android.support.design.widget.BottomSheetBehavior;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.DrawerLayout;
+import android.support.v4.widget.NestedScrollView;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
@@ -40,6 +42,8 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewAnimationUtils;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.Button;
 import android.widget.ImageView;
 
 import com.android.volley.Response;
@@ -104,6 +108,10 @@ public class MainActivity extends AppCompatActivity
     private SearchView m_searchView;
     private MenuItem m_searchMenuItem;
 
+    private Button m_buttonRefresh;
+    private NestedScrollView m_bottomSheet;
+    private BottomSheetBehavior m_bottomSheetBehavior;
+
     private DrawerLayout m_drawerLayout;
     private ActionBarDrawerToggle m_drawerToggle;
 
@@ -128,14 +136,12 @@ public class MainActivity extends AppCompatActivity
 
     private LieuxModel m_lieuxModel;
     private FiltresModel m_filtresModel;
-    private TypesModel m_typesModel;
 
     private AppDatabase m_db;
     private RequeteManager m_requeteManager;
     private SharedPreferences m_preferences;
 
     private String m_query = null;
-    private LiveData<Boolean> m_filtrertypes;
 
     // Events
     @Override
@@ -152,7 +158,6 @@ public class MainActivity extends AppCompatActivity
         // Models
         m_lieuxModel  = ViewModelProviders.of(this).get(LieuxModel.class);
         m_filtresModel = ViewModelProviders.of(this).get(FiltresModel.class);
-        m_typesModel  = ViewModelProviders.of(this).get(TypesModel.class);
 
         // Initialisation gestion des requetes
         m_requeteManager = RequeteManager.getInstance(this.getApplicationContext());
@@ -161,6 +166,7 @@ public class MainActivity extends AppCompatActivity
         // Ajout du layout
         setContentView(R.layout.activity_main);
         setupDrawer();
+        setupBottomSheet();
 
         // Préparation des maj location
         setupLocation();
@@ -404,6 +410,7 @@ public class MainActivity extends AppCompatActivity
 
                     // Chargement ...
                     m_resultatFragment.setRefreshing(true);
+                    m_bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
 
                     if (m_status == Status.RECHERCHE && m_query != null) {
                         getLieux(location, m_rayonFragment.get_rayon(), m_query);
@@ -516,8 +523,6 @@ public class MainActivity extends AppCompatActivity
         }
 
         m_resultatFragment.setRefreshMenuItem(R.id.nav_refresh);
-        m_resultatFragment.ajouterLieux(m_filtresModel.getlieux());
-        m_resultatFragment.setLiveData(m_typesModel.getTypes());
 
         // Rayon
         if (m_rayonFragment == null) {
@@ -528,21 +533,6 @@ public class MainActivity extends AppCompatActivity
         if (m_filtresFragment == null) {
             m_filtresFragment = new FiltresFragment();
         }
-
-        // Communication Filtres -> Resultat
-        m_filtrertypes = m_filtresModel.getFiltreTypes();
-        m_filtrertypes.observe(this, new Observer<Boolean>() {
-            @Override
-            public void onChanged(@Nullable Boolean actif) {
-                if (actif != null) {
-                    m_resultatFragment.setFiltrer(actif);
-
-                    // Rafraichissement
-                    m_resultatFragment.vider();
-                    m_resultatFragment.ajouterLieux(m_filtresModel.getlieux());
-                }
-            }
-        });
     }
     private void gestionService() {
         boolean start = m_preferences.getBoolean(getString(R.string.pref_nombre), false);
@@ -710,6 +700,12 @@ public class MainActivity extends AppCompatActivity
             @Override
             public boolean onMenuItemActionExpand(MenuItem item) {
                 circleReveal(R.id.search_bar, SEARCH_ICON_POS, true);
+
+                // Affichage du clavier
+                m_searchView.requestFocus();
+                InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                imm.toggleSoftInput(0, InputMethodManager.HIDE_NOT_ALWAYS);
+
                 return true;
             }
 
@@ -717,6 +713,7 @@ public class MainActivity extends AppCompatActivity
             public boolean onMenuItemActionCollapse(MenuItem item) {
                 circleReveal(R.id.search_bar, SEARCH_ICON_POS, false);
                 setupAccueil();
+
                 return false;
             }
         });
@@ -779,6 +776,20 @@ public class MainActivity extends AppCompatActivity
             setupRecherche();
             m_searchView.setQuery(query, true);
         }
+    }
+    private void setupBottomSheet() {
+        // Récupération des éléments
+        m_bottomSheet = findViewById(R.id.nested_bottom_view);
+        m_bottomSheetBehavior = BottomSheetBehavior.from(m_bottomSheet);
+
+        // Gestion du bouton
+        m_buttonRefresh = findViewById(R.id.button_refresh);
+        m_buttonRefresh.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                rafraichir();
+            }
+        });
     }
     private void setupLocation() {
         m_locationClient = LocationServices.getFusedLocationProviderClient(this);
@@ -1008,9 +1019,7 @@ public class MainActivity extends AppCompatActivity
                         m_resultatFragment.decrementer();
 
                         if (lieu != null) {
-                            m_resultatFragment.ajouterLieu(lieu);
                             m_filtresModel.ajouterLieu(lieu);
-                            Log.d(TAG, "Cool !");
 
                             liveData.removeObserver(this);
                         }

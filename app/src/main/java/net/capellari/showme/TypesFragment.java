@@ -1,14 +1,14 @@
 package net.capellari.showme;
 
-import android.app.Activity;
 import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
-import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.DividerItemDecoration;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
 import android.view.LayoutInflater;
@@ -16,12 +16,11 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import net.capellari.showme.db.ParamDatabase;
 import net.capellari.showme.db.Type;
+import net.capellari.showme.db.TypeBase;
 import net.capellari.showme.db.TypeParam;
 import net.capellari.showme.net.TypesModel;
 
-import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -59,6 +58,14 @@ public class TypesFragment extends Fragment {
         m_liste = view.findViewById(R.id.liste);
         m_liste.setAdapter(m_adapter);
 
+        // dividers
+        LinearLayoutManager layoutManager = (LinearLayoutManager) m_liste.getLayoutManager();
+        m_liste.addItemDecoration(new DividerItemDecoration(
+                m_liste.getContext(),
+                layoutManager.getOrientation()
+        ));
+
+        // touch helper
         ItemTouchHelper.Callback callback = new TypesTouchCallback(m_adapter);
         ItemTouchHelper touchHelper = new ItemTouchHelper(callback);
         touchHelper.attachToRecyclerView(m_liste);
@@ -80,21 +87,22 @@ public class TypesFragment extends Fragment {
     // Classes
     class TypeViewHolder extends RecyclerView.ViewHolder {
         // Attributs
-        private TextView nom;
+        private TextView m_nom;
 
         // Constructeur
         public TypeViewHolder(View itemView) {
             super(itemView);
 
             // Récupération des vues
-            nom = itemView.findViewById(R.id.nom);
+            m_nom = itemView.findViewById(R.id.nom);
+            m_nom.setSelected(true);
         }
 
         // Méthodes
         public void setType(TypeParam type) {
-            nom.setText(type.nom);
-            nom.setCompoundDrawablesRelativeWithIntrinsicBounds(
-                    Type.getIconRessource((int) type._id), // Mêmes identifiants !
+            m_nom.setText(type.nom);
+            m_nom.setCompoundDrawablesRelativeWithIntrinsicBounds(
+                    TypeBase.getIconRessource((int) type._id),
                     0, 0, 0
             );
         }
