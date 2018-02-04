@@ -12,7 +12,10 @@ import android.support.v4.app.Fragment;
 import android.support.v7.util.DiffUtil;
 import android.support.v7.widget.RecyclerView;
 import android.util.AttributeSet;
+import android.view.ContextMenu;
 import android.view.LayoutInflater;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
@@ -81,11 +84,9 @@ public class SelectTypeFragment extends Fragment {
         // Gestion des listes
         m_liste = view.findViewById(R.id.liste);
         m_liste.setAdapter(m_typeAdapter);
-        m_liste.setHasFixedSize(false);
 
         m_listeIcone = view.findViewById(R.id.liste_icones);
         m_listeIcone.setAdapter(m_iconeAdapter);
-        m_listeIcone.setHasFixedSize(false);
 
         // Récupération des types
         m_liveTypes = m_filtresModel.recupTypes();
@@ -126,10 +127,48 @@ public class SelectTypeFragment extends Fragment {
         m_liveTypes.removeObservers(this);
     }
 
+    // Menu contextuel
+    @Override
+    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
+        super.onCreateContextMenu(menu, v, menuInfo);
+
+        // Inflate menu
+        MenuInflater inflater = getActivity().getMenuInflater();
+        inflater.inflate(R.menu.context_selecttype, menu);
+
+        // header
+        menu.setHeaderIcon(R.drawable.ic_filter_list_black_24dp);
+        menu.setHeaderTitle(R.string.menu_select_title);
+    }
+
+    @Override
+    public boolean onContextItemSelected(MenuItem item) {
+        // Click !
+        boolean select = true;
+
+        switch (item.getItemId()) {
+            case R.id.menu_deselect:
+                select = false;
+
+            case R.id.menu_select:
+                for (TypeBase type : m_types) {
+                    if (select) {
+                        selectType(type);
+                    } else {
+                        unSelectType(type);
+                    }
+                }
+
+                return true;
+        }
+
+        return super.onContextItemSelected(item);
+    }
+
     // Méthodes
     public void setTypes(List<TypeBase> types) {
         // Calcul et application des différences
-        DiffUtil.DiffResult result = DiffUtil.calculateDiff(new DiffType(m_types, types), false);
+        DiffUtil.DiffResult result = DiffUtil.calculateDiff(new DiffType<>(m_types, types), false);
         m_types.clear();
         m_types.addAll(types);
 
@@ -179,17 +218,36 @@ public class SelectTypeFragment extends Fragment {
 
     // ViewHolders
     private abstract class AbstractViewHolder extends RecyclerView.ViewHolder {
+        // Attributs
+        protected TypeBase m_type;
+
         // Constructeur
         public AbstractViewHolder(View itemView) {
             super(itemView);
         }
 
-        // Méthode
+        // Méthodes
         public abstract void setType(TypeBase type);
+        protected void setupView(final View view) {
+            // Click !
+            view.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    // Gardiens
+                    if (m_type == null) return;
+                    if (!m_actif) return;
+
+                    // Toggle !
+                    if (view.isSelected()) {
+                        unSelectType(m_type);
+                    } else {
+                        selectType(m_type);
+                    }
+                }
+            });
+        }
     }
     private class TypeViewHolder extends AbstractViewHolder {
-        // Attributs
-        private TypeBase m_type;
         private TextView m_nom;
 
         // Constructeur
@@ -198,21 +256,9 @@ public class SelectTypeFragment extends Fragment {
 
             // Récupération des vues
             m_nom = itemView.findViewById(R.id.nom);
-            m_nom.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    // Gardiens
-                    if (m_type == null) return;
-                    if (!m_actif) return;
+            setupView(m_nom);
 
-                    // Toggle !
-                    if (m_nom.isSelected()) {
-                        unSelectType(m_type);
-                    } else {
-                        selectType(m_type);
-                    }
-                }
-            });
+            if (m_actif) registerForContextMenu(m_nom);
         }
 
         // Méthodes
@@ -231,7 +277,6 @@ public class SelectTypeFragment extends Fragment {
     }
     private class IconeViewHolder extends AbstractViewHolder {
         // Attributs
-        private TypeBase m_type;
         private ImageView m_icone;
 
         // Constructeur
@@ -240,21 +285,7 @@ public class SelectTypeFragment extends Fragment {
 
             // Récupération des vues
             m_icone = itemView.findViewById(R.id.icone);
-            m_icone.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    // Gardiens
-                    if (m_type == null) return;
-                    if (!m_actif) return;
-
-                    // Toggle !
-                    if (m_icone.isSelected()) {
-                        unSelectType(m_type);
-                    } else {
-                        selectType(m_type);
-                    }
-                }
-            });
+            setupView(m_icone);
         }
 
         // Méthodes

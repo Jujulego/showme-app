@@ -12,12 +12,12 @@ import java.util.List;
  * Calcul des différences entre 2 listes de types
  */
 
-public class DiffType<T extends TypeBase> extends DiffUtil.Callback {// Attributs
-    private List<T> m_anc;
-    private List<T> m_nouv;
+public class DiffType<T1 extends TypeBase,T2 extends TypeBase> extends DiffUtil.Callback {// Attributs
+    private List<T1> m_anc;
+    private List<T2> m_nouv;
 
     // Constructeur
-    public DiffType(List<T> anc, List<T> nouv) {
+    public DiffType(List<T1> anc, List<T2> nouv) {
         m_anc  = anc;
         m_nouv = nouv;
     }

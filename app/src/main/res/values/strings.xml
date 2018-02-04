@@ -48,6 +48,11 @@
     <!-- FiltresFragment -->
     <string name="filtrer_types">Filtrer par catégories</string>
 
+    <!-- SelectType -->
+    <string name="menu_select_title">Sélection</string>
+    <string name="menu_select">Tout sélectionner</string>
+    <string name="menu_deselect">Tout désélectionner</string>
+
     <!-- Recherches -->
     <!-- Champ de texte -->
     <string name="champ_hint">Quoi ?</string>
@@ -104,6 +109,7 @@
     <string name="pref_dialog">Confirmation</string>
     <string name="pref_dialog_internet">Désactiver internet empêche la mise à jour des données locales, le résultat des recherches sera donc incomplet, et les données seront peut-être invalides.</string>
 
+    <!-- Bonus ! -->
     <string name="large_text">
         "Material is the metaphor.\n\n"
 
