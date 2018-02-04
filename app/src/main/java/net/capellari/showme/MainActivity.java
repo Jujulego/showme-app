@@ -43,7 +43,6 @@ import android.view.View;
 import android.view.ViewAnimationUtils;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.Button;
 import android.widget.ImageView;
 
 import com.android.volley.Response;
@@ -65,10 +64,9 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import net.capellari.showme.db.AppDatabase;
 import net.capellari.showme.db.Lieu;
 import net.capellari.showme.db.Type;
-import net.capellari.showme.net.FiltresModel;
-import net.capellari.showme.net.LieuxModel;
-import net.capellari.showme.net.RequeteManager;
-import net.capellari.showme.net.TypesModel;
+import net.capellari.showme.data.FiltresModel;
+import net.capellari.showme.data.LieuxModel;
+import net.capellari.showme.data.RequeteManager;
 
 import org.json.JSONArray;
 import org.json.JSONException;

@@ -1,4 +1,4 @@
-package net.capellari.showme.net;
+package net.capellari.showme.data;
 
 import android.app.Application;
 import android.arch.lifecycle.AndroidViewModel;
@@ -8,7 +8,6 @@ import android.util.LongSparseArray;
 
 import net.capellari.showme.db.AppDatabase;
 import net.capellari.showme.db.Lieu;
-import net.capellari.showme.db.Type;
 import net.capellari.showme.db.TypeBase;
 
 import java.util.List;

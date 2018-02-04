@@ -46,13 +46,13 @@ public class Type extends TypeBase {
     public interface TypeDAO {
         // Accès
         @Query("select * from Type order by nom")
-        LiveData<List<Type>> recup();
+        List<Type> recup();
+
+        @Query("select * from Type order by nom")
+        LiveData<List<Type>> recupLive();
 
         @Query("select * from Type where _id == :id")
         Type recup(long id);
-
-        @Query("select Type._id,Type.nom,Type.pluriel,count(distinct TypeLieu.lieu_id) as nb_lieux from TypeLieu join Type on type_id = Type._id where lieu_id in (:lieux) group by Type._id order by Type.nom")
-        LiveData<TypeNb[]> recupTypes(List<Long> lieux);
 
         // Edition
         @Insert void insert(Type... types);

@@ -5,7 +5,6 @@ import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
 import android.location.Location;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -15,7 +14,6 @@ import android.support.v7.util.DiffUtil;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -23,10 +21,9 @@ import android.view.ViewGroup;
 import android.widget.RatingBar;
 import android.widget.TextView;
 
-import net.capellari.showme.db.AppDatabase;
 import net.capellari.showme.db.Lieu;
-import net.capellari.showme.db.TypeParam;
-import net.capellari.showme.net.FiltresModel;
+import net.capellari.showme.data.DiffLieu;
+import net.capellari.showme.data.FiltresModel;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -261,7 +258,7 @@ public class ResultatFragment extends Fragment {
 
         public void setLieux(List<Lieu> lieux) {
             // Calcul de la différence
-            DiffUtil.DiffResult result = DiffUtil.calculateDiff(new DiffCallback(m_lieux, lieux));
+            DiffUtil.DiffResult result = DiffUtil.calculateDiff(new DiffLieu(m_lieux, lieux));
             m_lieux.clear();
             m_lieux.addAll(lieux);
 
@@ -309,40 +306,6 @@ public class ResultatFragment extends Fragment {
             } else {
                 return 1;
             }
-        }
-    }
-
-    // DiffUtils.Callback
-    private class DiffCallback extends DiffUtil.Callback {
-        // Attributs
-        private List<Lieu> m_anc;
-        private List<Lieu> m_nouv;
-
-        // Constructeur
-        public DiffCallback(List<Lieu> anc, List<Lieu> nouv) {
-            m_anc  = anc;
-            m_nouv = nouv;
-        }
-
-        // Méthodes
-        @Override
-        public int getOldListSize() {
-            return m_anc.size();
-        }
-
-        @Override
-        public int getNewListSize() {
-            return m_nouv.size();
-        }
-
-        @Override
-        public boolean areItemsTheSame(int oldItemPosition, int newItemPosition) {
-            return m_anc.get(oldItemPosition)._id == m_nouv.get(newItemPosition)._id;
-        }
-
-        @Override
-        public boolean areContentsTheSame(int oldItemPosition, int newItemPosition) {
-            return m_anc.get(oldItemPosition).equals(m_nouv.get(newItemPosition));
         }
     }
 }

@@ -1,4 +1,4 @@
-package net.capellari.showme.net;
+package net.capellari.showme.data;
 
 import android.content.Context;
 import android.graphics.Bitmap;

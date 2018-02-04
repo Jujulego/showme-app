@@ -36,12 +36,10 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnSuccessListener;
 
 import net.capellari.showme.db.Lieu;
-import net.capellari.showme.db.Type;
 import net.capellari.showme.db.TypeBase;
-import net.capellari.showme.net.LieuxModel;
-import net.capellari.showme.net.RequeteManager;
+import net.capellari.showme.data.LieuxModel;
+import net.capellari.showme.data.RequeteManager;
 
-import java.util.Collection;
 import java.util.List;
 
 public class LieuActivity extends AppCompatActivity implements OnMapReadyCallback {

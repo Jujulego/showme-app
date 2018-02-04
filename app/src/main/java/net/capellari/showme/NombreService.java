@@ -27,7 +27,7 @@ import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
 
-import net.capellari.showme.net.RequeteManager;
+import net.capellari.showme.data.RequeteManager;
 
 import org.json.JSONArray;
 

@@ -44,7 +44,7 @@ public class DBTests {
 
         m_typeDAO.insert(type);
 
-        //List<Type> types = m_typeDAO.recup();
+        //List<Type> types = m_typeDAO.recupLive();
         //assertThat(types.get(0).nom, equalTo(type.nom));
     }
 

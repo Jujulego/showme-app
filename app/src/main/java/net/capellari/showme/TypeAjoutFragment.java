@@ -7,26 +7,23 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v7.util.DiffUtil;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageButton;
 import android.widget.TextView;
 
-import net.capellari.showme.db.AppDatabase;
 import net.capellari.showme.db.Type;
 import net.capellari.showme.db.TypeBase;
-import net.capellari.showme.db.TypeParam;
-import net.capellari.showme.net.TypesModel;
+import net.capellari.showme.data.DiffType;
+import net.capellari.showme.data.TypesModel;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.function.Predicate;
 
 /**
  * Created by julien on 27/01/18.
@@ -42,16 +39,12 @@ public class TypeAjoutFragment extends Fragment {
     private TypesAdapter m_adapter;
     private RecyclerView m_liste;
 
-    private AppDatabase m_db;
     private TypesModel m_typesmodel;
 
     // Events
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        // Base de données
-        m_db = AppDatabase.getInstance(getContext());
 
         // Récupération du model
         m_typesmodel = ViewModelProviders.of(getActivity()).get(TypesModel.class);
@@ -63,8 +56,7 @@ public class TypeAjoutFragment extends Fragment {
 
         // Préparation adapter
         if (m_adapter == null) m_adapter = new TypesAdapter();
-        m_adapter.setLiveData(m_db.getTypeDAO().recup());
-        m_adapter.setParamLiveData(m_typesmodel.getTypes());
+        m_adapter.setLiveData(m_typesmodel.getTypesNonSelect());
 
         // Gestion de la liste
         m_liste = view.findViewById(R.id.liste);
@@ -127,14 +119,8 @@ public class TypeAjoutFragment extends Fragment {
     }
     class TypesAdapter extends RecyclerView.Adapter<TypeViewHolder> {
         // Attributs
-        private LiveData<List<Type>> m_livedata;
-        private LiveData<List<TypeParam>> m_param_livedata;
-
-        private List<Type> m_types       = new LinkedList<>();
-        private List<TypeParam> m_params = new LinkedList<>();
-
-        // Constructeur
-        public TypesAdapter() {}
+        private LiveData<List<Type>> m_live_types;
+        private List<Type> m_types = new LinkedList<>();
 
         // Events
         @Override
@@ -154,49 +140,19 @@ public class TypeAjoutFragment extends Fragment {
         }
 
         public void setLiveData(LiveData<List<Type>> livedata) {
-            if (m_livedata != null) m_livedata.removeObservers(TypeAjoutFragment.this);
+            if (m_live_types != null) m_live_types.removeObservers(TypeAjoutFragment.this);
 
-            m_livedata = livedata;
-            m_livedata.observe(TypeAjoutFragment.this, new Observer<List<Type>>() {
+            m_live_types = livedata;
+            m_live_types.observe(TypeAjoutFragment.this, new Observer<List<Type>>() {
                 @Override
                 public void onChanged(@Nullable List<Type> types) {
-                    m_types = types;
-                    notifyDataSetChanged();
+                    DiffUtil.DiffResult result = DiffUtil.calculateDiff(new DiffType<>(m_types, types));
+                    m_types.clear();
+                    m_types.addAll(types);
 
-                    filtrage();
+                    result.dispatchUpdatesTo(TypesAdapter.this);
                 }
             });
-        }
-
-        public void setParamLiveData(LiveData<List<TypeParam>> livedata) {
-            if (m_param_livedata != null) m_param_livedata.removeObservers(TypeAjoutFragment.this);
-
-            m_param_livedata = livedata;
-            m_param_livedata.observe(TypeAjoutFragment.this, new Observer<List<TypeParam>>() {
-                @Override
-                public void onChanged(@Nullable List<TypeParam> types) {
-                    m_params = types;
-                    filtrage();
-                }
-            });
-        }
-
-        private void filtrage() {
-            // filtrage des types !
-            for (TypeParam param : m_params) {
-
-                // Parcous des types
-                for (int i = 0; i < m_types.size(); ++i) {
-                    Type t = m_types.get(i);
-
-                    if (t._id == param._id) {
-                        m_types.remove(i);
-                        notifyItemRemoved(i);
-
-                        break;
-                    }
-                }
-            }
         }
     }
 }

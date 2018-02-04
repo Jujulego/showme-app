@@ -1,4 +1,4 @@
-package net.capellari.showme.net;
+package net.capellari.showme.data;
 
 import android.annotation.SuppressLint;
 import android.arch.lifecycle.LiveData;

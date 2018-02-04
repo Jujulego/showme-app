@@ -1,18 +1,15 @@
-package net.capellari.showme.net;
+package net.capellari.showme.data;
 
 import android.app.Application;
 import android.arch.lifecycle.AndroidViewModel;
 import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.MutableLiveData;
 import android.os.AsyncTask;
-import android.support.design.widget.TabLayout;
-import android.util.Log;
 import android.util.LongSparseArray;
 
 import net.capellari.showme.db.AppDatabase;
 import net.capellari.showme.db.Lieu;
 import net.capellari.showme.db.ParamDatabase;
-import net.capellari.showme.db.Type;
 import net.capellari.showme.db.TypeBase;
 import net.capellari.showme.db.TypeParam;
 

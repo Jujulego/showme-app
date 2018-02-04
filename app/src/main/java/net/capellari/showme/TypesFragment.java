@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v7.util.DiffUtil;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -16,10 +17,10 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import net.capellari.showme.db.Type;
+import net.capellari.showme.data.DiffType;
 import net.capellari.showme.db.TypeBase;
 import net.capellari.showme.db.TypeParam;
-import net.capellari.showme.net.TypesModel;
+import net.capellari.showme.data.TypesModel;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -52,7 +53,7 @@ public class TypesFragment extends Fragment {
 
         // Préparation adapter
         if (m_adapter == null) m_adapter = new TypesAdapter();
-        m_adapter.setLiveData(m_typesmodel.getTypes());
+        m_adapter.setLiveData(m_typesmodel.getParams());
 
         // Gestion de la liste
         m_liste = view.findViewById(R.id.liste);
@@ -144,8 +145,11 @@ public class TypesFragment extends Fragment {
             m_livedata.observe(TypesFragment.this, new Observer<List<TypeParam>>() {
                 @Override
                 public void onChanged(@Nullable List<TypeParam> types) {
-                    m_types = types;
-                    notifyDataSetChanged();
+                    DiffUtil.DiffResult result = DiffUtil.calculateDiff(new DiffType<>(m_types, types));
+                    m_types.clear();
+                    m_types.addAll(types);
+
+                    result.dispatchUpdatesTo(TypesAdapter.this);
                 }
             });
         }

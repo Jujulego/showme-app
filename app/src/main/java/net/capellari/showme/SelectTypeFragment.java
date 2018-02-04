@@ -12,8 +12,6 @@ import android.support.v4.app.Fragment;
 import android.support.v7.util.DiffUtil;
 import android.support.v7.widget.RecyclerView;
 import android.util.AttributeSet;
-import android.util.Log;
-import android.util.LongSparseArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,13 +19,11 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import net.capellari.showme.db.Type;
 import net.capellari.showme.db.TypeBase;
-import net.capellari.showme.net.FiltresModel;
+import net.capellari.showme.data.DiffType;
+import net.capellari.showme.data.FiltresModel;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -133,7 +129,7 @@ public class SelectTypeFragment extends Fragment {
     // Méthodes
     public void setTypes(List<TypeBase> types) {
         // Calcul et application des différences
-        DiffUtil.DiffResult result = DiffUtil.calculateDiff(new DiffCallback(m_types, types), false);
+        DiffUtil.DiffResult result = DiffUtil.calculateDiff(new DiffType(m_types, types), false);
         m_types.clear();
         m_types.addAll(types);
 
@@ -298,40 +294,6 @@ public class SelectTypeFragment extends Fragment {
         public IconeViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
             View view = getLayoutInflater().inflate(R.layout.item_typeicone, parent, false);
             return new IconeViewHolder(view);
-        }
-    }
-
-    // DiffUtil.Callback
-    private class DiffCallback extends DiffUtil.Callback {
-        // Attributs
-        private List<TypeBase> m_anc;
-        private List<TypeBase> m_nouv;
-
-        // Constructeur
-        public DiffCallback(List<TypeBase> anc, List<TypeBase> nouv) {
-            m_anc  = anc;
-            m_nouv = nouv;
-        }
-
-        // Méthodes
-        @Override
-        public int getOldListSize() {
-            return m_anc.size();
-        }
-
-        @Override
-        public int getNewListSize() {
-            return m_nouv.size();
-        }
-
-        @Override
-        public boolean areItemsTheSame(int oldItemPosition, int newItemPosition) {
-            return m_anc.get(oldItemPosition)._id == m_nouv.get(newItemPosition)._id;
-        }
-
-        @Override
-        public boolean areContentsTheSame(int oldItemPosition, int newItemPosition) {
-            return m_anc.get(oldItemPosition).equals(m_nouv.get(newItemPosition));
         }
     }
 }
