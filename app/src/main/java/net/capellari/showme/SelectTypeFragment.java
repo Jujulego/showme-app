@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v7.util.DiffUtil;
 import android.support.v7.widget.RecyclerView;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -20,9 +21,11 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import net.capellari.showme.db.Type;
 import net.capellari.showme.db.TypeBase;
 import net.capellari.showme.net.FiltresModel;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -50,7 +53,7 @@ public class SelectTypeFragment extends Fragment {
 
     private FiltresModel m_filtresModel;
     private LiveData<List<TypeBase>> m_liveTypes;
-    protected ArrayList<TypeBase> m_types = new ArrayList<>();
+    protected List<TypeBase> m_types = new ArrayList<>();
 
     // Events
     @Override
@@ -59,17 +62,6 @@ public class SelectTypeFragment extends Fragment {
 
         // Récupération du model
         m_filtresModel = ViewModelProviders.of(getActivity()).get(FiltresModel.class);
-
-        // Récupération des types
-        m_liveTypes = m_filtresModel.recupTypes();
-        m_liveTypes.observe(this, new Observer<List<TypeBase>>() {
-            @Override
-            public void onChanged(@Nullable List<TypeBase> types) {
-                // Maj données
-                vider();
-                ajouterTypes(types);
-            }
-        });
     }
 
     @Override
@@ -93,9 +85,21 @@ public class SelectTypeFragment extends Fragment {
         // Gestion des listes
         m_liste = view.findViewById(R.id.liste);
         m_liste.setAdapter(m_typeAdapter);
+        m_liste.setHasFixedSize(false);
 
         m_listeIcone = view.findViewById(R.id.liste_icones);
         m_listeIcone.setAdapter(m_iconeAdapter);
+        m_listeIcone.setHasFixedSize(false);
+
+        // Récupération des types
+        m_liveTypes = m_filtresModel.recupTypes();
+        m_liveTypes.observe(this, new Observer<List<TypeBase>>() {
+            @Override
+            public void onChanged(@Nullable List<TypeBase> types) {
+                // Maj données
+                setTypes(types);
+            }
+        });
 
         // Gestion du bouton
         m_bouton = view.findViewById(R.id.bouton);
@@ -118,24 +122,24 @@ public class SelectTypeFragment extends Fragment {
         return view;
     }
 
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+
+        // Arrêt récupérations types
+        m_liveTypes.removeObservers(this);
+    }
+
     // Méthodes
-    public void ajouterTypes(Collection<TypeBase> types) {
-        // Ajout
-        int deb = m_types.size();
+    public void setTypes(List<TypeBase> types) {
+        // Calcul et application des différences
+        DiffUtil.DiffResult result = DiffUtil.calculateDiff(new DiffCallback(m_types, types), false);
+        m_types.clear();
         m_types.addAll(types);
 
         // Maj UI
-        m_typeAdapter.notifyItemRangeInserted(deb, types.size());
-        m_iconeAdapter.notifyItemRangeInserted(deb, types.size());
-    }
-    public void vider() {
-        // Vidage
-        int taille = m_types.size();
-        m_types.clear();
-
-        // Maj UI
-        m_typeAdapter.notifyItemRangeRemoved(0, taille);
-        m_iconeAdapter.notifyItemRangeRemoved(0, taille);
+        result.dispatchUpdatesTo(m_typeAdapter);
+        result.dispatchUpdatesTo(m_iconeAdapter);
     }
 
     public void setListener(OnSelectTypeListener listener) {
@@ -143,7 +147,6 @@ public class SelectTypeFragment extends Fragment {
     }
 
     private void selectType(TypeBase type) {
-        Log.d(TAG, "  select " + type.toString());
         // chg de status
         m_filtresModel.setFiltreType(type._id, true);
 
@@ -158,7 +161,6 @@ public class SelectTypeFragment extends Fragment {
         }
     }
     private void unSelectType(TypeBase type) {
-        Log.d(TAG, "unselect " + type.toString());
         // chg de status
         m_filtresModel.setFiltreType(type._id, false);
 
@@ -264,8 +266,6 @@ public class SelectTypeFragment extends Fragment {
         public void setType(TypeBase type) {
             m_type = type;
 
-            Log.d(TAG, type.toString() + " " + String.valueOf(!m_actif || m_filtresModel.getFiltreType(type._id)));
-
             // Remplissage
             m_icone.setSelected(!m_actif || m_filtresModel.getFiltreType(type._id));
             m_icone.setImageDrawable(TypeBase.getIcone(getContext(), (int) type._id));
@@ -298,6 +298,40 @@ public class SelectTypeFragment extends Fragment {
         public IconeViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
             View view = getLayoutInflater().inflate(R.layout.item_typeicone, parent, false);
             return new IconeViewHolder(view);
+        }
+    }
+
+    // DiffUtil.Callback
+    private class DiffCallback extends DiffUtil.Callback {
+        // Attributs
+        private List<TypeBase> m_anc;
+        private List<TypeBase> m_nouv;
+
+        // Constructeur
+        public DiffCallback(List<TypeBase> anc, List<TypeBase> nouv) {
+            m_anc  = anc;
+            m_nouv = nouv;
+        }
+
+        // Méthodes
+        @Override
+        public int getOldListSize() {
+            return m_anc.size();
+        }
+
+        @Override
+        public int getNewListSize() {
+            return m_nouv.size();
+        }
+
+        @Override
+        public boolean areItemsTheSame(int oldItemPosition, int newItemPosition) {
+            return m_anc.get(oldItemPosition)._id == m_nouv.get(newItemPosition)._id;
+        }
+
+        @Override
+        public boolean areContentsTheSame(int oldItemPosition, int newItemPosition) {
+            return m_anc.get(oldItemPosition).equals(m_nouv.get(newItemPosition));
         }
     }
 }

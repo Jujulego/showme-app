@@ -167,8 +167,7 @@ public class LieuActivity extends AppCompatActivity implements OnMapReadyCallbac
                         public void onChanged(@Nullable List<TypeBase> types) {
                             if (types == null) return;
 
-                            m_selectTypeFragment.vider();
-                            m_selectTypeFragment.ajouterTypes(types);
+                            m_selectTypeFragment.setTypes(types);
                         }
                     });
 

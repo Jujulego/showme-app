@@ -108,7 +108,6 @@ public class MainActivity extends AppCompatActivity
     private SearchView m_searchView;
     private MenuItem m_searchMenuItem;
 
-    private Button m_buttonRefresh;
     private NestedScrollView m_bottomSheet;
     private BottomSheetBehavior m_bottomSheetBehavior;
 
@@ -518,8 +517,6 @@ public class MainActivity extends AppCompatActivity
         // Résultat
         if (m_resultatFragment == null) {
             m_resultatFragment = new ResultatFragment();
-        } else {
-            m_resultatFragment.vider();
         }
 
         m_resultatFragment.setRefreshMenuItem(R.id.nav_refresh);
@@ -781,15 +778,6 @@ public class MainActivity extends AppCompatActivity
         // Récupération des éléments
         m_bottomSheet = findViewById(R.id.nested_bottom_view);
         m_bottomSheetBehavior = BottomSheetBehavior.from(m_bottomSheet);
-
-        // Gestion du bouton
-        m_buttonRefresh = findViewById(R.id.button_refresh);
-        m_buttonRefresh.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                rafraichir();
-            }
-        });
     }
     private void setupLocation() {
         m_locationClient = LocationServices.getFusedLocationProviderClient(this);
@@ -978,7 +966,6 @@ public class MainActivity extends AppCompatActivity
         @Override
         public void onResponse(JSONArray reponse) {
             // Vidage
-            m_resultatFragment.vider();
             m_filtresModel.vider();
 
             // Cas de la réponse vide :

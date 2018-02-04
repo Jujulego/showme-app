@@ -89,29 +89,14 @@
                 app:behavior_peekHeight="@dimen/bottom_sheet_peek_height"
                 app:layout_behavior="@string/bottom_sheet_behavior">
 
-                <LinearLayout
+                <!-- Fragments -->
+                <LinearLayout android:id="@+id/bottom_sheet"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical">
+                    android:orientation="vertical"
 
-                    <!-- Fragments -->
-                    <LinearLayout android:id="@+id/bottom_sheet"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-
-                        android:divider="@drawable/divider"
-                        android:showDividers="middle" />
-
-                    <!-- Bouton refresh -->
-                    <Button android:id="@+id/button_refresh"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:padding="@dimen/text_margin"
-
-                        android:text="@string/nav_refresh"
-                        android:drawableStart="@drawable/ic_refresh_black_24dp" />
-                </LinearLayout>
+                    android:divider="@drawable/divider"
+                    android:showDividers="middle" />
 
             </android.support.v4.widget.NestedScrollView>
         </android.support.design.widget.CoordinatorLayout>

@@ -108,6 +108,10 @@ public class FiltresModel extends AndroidViewModel {
         m_lieuxFiltres.clear();
         m_typesFiltres.clear();
 
+        // Maj UI
+        m_live_lieux.setValue(m_lieuxFiltres);
+        m_live_types.setValue(m_typesFiltres);
+
         // Arrêt des taches
         stopTaches();
     }

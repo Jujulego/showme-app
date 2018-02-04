@@ -11,9 +11,11 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v7.util.DiffUtil;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -50,11 +52,9 @@ public class ResultatFragment extends Fragment {
     private int m_refreshMenuItem;
     private OnResultatListener m_listener;
 
-    private boolean m_filtrer = true;
     private int m_compteur = 0; // inversé : mis au max puis réduit jusqu'à 0 => plein !
     private LieuAdapter m_adapter = new LieuAdapter();
 
-    private AppDatabase m_db;
     private FiltresModel m_filtresModel;
     private LiveData<List<Lieu>> m_livedata;
 
@@ -66,9 +66,6 @@ public class ResultatFragment extends Fragment {
         // Gestion du menu
         setHasOptionsMenu(true);
 
-        // Ouverture de la base
-        m_db = AppDatabase.getInstance(getContext());
-
         // Récupération du model
         m_filtresModel = ViewModelProviders.of(getActivity()).get(FiltresModel.class);
 
@@ -76,8 +73,7 @@ public class ResultatFragment extends Fragment {
         m_livedata.observe(this, new Observer<List<Lieu>>() {
             @Override
             public void onChanged(@Nullable List<Lieu> lieux) {
-                m_adapter.vider();
-                m_adapter.ajouterLieux(lieux);
+                m_adapter.setLieux(lieux);
             }
         });
     }
@@ -175,9 +171,6 @@ public class ResultatFragment extends Fragment {
     public void majDistances(Location location) {
         m_adapter.majDistances(location);
     }
-    public void vider() {
-        m_adapter.vider();
-    }
 
     // Listener
     public interface OnResultatListener {
@@ -266,33 +259,30 @@ public class ResultatFragment extends Fragment {
             return m_lieux.size();
         }
 
-        public void ajouterLieu(Lieu lieu) {
-            m_lieux.add(lieu);
-
-            notifyItemInserted(m_lieux.size() -1);
-        }
-        public void ajouterLieux(List<Lieu> lieux) {
-            int taille = m_lieux.size();
+        public void setLieux(List<Lieu> lieux) {
+            // Calcul de la différence
+            DiffUtil.DiffResult result = DiffUtil.calculateDiff(new DiffCallback(m_lieux, lieux));
+            m_lieux.clear();
             m_lieux.addAll(lieux);
 
-            notifyItemRangeInserted(taille-1, lieux.size());
+            // Maj UI
+            result.dispatchUpdatesTo(this);
         }
 
         public void majDistances(Location location) {
             m_location = location;
-            Collections.sort(m_lieux, new TriDistance(location));
-            notifyDataSetChanged();
 
-            for (LieuViewHolder holder : m_viewHolders) {
-                holder.majDistance(location);
+            // Tri
+            List<Lieu> copie = new LinkedList<>(m_lieux);
+            Collections.sort(copie, new TriDistance(location));
+
+            // Application des changements
+            setLieux(copie);
+
+            // Calcul des distances
+            for (LieuViewHolder viewHolder : m_viewHolders) {
+                viewHolder.majDistance(location);
             }
-        }
-
-        public void vider() {
-            int taille = m_lieux.size();
-            m_lieux.clear();
-
-            notifyItemRangeRemoved(0, taille);
         }
     }
 
@@ -319,6 +309,40 @@ public class ResultatFragment extends Fragment {
             } else {
                 return 1;
             }
+        }
+    }
+
+    // DiffUtils.Callback
+    private class DiffCallback extends DiffUtil.Callback {
+        // Attributs
+        private List<Lieu> m_anc;
+        private List<Lieu> m_nouv;
+
+        // Constructeur
+        public DiffCallback(List<Lieu> anc, List<Lieu> nouv) {
+            m_anc  = anc;
+            m_nouv = nouv;
+        }
+
+        // Méthodes
+        @Override
+        public int getOldListSize() {
+            return m_anc.size();
+        }
+
+        @Override
+        public int getNewListSize() {
+            return m_nouv.size();
+        }
+
+        @Override
+        public boolean areItemsTheSame(int oldItemPosition, int newItemPosition) {
+            return m_anc.get(oldItemPosition)._id == m_nouv.get(newItemPosition)._id;
+        }
+
+        @Override
+        public boolean areContentsTheSame(int oldItemPosition, int newItemPosition) {
+            return m_anc.get(oldItemPosition).equals(m_nouv.get(newItemPosition));
         }
     }
 }
