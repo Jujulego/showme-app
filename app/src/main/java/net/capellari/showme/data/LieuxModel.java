@@ -15,7 +15,7 @@ import java.util.List;
 /**
  * Created by julien on 29/01/18.
  *
- * Gestion et sauvegarde des requetes sur lieu
+ * Gestion et sauvegarde des requêtes sur lieu
  */
 public class LieuxModel extends AndroidViewModel {
     // Constantes

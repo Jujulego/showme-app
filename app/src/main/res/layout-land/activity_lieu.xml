@@ -68,11 +68,6 @@
     </android.support.design.widget.AppBarLayout>
 
     <!-- Contenu -->
-    <FrameLayout android:id="@+id/layout_carte"
-        android:layout_width="@dimen/taille_carte"
-        android:layout_height="match_parent"
-        android:layout_marginTop="?attr/actionBarSize"/>
-
     <android.support.v4.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -138,5 +133,13 @@
                 android:drawablePadding="@dimen/text_margin" />
         </LinearLayout>
     </android.support.v4.widget.NestedScrollView>
+
+    <fragment android:id="@+id/carte"
+        android:name="net.capellari.showme.CarteFragment"
+        android:layout_width="@dimen/taille_carte"
+        android:layout_height="match_parent"
+        android:layout_marginTop="?attr/actionBarSize"
+
+        tools:layout="@layout/dummy_map" />
 
 </android.support.design.widget.CoordinatorLayout>

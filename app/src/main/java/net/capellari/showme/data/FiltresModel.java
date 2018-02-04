@@ -129,7 +129,13 @@ public class FiltresModel extends AndroidViewModel {
         filtrerLieux();
     }
 
-    // traitement interne
+    // - forcer maj ui
+    public void maj_ui() {
+        m_live_lieux.setValue(m_lieuxFiltres);
+        m_live_types.setValue(m_typesFiltres);
+    }
+
+    // - traitement interne
     private void ajouterTypes(Collection<TypeBase> types) {
         boolean modif = false;
 

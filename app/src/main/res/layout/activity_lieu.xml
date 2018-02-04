@@ -146,10 +146,13 @@
         </android.support.constraint.ConstraintLayout>
     </android.support.v4.widget.NestedScrollView>
 
-    <FrameLayout android:id="@+id/layout_carte"
+    <fragment android:id="@+id/carte"
+        android:name="net.capellari.showme.CarteFragment"
         android:layout_width="match_parent"
         android:layout_height="@dimen/taille_carte"
 
-        app:layout_behavior="net.capellari.showme.SuivreAppBarBehavior" />
+        app:layout_behavior="net.capellari.showme.SuivreAppBarBehavior"
+
+        tools:layout="@layout/dummy_map" />
 
 </android.support.design.widget.CoordinatorLayout>

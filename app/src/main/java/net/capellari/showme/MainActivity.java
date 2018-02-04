@@ -1,6 +1,5 @@
 package net.capellari.showme;
 
-import android.Manifest;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.SuppressLint;
@@ -11,7 +10,6 @@ import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteConstraintException;
@@ -25,9 +23,7 @@ import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
 import android.support.design.widget.BottomSheetBehavior;
 import android.support.design.widget.NavigationView;
-import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentTransaction;
-import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v4.widget.NestedScrollView;
 import android.support.v7.app.ActionBar;
@@ -44,23 +40,15 @@ import android.view.ViewAnimationUtils;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.ImageView;
-import android.widget.SectionIndexer;
 
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonArrayRequest;
-import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.location.LocationCallback;
-import com.google.android.gms.location.LocationRequest;
-import com.google.android.gms.location.LocationResult;
-import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.tasks.OnSuccessListener;
 
 import net.capellari.showme.data.LocationObserver;
 import net.capellari.showme.db.AppDatabase;
@@ -78,8 +66,7 @@ import java.net.URLEncoder;
 import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity
-        implements OnMapReadyCallback,
-                   RayonFragment.OnRayonChangeListener,
+        implements RayonFragment.OnRayonChangeListener,
                    ResultatFragment.OnResultatListener,
                    SharedPreferences.OnSharedPreferenceChangeListener {
 
@@ -90,12 +77,10 @@ public class MainActivity extends AppCompatActivity
     private static final String STATUS = "showme.STATUS";
     private static final String TAG    = "MainActivity";
 
-    private static final String MAP_TAG      = "map";
+    private static final String CARTE_TAG    = "carte";
     private static final String RESULTAT_TAG = "resultat";
     private static final String RAYON_TAG    = "rayon";
     private static final String FILTRES_TAG  = "filtres";
-
-    private static final int RQ_PERM_LOCATION = 1;
 
     // Enumération
     enum Status {
@@ -114,14 +99,12 @@ public class MainActivity extends AppCompatActivity
     private DrawerLayout m_drawerLayout;
     private ActionBarDrawerToggle m_drawerToggle;
 
-    private boolean m_centree = false;
     private LiveData<Location> m_live_location;
     private LocationObserver m_locationObserver;
 
     private Status m_status = Status.VIDE;
-    private GoogleMap m_map;
 
-    private SupportMapFragment m_mapFragment;
+    private CarteFragment m_carteFragment;
     private ResultatFragment m_resultatFragment;
     private RayonFragment m_rayonFragment;
     private FiltresFragment m_filtresFragment;
@@ -169,10 +152,10 @@ public class MainActivity extends AppCompatActivity
             m_status = Status.valueOf(savedInstanceState.getString(STATUS));
 
             // Récupération des fragments
-            m_mapFragment      = (SupportMapFragment) getSupportFragmentManager().findFragmentByTag(MAP_TAG);
-            m_resultatFragment = (ResultatFragment)   getSupportFragmentManager().findFragmentByTag(RESULTAT_TAG);
-            m_rayonFragment    = (RayonFragment)      getSupportFragmentManager().findFragmentByTag(RAYON_TAG);
-            m_filtresFragment  = (FiltresFragment)    getSupportFragmentManager().findFragmentByTag(FILTRES_TAG);
+            m_carteFragment    = (CarteFragment)    getSupportFragmentManager().findFragmentByTag(CARTE_TAG);
+            m_resultatFragment = (ResultatFragment) getSupportFragmentManager().findFragmentByTag(RESULTAT_TAG);
+            m_rayonFragment    = (RayonFragment)    getSupportFragmentManager().findFragmentByTag(RAYON_TAG);
+            m_filtresFragment  = (FiltresFragment)  getSupportFragmentManager().findFragmentByTag(FILTRES_TAG);
         }
 
         // Complète les fragments manquants
@@ -265,23 +248,6 @@ public class MainActivity extends AppCompatActivity
 
         // Action par défaut
         return super.onOptionsItemSelected(item);
-    }
-
-    // Carte
-    @Override
-    public void onMapReady(GoogleMap googleMap) {
-        m_map = googleMap;
-        m_centree = false; // la prochaine réception centre la carte
-
-        // Paramétrage de la carte
-        m_map.setLocationSource(m_locationObserver);
-
-        try {
-            m_map.setMyLocationEnabled(true);
-
-        } catch (SecurityException err) { // N'arrive pas : sinon on atteint jamais cette ligne !
-            Log.e(TAG, "Pas cool ...", err);
-        }
     }
 
     // Rayon
@@ -461,11 +427,9 @@ public class MainActivity extends AppCompatActivity
 
     private void prepareFragments() {
         // Carte
-        if (m_mapFragment == null) {
-            m_mapFragment = new SupportMapFragment();
+        if (m_carteFragment == null) {
+            m_carteFragment = new CarteFragment();
         }
-
-        m_mapFragment.getMapAsync(this);
 
         // Résultat
         if (m_resultatFragment == null) {
@@ -509,11 +473,9 @@ public class MainActivity extends AppCompatActivity
         switch (m_status) {
             case VIDE:
                 transaction.add(R.id.layout_central, m_resultatFragment, RESULTAT_TAG);
-                transaction.add(R.id.layout_carte, m_mapFragment,        MAP_TAG);
-                transaction.add(R.id.bottom_sheet, m_rayonFragment,      RAYON_TAG);
-                transaction.add(R.id.bottom_sheet, m_filtresFragment,    FILTRES_TAG);
-
-                m_mapFragment.getMapAsync(this);
+                transaction.add(R.id.layout_carte,   m_carteFragment,    CARTE_TAG);
+                transaction.add(R.id.bottom_sheet,   m_rayonFragment,    RAYON_TAG);
+                transaction.add(R.id.bottom_sheet,   m_filtresFragment,  FILTRES_TAG);
         }
 
         transaction.commit();
@@ -535,11 +497,9 @@ public class MainActivity extends AppCompatActivity
         switch (m_status) {
             case VIDE:
                 transaction.add(R.id.layout_central, m_resultatFragment, RESULTAT_TAG);
-                transaction.add(R.id.layout_carte, m_mapFragment,        MAP_TAG);
-                transaction.add(R.id.bottom_sheet, m_rayonFragment,      RAYON_TAG);
-                transaction.add(R.id.bottom_sheet, m_filtresFragment,    FILTRES_TAG);
-
-                m_mapFragment.getMapAsync(this);
+                transaction.add(R.id.layout_carte,   m_carteFragment,    CARTE_TAG);
+                transaction.add(R.id.bottom_sheet,   m_rayonFragment,    RAYON_TAG);
+                transaction.add(R.id.bottom_sheet,   m_filtresFragment,  FILTRES_TAG);
 
                 break;
         }
@@ -743,24 +703,6 @@ public class MainActivity extends AppCompatActivity
                 public void onChanged(@Nullable Location location) {
                     // Gardien
                     if (location == null) return;
-
-                    // Centrage carte
-                    if (m_map != null) {
-                        if (m_centree) {
-                            m_map.animateCamera(CameraUpdateFactory.newLatLng(new LatLng(
-                                    location.getLatitude(), location.getLongitude()
-                            )));
-
-                        } else {
-                            CameraPosition.Builder builder = new CameraPosition.Builder();
-                            builder.target(new LatLng(
-                                    location.getLatitude(), location.getLongitude()
-                            )).zoom(15).tilt(45);
-
-                            m_centree = true;
-                            m_map.moveCamera(CameraUpdateFactory.newCameraPosition(builder.build()));
-                        }
-                    }
 
                     // Maj distances
                     if (m_resultatFragment != null) {

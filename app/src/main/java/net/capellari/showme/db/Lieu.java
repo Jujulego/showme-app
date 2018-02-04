@@ -18,6 +18,8 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
+import com.google.android.gms.maps.model.LatLng;
+
 import net.capellari.showme.R;
 
 import org.json.JSONArray;
@@ -123,12 +125,31 @@ public class Lieu {
 
         return null;
     }
+    public String getAdresse() {
+        String str = "";
+        if (adresse.numero.length() != 0) {
+            str += adresse.numero;
+        }
+        if (adresse.rue.length() != 0) {
+            if (str.length() != 0) str += " ";
+            str += adresse.rue;
+        }
+        if (adresse.codePostal.length() != 0 && adresse.ville.length() != 0) {
+            if (str.length() != 0) str += ", ";
+            str += adresse.codePostal + " " + adresse.ville;
+        }
+
+        return str;
+    }
     public Location getLocation() {
         Location location = new Location("net.capellari.showme");
         location.setLatitude(coordonnees.latitude);
         location.setLongitude(coordonnees.longitude);
 
         return location;
+    }
+    public LatLng getLatLng() {
+        return new LatLng(coordonnees.latitude, coordonnees.longitude);
     }
 
     @Override

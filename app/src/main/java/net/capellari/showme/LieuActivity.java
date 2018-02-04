@@ -1,21 +1,16 @@
 package net.capellari.showme;
 
-import android.Manifest;
-import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.CollapsingToolbarLayout;
-import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentTransaction;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.preference.PreferenceManager;
@@ -26,16 +21,14 @@ import android.widget.RatingBar;
 import android.widget.TextView;
 
 import com.android.volley.toolbox.NetworkImageView;
-import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.tasks.OnSuccessListener;
 
 import net.capellari.showme.data.LocationObserver;
 import net.capellari.showme.db.Lieu;
@@ -45,12 +38,10 @@ import net.capellari.showme.data.RequeteManager;
 
 import java.util.List;
 
-public class LieuActivity extends AppCompatActivity implements OnMapReadyCallback {
+public class LieuActivity extends AppCompatActivity implements CarteFragment.OnCarteEventListener {
     // Constantes
     public  static final String INTENT_LIEU = "lieu";
     private static final String TAG         = "LieuActivity";
-
-    private static final String MAP_TAG = "map";
 
     // Attributs
     private Lieu m_lieu;
@@ -59,14 +50,9 @@ public class LieuActivity extends AppCompatActivity implements OnMapReadyCallbac
     private RequeteManager m_requeteManager;
     private SharedPreferences m_preferences;
 
-    private GoogleMap m_map = null;
-    private LiveData<Location> m_live_location;
-    private Observer<Location> m_observer;
-    private LocationObserver m_locationObserver;
-
     private CollapsingToolbarLayout m_collapsingToolbar;
     private RatingBar m_note;
-    private SupportMapFragment m_mapFragment;
+    private CarteFragment m_carteFragment;
     private SelectTypeFragment m_selectTypeFragment;
     private TextView m_adresse;
     private TextView m_prix;
@@ -82,17 +68,39 @@ public class LieuActivity extends AppCompatActivity implements OnMapReadyCallbac
         // Ouverture des préférences
         m_preferences = PreferenceManager.getDefaultSharedPreferences(this);
 
+        // Initialisation gestion des requetes
+        m_requeteManager = RequeteManager.getInstance(this.getApplicationContext());
+
         // Inflate !
         setContentView(R.layout.activity_lieu);
+        setupViews();
+        setupFragments();
+        setupToolbar();
+
+        // Récupération du lieu
+        recupLieu();
+    }
+
+    // Carte
+    @Override
+    public void onMapReady(@NonNull GoogleMap googleMap) {
+        if (m_lieu != null) ajouterMarker();
+    }
+
+    @Override
+    public void onMarkerClick(@NonNull Lieu lieu) {
+
+    }
+
+    // Méthodes
+    private void setupViews() {
+        // Récupération des vues
         m_note      = findViewById(R.id.note);
         m_adresse   = findViewById(R.id.adresse);
         m_prix      = findViewById(R.id.prix);
         m_telephone = findViewById(R.id.telephone);
         m_siteWeb   = findViewById(R.id.site_web);
         m_image     = findViewById(R.id.image);
-
-        // Fragment
-        m_selectTypeFragment = (SelectTypeFragment) getSupportFragmentManager().findFragmentById(R.id.selecttype);
 
         // Clicks !
         m_telephone.setOnClickListener(new View.OnClickListener() {
@@ -113,26 +121,16 @@ public class LieuActivity extends AppCompatActivity implements OnMapReadyCallbac
                 startActivity(intent);
             }
         });
+    }
+    private void setupFragments() {
+        // Carte
+        m_carteFragment = (CarteFragment) getSupportFragmentManager().findFragmentById(R.id.carte);
+        m_carteFragment.setOnCarteEventListener(this);
 
-        // Récupération / Création du fragment
-        if (savedInstanceState != null) {
-            m_mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentByTag(MAP_TAG);
-        } else {
-            m_mapFragment = new SupportMapFragment();
-
-            // Ajout !
-            FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-            transaction.replace(R.id.layout_carte, m_mapFragment, MAP_TAG);
-            transaction.commit();
-        }
-
-        // Récupération de la carte
-        m_locationObserver = new LocationObserver(this, getLifecycle());
-        getLifecycle().addObserver(m_locationObserver);
-
-        m_mapFragment.getMapAsync(this);
-
-        // Toolbar
+        // Affichage des types
+        m_selectTypeFragment = (SelectTypeFragment) getSupportFragmentManager().findFragmentById(R.id.selecttype);
+    }
+    private void setupToolbar() {
         m_collapsingToolbar = findViewById(R.id.toolbar_layout);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -141,137 +139,77 @@ public class LieuActivity extends AppCompatActivity implements OnMapReadyCallbac
         if (ab != null) {
             ab.setDisplayHomeAsUpEnabled(true);
         }
+    }
 
-        // Initialisation gestion des requetes
-        m_requeteManager = RequeteManager.getInstance(this.getApplicationContext());
-
-        // Récupération du lieu
+    private void recupLieu() {
+        // Récupération du Model
         m_lieuxModel = ViewModelProviders.of(this).get(LieuxModel.class);
 
+        // Récupération de l'identifiant dans l'intent
         Intent intent = getIntent();
         long idLieu = intent.getLongExtra(INTENT_LIEU, -1);
 
         if (idLieu != -1) {
-            m_lieuxModel.recup(idLieu).observe(this, new Observer<Lieu>() {
-                @Override
-                public void onChanged(@Nullable Lieu lieu) {
-                    // Enregistrement !
-                    m_lieu = lieu;
-                    if (lieu == null) return;
-                    
-                    // Titre
-                    m_collapsingToolbar.setTitle(lieu.nom);
-
-                    // Typesb
-                    m_lieuxModel.recupTypes(lieu._id).observe(LieuActivity.this, new Observer<List<TypeBase>>() {
-                        @Override
-                        public void onChanged(@Nullable List<TypeBase> types) {
-                            if (types == null) return;
-
-                            m_selectTypeFragment.setTypes(types);
-                        }
-                    });
-
-                    // Adresse
-                    String adresse = "";
-                    if (m_lieu.adresse.numero.length() != 0) {
-                        adresse += m_lieu.adresse.numero;
-                    }
-                    if (m_lieu.adresse.rue.length() != 0) {
-                        if (adresse.length() != 0) adresse += " ";
-                        adresse += m_lieu.adresse.rue;
-                    }
-                    if (m_lieu.adresse.codePostal.length() != 0 && m_lieu.adresse.ville.length() != 0) {
-                        if (adresse.length() != 0) adresse += ", ";
-                        adresse += m_lieu.adresse.codePostal + " " + m_lieu.adresse.ville;
-                    }
-                    m_adresse.setText(adresse);
-                    m_adresse.setEnabled(true);
-
-                    // Marker
-                    if (m_map != null) setPlace();
-
-                    // Infos
-                    if (lieu.note != null) {
-                        m_note.setRating(lieu.note.floatValue());
-                        m_note.setVisibility(View.VISIBLE);
-                    }
-                    if (lieu.prix != null) {
-                        m_prix.setText(lieu.getPrix());
-                        m_prix.setEnabled(true);
-                    }
-                    if (lieu.telephone != null) {
-                        m_telephone.setText(lieu.telephone);
-                        m_telephone.setEnabled(true);
-                    }
-                    if (lieu.site != null) {
-                        m_siteWeb.setText(lieu.site.getHost());
-                        m_siteWeb.setEnabled(true);
-                    }
-
-                    // Image
-                    if (lieu.photo != null && m_preferences.getBoolean(getString(R.string.pref_internet), true)) {
-                        m_image.setImageUrl(lieu.photo.toString(), m_requeteManager.getImageLoader());
-                    }
-                }
-            });
+            m_lieuxModel.recup(idLieu).observe(this, new LieuObs());
         }
     }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        m_locationObserver.onRequestPermissionsResult(requestCode, permissions, grantResults);
+    private void ajouterMarker() {
+        Marker marker = m_carteFragment.ajouterLieu(m_lieu);
+        if (marker != null) marker.showInfoWindow();
     }
 
-    @Override
-    public void onMapReady(GoogleMap googleMap) {
-        m_map = googleMap;
+    // Observer
+    private class LieuObs implements Observer<Lieu> {
+        @Override
+        public void onChanged(@Nullable Lieu lieu) {
+            // Gardien
+            if (lieu == null) return;
 
-        // Paramétrage
-        m_map.setLocationSource(m_locationObserver);
-        if (m_lieu != null) setPlace();
-    }
+            // Enregistrement !
+            m_lieu = lieu;
 
-    // Méthodes
-    private void setPlace() {
-        // Y'a une carte ?
-        if (m_map == null) return;
+            // Marqueur
+            ajouterMarker();
 
-        // Centrage !
-        m_observer = new Observer<Location>() {
-            @Override
-            public void onChanged(@Nullable Location location) {
-                if (location == null) return;
+            // Titre
+            m_collapsingToolbar.setTitle(lieu.nom);
 
-                // Centrage
-                CameraPosition.Builder builder = new CameraPosition.Builder();
-                builder.target(new LatLng(
-                        location.getLatitude(), location.getLongitude()
-                )).zoom(15).tilt(45);
+            // Types
+            m_lieuxModel.recupTypes(lieu._id).observe(LieuActivity.this, new Observer<List<TypeBase>>() {
+                @Override
+                public void onChanged(@Nullable List<TypeBase> types) {
+                    if (types == null) return;
 
-                m_map.moveCamera(CameraUpdateFactory.newCameraPosition(builder.build()));
-
-                // Marqueur
-                m_map.addMarker(new MarkerOptions()
-                        .position(new LatLng(m_lieu.coordonnees.latitude, m_lieu.coordonnees.longitude))
-                        .title(m_lieu.nom)
-                ).showInfoWindow();
-
-                // Location
-                try {
-                    m_map.setMyLocationEnabled(true);
-
-                } catch (SecurityException err) { // N'arrive pas : sinon on atteint jamais cette ligne !
-                    Log.e(TAG, "Pas cool ...", err);
+                    m_selectTypeFragment.setTypes(types);
                 }
+            });
 
-                // Suppression observer
-                m_live_location.removeObserver(m_observer);
+            // Adresse
+            m_adresse.setText(lieu.getAdresse());
+            m_adresse.setEnabled(true);
+
+            // Infos
+            if (lieu.note != null) {
+                m_note.setRating(lieu.note.floatValue());
+                m_note.setVisibility(View.VISIBLE);
             }
-        };
+            if (lieu.prix != null) {
+                m_prix.setText(lieu.getPrix());
+                m_prix.setEnabled(true);
+            }
+            if (lieu.telephone != null) {
+                m_telephone.setText(lieu.telephone);
+                m_telephone.setEnabled(true);
+            }
+            if (lieu.site != null) {
+                m_siteWeb.setText(lieu.site.getHost());
+                m_siteWeb.setEnabled(true);
+            }
 
-        // Récupération !
-        m_live_location = m_locationObserver.getLocation();
-        m_live_location.observe(this, m_observer);
+            // Image
+            if (lieu.photo != null && m_preferences.getBoolean(getString(R.string.pref_internet), true)) {
+                m_image.setImageUrl(lieu.photo.toString(), m_requeteManager.getImageLoader());
+            }
+        }
     }
 }
