@@ -127,7 +127,7 @@ public class LieuActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
 
         // Récupération de la carte
-        m_locationObserver = new LocationObserver(this);
+        m_locationObserver = new LocationObserver(this, getLifecycle());
         getLifecycle().addObserver(m_locationObserver);
 
         m_mapFragment.getMapAsync(this);
@@ -226,6 +226,9 @@ public class LieuActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public void onMapReady(GoogleMap googleMap) {
         m_map = googleMap;
+
+        // Paramétrage
+        m_map.setLocationSource(m_locationObserver);
         if (m_lieu != null) setPlace();
     }
 

@@ -271,9 +271,17 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onMapReady(GoogleMap googleMap) {
         m_map = googleMap;
+        m_centree = false; // la prochaine réception centre la carte
 
         // Paramétrage de la carte
-        centrerCarte();
+        m_map.setLocationSource(m_locationObserver);
+
+        try {
+            m_map.setMyLocationEnabled(true);
+
+        } catch (SecurityException err) { // N'arrive pas : sinon on atteint jamais cette ligne !
+            Log.e(TAG, "Pas cool ...", err);
+        }
     }
 
     // Rayon
@@ -457,7 +465,6 @@ public class MainActivity extends AppCompatActivity
             m_mapFragment = new SupportMapFragment();
         }
 
-        m_centree = false;
         m_mapFragment.getMapAsync(this);
 
         // Résultat
@@ -725,7 +732,7 @@ public class MainActivity extends AppCompatActivity
     }
     private void setupLocation() {
         // Récupération observer
-        m_locationObserver = new LocationObserver(this);
+        m_locationObserver = new LocationObserver(this, getLifecycle());
         getLifecycle().addObserver(m_locationObserver);
 
         // Récupération location
@@ -752,13 +759,6 @@ public class MainActivity extends AppCompatActivity
 
                             m_centree = true;
                             m_map.moveCamera(CameraUpdateFactory.newCameraPosition(builder.build()));
-
-                            try {
-                                m_map.setMyLocationEnabled(true);
-
-                            } catch (SecurityException err) { // N'arrive pas : sinon on atteint jamais cette ligne !
-                                Log.e(TAG, "Pas cool ...", err);
-                            }
                         }
                     }
 
@@ -768,23 +768,6 @@ public class MainActivity extends AppCompatActivity
                     }
                 }
             });
-        }
-    }
-
-    private void centrerCarte() {
-        // Y'a une carte ?
-        if (m_map == null) return;
-
-        // Centrage
-        Location location = m_locationObserver.getLastLocation();
-
-        if (location != null) {
-            CameraPosition.Builder builder = new CameraPosition.Builder();
-            builder.target(new LatLng(
-                    location.getLatitude(), location.getLongitude()
-            )).zoom(15).tilt(45);
-
-            m_map.moveCamera(CameraUpdateFactory.newCameraPosition(builder.build()));
         }
     }
 

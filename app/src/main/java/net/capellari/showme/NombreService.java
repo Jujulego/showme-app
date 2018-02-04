@@ -61,7 +61,7 @@ public class NombreService extends LifecycleService {
         m_preferences = PreferenceManager.getDefaultSharedPreferences(this);
 
         // Init Location
-        m_locationObserver = new LocationObserver(this);
+        m_locationObserver = new LocationObserver(this, getLifecycle());
         getLifecycle().addObserver(m_locationObserver);
 
         // Initialisation gestion des requetes
