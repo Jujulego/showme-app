@@ -44,6 +44,7 @@ import android.view.ViewAnimationUtils;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.ImageView;
+import android.widget.SectionIndexer;
 
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
@@ -61,6 +62,7 @@ import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.tasks.OnSuccessListener;
 
+import net.capellari.showme.data.LocationObserver;
 import net.capellari.showme.db.AppDatabase;
 import net.capellari.showme.db.Lieu;
 import net.capellari.showme.db.Type;
@@ -112,16 +114,9 @@ public class MainActivity extends AppCompatActivity
     private DrawerLayout m_drawerLayout;
     private ActionBarDrawerToggle m_drawerToggle;
 
-    // Fonctions en attente
-    private boolean m_permDemandee = false;
-    private boolean m_centrerCarte = false;
-    private boolean m_rafraichir   = false;
-    private String  m_rechercher   = null;
-    private boolean m_startLocationUpdate = false;
-
-    private boolean m_locationStarted = false;
-    private LocationCallback m_locationCallback;
-    private FusedLocationProviderClient m_locationClient;
+    private boolean m_centree = false;
+    private LiveData<Location> m_live_location;
+    private LocationObserver m_locationObserver;
 
     private Status m_status = Status.VIDE;
     private GoogleMap m_map;
@@ -188,9 +183,6 @@ public class MainActivity extends AppCompatActivity
         // Mise en place de la toolbar
         setupToolbar();
         setupSearchbar();
-
-        // Service
-        gestionService();
     }
 
     @Override
@@ -212,12 +204,11 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
-    protected void onResume() {
-        super.onResume();
+    protected void onStart() {
+        super.onStart();
 
-        // Lancement maj location
-        if (!m_locationStarted && (m_status == Status.RECHERCHE || m_status == Status.ACCUEIL))
-            startLocationUpdates();
+        // Service
+        gestionService();
     }
 
     @Override
@@ -225,14 +216,6 @@ public class MainActivity extends AppCompatActivity
         super.onConfigurationChanged(newConfig);
 
         m_drawerToggle.onConfigurationChanged(newConfig);
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-
-        // Arret des maj
-        stopLocationUpdates();
     }
 
     @Override
@@ -254,25 +237,8 @@ public class MainActivity extends AppCompatActivity
     // Permission
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        switch (requestCode) {
-            case RQ_PERM_LOCATION:
-                if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    // Execution !
-                    if (m_centrerCarte) centrerCarte();
-                    if (m_rafraichir)   rafraichir();
-                    if (m_rechercher != null) rechercher(m_rechercher);
-                    if (m_startLocationUpdate) startLocationUpdates();
-                }
-
-                // Reset
-                m_permDemandee = false;
-                m_centrerCarte = false;
-                m_rafraichir   = false;
-                m_rechercher   = null;
-                m_startLocationUpdate = false;
-
-                break;
-        }
+        // Transmission à l'observer
+        m_locationObserver.onRequestPermissionsResult(requestCode, permissions, grantResults);
     }
 
     // Menu
@@ -350,11 +316,7 @@ public class MainActivity extends AppCompatActivity
     // Préférences
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-        if (key.equals(getString(R.string.pref_gps))) {
-            stopLocationUpdates();
-            startLocationUpdates();
-
-        } else if (key.equals(getString(R.string.pref_rayon_max))) {
+        if (key.equals(getString(R.string.pref_rayon_max))) {
             m_rayonFragment.set_max(m_preferences.getInt(getString(R.string.pref_rayon_max), 100));
 
         } else if (key.equals(getString(R.string.pref_nombre))) {
@@ -368,18 +330,12 @@ public class MainActivity extends AppCompatActivity
         if (m_status != Status.RECHERCHE) return;
 
         // Récupération de la postion
-        if (checkLocationPermission()) {
-            m_locationClient.getLastLocation().addOnSuccessListener(new OnSuccessListener<Location>() {
-                @Override
-                public void onSuccess(Location location) {
-                    // Gardien
-                    if (location == null) return;
+        Location location = m_locationObserver.getLastLocation();
 
-                    // Chargement ...
-                    m_resultatFragment.setRefreshing(true);
-                    getLieux(location, m_rayonFragment.get_rayon(), query);
-                }
-            });
+        // Chargement ...
+        if (location != null) {
+            m_resultatFragment.setRefreshing(true);
+            getLieux(location, m_rayonFragment.get_rayon(), query);
 
             // Enregistrement !
             SearchRecentSuggestions suggestions = new SearchRecentSuggestions(this,
@@ -388,9 +344,8 @@ public class MainActivity extends AppCompatActivity
             );
             suggestions.saveRecentQuery(query, null);
 
+            // Sauvegarde pour rafraichissement
             m_query = query;
-        } else {
-            m_rechercher = query;
         }
     }
     private void rafraichir() {
@@ -398,26 +353,18 @@ public class MainActivity extends AppCompatActivity
         if (m_status != Status.ACCUEIL && m_status != Status.RECHERCHE) return;
 
         // Récupération de la position
-        if (checkLocationPermission()) {
-            m_locationClient.getLastLocation().addOnSuccessListener(new OnSuccessListener<Location>() {
-                @Override
-                public void onSuccess(Location location) {
-                    // Gardien
-                    if (location == null) return;
+        Location location = m_locationObserver.getLastLocation();
 
-                    // Chargement ...
-                    m_resultatFragment.setRefreshing(true);
-                    m_bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+        // Chargement ...
+        if (location != null) {
+            m_resultatFragment.setRefreshing(true);
+            m_bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
 
-                    if (m_status == Status.RECHERCHE && m_query != null) {
-                        getLieux(location, m_rayonFragment.get_rayon(), m_query);
-                    } else {
-                        getLieux(location, m_rayonFragment.get_rayon());
-                    }
-                }
-            });
-        } else {
-            m_rafraichir = true;
+            if (m_status == Status.RECHERCHE && m_query != null) {
+                getLieux(location, m_rayonFragment.get_rayon(), m_query);
+            } else {
+                getLieux(location, m_rayonFragment.get_rayon());
+            }
         }
     }
 
@@ -510,6 +457,7 @@ public class MainActivity extends AppCompatActivity
             m_mapFragment = new SupportMapFragment();
         }
 
+        m_centree = false;
         m_mapFragment.getMapAsync(this);
 
         // Résultat
@@ -559,7 +507,6 @@ public class MainActivity extends AppCompatActivity
                 transaction.add(R.id.bottom_sheet, m_filtresFragment,    FILTRES_TAG);
 
                 m_mapFragment.getMapAsync(this);
-                startLocationUpdates();
         }
 
         transaction.commit();
@@ -586,7 +533,6 @@ public class MainActivity extends AppCompatActivity
                 transaction.add(R.id.bottom_sheet, m_filtresFragment,    FILTRES_TAG);
 
                 m_mapFragment.getMapAsync(this);
-                startLocationUpdates();
 
                 break;
         }
@@ -778,101 +724,68 @@ public class MainActivity extends AppCompatActivity
         m_bottomSheetBehavior = BottomSheetBehavior.from(m_bottomSheet);
     }
     private void setupLocation() {
-        m_locationClient = LocationServices.getFusedLocationProviderClient(this);
-        m_locationCallback = new LocationCallback() {
-            @Override
-            public void onLocationResult(LocationResult locationResult) {
-                // Gardien
-                if (m_map == null) return;
+        // Récupération observer
+        m_locationObserver = new LocationObserver(this);
+        getLifecycle().addObserver(m_locationObserver);
 
-                // Centrage
-                Location location = locationResult.getLastLocation();
-                m_map.animateCamera(CameraUpdateFactory.newLatLng(new LatLng(
-                        location.getLatitude(), location.getLongitude()
-                )));
+        // Récupération location
+        if (m_live_location == null) {
+            m_live_location = m_locationObserver.getLocation();
+            m_live_location.observe(this, new Observer<Location>() {
+                @Override
+                public void onChanged(@Nullable Location location) {
+                    // Gardien
+                    if (location == null) return;
 
-                // Maj distances
-                m_resultatFragment.majDistances(location);
-            }
-        };
+                    // Centrage carte
+                    if (m_map != null) {
+                        if (m_centree) {
+                            m_map.animateCamera(CameraUpdateFactory.newLatLng(new LatLng(
+                                    location.getLatitude(), location.getLongitude()
+                            )));
+
+                        } else {
+                            CameraPosition.Builder builder = new CameraPosition.Builder();
+                            builder.target(new LatLng(
+                                    location.getLatitude(), location.getLongitude()
+                            )).zoom(15).tilt(45);
+
+                            m_centree = true;
+                            m_map.moveCamera(CameraUpdateFactory.newCameraPosition(builder.build()));
+
+                            try {
+                                m_map.setMyLocationEnabled(true);
+
+                            } catch (SecurityException err) { // N'arrive pas : sinon on atteint jamais cette ligne !
+                                Log.e(TAG, "Pas cool ...", err);
+                            }
+                        }
+                    }
+
+                    // Maj distances
+                    if (m_resultatFragment != null) {
+                        m_resultatFragment.majDistances(location);
+                    }
+                }
+            });
+        }
     }
 
     private void centrerCarte() {
         // Y'a une carte ?
         if (m_map == null) return;
 
-        // Centrage !
-        if (checkLocationPermission()) {
-            m_map.setMyLocationEnabled(true);
+        // Centrage
+        Location location = m_locationObserver.getLastLocation();
 
-            m_locationClient.getLastLocation().addOnSuccessListener(new OnSuccessListener<Location>() {
-                @Override
-                public void onSuccess(Location location) {
-                    // Gardien
-                    if (location == null) return;
+        if (location != null) {
+            CameraPosition.Builder builder = new CameraPosition.Builder();
+            builder.target(new LatLng(
+                    location.getLatitude(), location.getLongitude()
+            )).zoom(15).tilt(45);
 
-                    // Centrage
-                    CameraPosition.Builder builder = new CameraPosition.Builder();
-                    builder.target(new LatLng(
-                            location.getLatitude(), location.getLongitude()
-                    )).zoom(15).tilt(45);
-
-                    m_map.moveCamera(CameraUpdateFactory.newCameraPosition(builder.build()));
-                }
-            });
-        } else {
-            m_centrerCarte = true;
+            m_map.moveCamera(CameraUpdateFactory.newCameraPosition(builder.build()));
         }
-    }
-
-    private boolean checkLocationPermission() {
-        // Préférence
-        boolean gps = m_preferences.getBoolean(getString(R.string.pref_gps), true);
-        String permission = gps ? Manifest.permission.ACCESS_FINE_LOCATION : Manifest.permission.ACCESS_COARSE_LOCATION;
-
-        // Test
-        if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
-            if (!m_permDemandee) {
-                // On demande gentillement !
-                ActivityCompat.requestPermissions(this,
-                        new String[]{permission}, RQ_PERM_LOCATION
-                );
-
-                m_permDemandee = true;
-            }
-
-            return false;
-        }
-
-        return true;
-    }
-    private void startLocationUpdates() {
-        // Gardien
-        if (m_locationStarted) return;
-
-        // Préférence
-        boolean gps = m_preferences.getBoolean(getString(R.string.pref_gps), true);
-
-        // Préparation de la requete
-        LocationRequest rq = new LocationRequest();
-        rq.setFastestInterval(3000);
-        rq.setPriority(gps ? LocationRequest.PRIORITY_HIGH_ACCURACY : LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
-
-        // Activation !
-        if (checkLocationPermission()) {
-            m_locationClient.requestLocationUpdates(rq, m_locationCallback, null);
-            m_locationStarted = true;
-        } else {
-            m_startLocationUpdate = true;
-        }
-    }
-    private void stopLocationUpdates() {
-        // Gardien
-        if (!m_locationStarted) return;
-
-        // On arrête tout !
-        m_locationClient.removeLocationUpdates(m_locationCallback);
-        m_locationStarted = false;
     }
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)

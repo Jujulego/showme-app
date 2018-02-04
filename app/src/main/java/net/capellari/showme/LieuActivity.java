@@ -1,6 +1,7 @@
 package net.capellari.showme;
 
 import android.Manifest;
+import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Intent;
@@ -19,6 +20,7 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.preference.PreferenceManager;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.View;
 import android.widget.RatingBar;
 import android.widget.TextView;
@@ -35,6 +37,7 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnSuccessListener;
 
+import net.capellari.showme.data.LocationObserver;
 import net.capellari.showme.db.Lieu;
 import net.capellari.showme.db.TypeBase;
 import net.capellari.showme.data.LieuxModel;
@@ -49,16 +52,17 @@ public class LieuActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private static final String MAP_TAG = "map";
 
-    private static final int RQ_PERM_LOCATION = 1;
-
     // Attributs
     private Lieu m_lieu;
     private LieuxModel m_lieuxModel;
 
     private RequeteManager m_requeteManager;
     private SharedPreferences m_preferences;
-    private FusedLocationProviderClient m_locationClient;
+
     private GoogleMap m_map = null;
+    private LiveData<Location> m_live_location;
+    private Observer<Location> m_observer;
+    private LocationObserver m_locationObserver;
 
     private CollapsingToolbarLayout m_collapsingToolbar;
     private RatingBar m_note;
@@ -69,9 +73,6 @@ public class LieuActivity extends AppCompatActivity implements OnMapReadyCallbac
     private TextView m_telephone;
     private TextView m_siteWeb;
     private NetworkImageView m_image;
-
-    private boolean m_permDemandee = false;
-    private boolean m_setPlace     = false;
 
     // Events
     @Override
@@ -126,7 +127,9 @@ public class LieuActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
 
         // Récupération de la carte
-        m_locationClient = LocationServices.getFusedLocationProviderClient(this);
+        m_locationObserver = new LocationObserver(this);
+        getLifecycle().addObserver(m_locationObserver);
+
         m_mapFragment.getMapAsync(this);
 
         // Toolbar
@@ -217,19 +220,7 @@ public class LieuActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        switch (requestCode) {
-            case RQ_PERM_LOCATION:
-                if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    // Execution !
-                    if (m_setPlace) setPlace();
-                }
-
-                // Reset
-                m_permDemandee = false;
-                m_setPlace = false;
-
-                break;
-        }
+        m_locationObserver.onRequestPermissionsResult(requestCode, permissions, grantResults);
     }
 
     @Override
@@ -239,58 +230,45 @@ public class LieuActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     // Méthodes
-    private boolean checkLocationPermission() {
-        // Préférence
-        boolean gps = m_preferences.getBoolean(getString(R.string.pref_gps), true);
-        String permission = gps ? Manifest.permission.ACCESS_FINE_LOCATION : Manifest.permission.ACCESS_COARSE_LOCATION;
-
-        // Test
-        if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
-            if (!m_permDemandee) {
-                // On demande gentillement !
-                ActivityCompat.requestPermissions(this,
-                        new String[]{permission}, RQ_PERM_LOCATION
-                );
-
-                m_permDemandee = true;
-            }
-
-            return false;
-        }
-
-        return true;
-    }
     private void setPlace() {
         // Y'a une carte ?
         if (m_map == null) return;
 
         // Centrage !
-        if (checkLocationPermission()) {
-            m_map.setMyLocationEnabled(true);
+        m_observer = new Observer<Location>() {
+            @Override
+            public void onChanged(@Nullable Location location) {
+                if (location == null) return;
 
-            m_locationClient.getLastLocation().addOnSuccessListener(new OnSuccessListener<Location>() {
-                @Override
-                public void onSuccess(Location location) {
-                    // Gardien
-                    if (location == null) return;
+                // Centrage
+                CameraPosition.Builder builder = new CameraPosition.Builder();
+                builder.target(new LatLng(
+                        location.getLatitude(), location.getLongitude()
+                )).zoom(15).tilt(45);
 
-                    // Centrage
-                    CameraPosition.Builder builder = new CameraPosition.Builder();
-                    builder.target(new LatLng(
-                            location.getLatitude(), location.getLongitude()
-                    )).zoom(15).tilt(45);
+                m_map.moveCamera(CameraUpdateFactory.newCameraPosition(builder.build()));
 
-                    m_map.moveCamera(CameraUpdateFactory.newCameraPosition(builder.build()));
+                // Marqueur
+                m_map.addMarker(new MarkerOptions()
+                        .position(new LatLng(m_lieu.coordonnees.latitude, m_lieu.coordonnees.longitude))
+                        .title(m_lieu.nom)
+                ).showInfoWindow();
 
-                    // Marqueur
-                    m_map.addMarker(new MarkerOptions()
-                            .position(new LatLng(m_lieu.coordonnees.latitude, m_lieu.coordonnees.longitude))
-                            .title(m_lieu.nom)
-                    ).showInfoWindow();
+                // Location
+                try {
+                    m_map.setMyLocationEnabled(true);
+
+                } catch (SecurityException err) { // N'arrive pas : sinon on atteint jamais cette ligne !
+                    Log.e(TAG, "Pas cool ...", err);
                 }
-            });
-        } else {
-            m_setPlace = true;
-        }
+
+                // Suppression observer
+                m_live_location.removeObserver(m_observer);
+            }
+        };
+
+        // Récupération !
+        m_live_location = m_locationObserver.getLocation();
+        m_live_location.observe(this, m_observer);
     }
 }
