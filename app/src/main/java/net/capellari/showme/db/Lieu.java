@@ -70,13 +70,13 @@ public class Lieu {
         coordonnees.longitude = obj.getJSONObject("pos").getDouble("lng");
 
         // Adresse
-        adresse.numero      = obj.getJSONObject("adresse").getString("numero");
-        adresse.rue         = obj.getJSONObject("adresse").getString("route");
-        adresse.codePostal  = obj.getJSONObject("adresse").getString("codepostal");
-        adresse.ville       = obj.getJSONObject("adresse").getString("ville");
-        adresse.departement = obj.getJSONObject("adresse").getString("departement");
-        adresse.region      = obj.getJSONObject("adresse").getString("region");
-        adresse.pays        = obj.getJSONObject("adresse").getString("pays");
+        adresse.numero      = obj.getJSONObject("carte").getString("numero");
+        adresse.rue         = obj.getJSONObject("carte").getString("route");
+        adresse.codePostal  = obj.getJSONObject("carte").getString("codepostal");
+        adresse.ville       = obj.getJSONObject("carte").getString("ville");
+        adresse.departement = obj.getJSONObject("carte").getString("departement");
+        adresse.region      = obj.getJSONObject("carte").getString("region");
+        adresse.pays        = obj.getJSONObject("carte").getString("pays");
 
         // Optionnel
         note      = obj.has("note")      ? obj.getDouble("note")      : null;

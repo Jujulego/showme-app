@@ -8,7 +8,7 @@
         android:bottom="@dimen/icone_margin">
 
         <bitmap
-            android:src="@drawable/ic_local_pizza_white_24dp"
+            android:src="@drawable/ic_restaurant_white_24dp"
             android:gravity="center"/>
     </item>
 </layer-list>
