@@ -15,8 +15,6 @@ import android.view.View;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
-import java.util.Locale;
-
 /**
  * Created by julien on 02/01/18.
  *

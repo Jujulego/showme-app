@@ -2,7 +2,6 @@ package net.capellari.showme;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
-import android.annotation.SuppressLint;
 import android.app.SearchManager;
 import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.Observer;
@@ -12,9 +11,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteConstraintException;
 import android.location.Location;
-import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -40,21 +37,12 @@ import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.ImageView;
 
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.JsonArrayRequest;
 import com.google.android.gms.maps.GoogleMap;
 
 import net.capellari.showme.data.LieuxModel;
 import net.capellari.showme.data.LieuxSource;
 import net.capellari.showme.data.PositionSource;
-import net.capellari.showme.db.AppDatabase;
 import net.capellari.showme.db.Lieu;
-import net.capellari.showme.db.Type;
-import net.capellari.showme.data.RequeteManager;
-
-import org.json.JSONArray;
-import org.json.JSONException;
 
 public class MainActivity extends AppCompatActivity
         implements CarteFragment.OnCarteEventListener,
@@ -94,8 +82,6 @@ public class MainActivity extends AppCompatActivity
     private LiveData<Location> m_live_location;
 
     // - outils
-    private AppDatabase m_db;
-    private RequeteManager m_requeteManager;
     private SharedPreferences m_preferences;
 
     // Events
@@ -106,13 +92,6 @@ public class MainActivity extends AppCompatActivity
         // Ouverture des préférences
         m_preferences = PreferenceManager.getDefaultSharedPreferences(this);
         m_preferences.registerOnSharedPreferenceChangeListener(this);
-
-        // Ouverture DB
-        m_db = AppDatabase.getInstance(this);
-
-        // Gestion des requêtes
-        m_requeteManager = RequeteManager.getInstance(this.getApplicationContext());
-        getTypes();
 
         // Inflate !
         setContentView(R.layout.activity_main);
@@ -151,14 +130,6 @@ public class MainActivity extends AppCompatActivity
         super.onConfigurationChanged(newConfig);
 
         m_drawerToggle.onConfigurationChanged(newConfig);
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-
-        // Arrêt des requetes
-        m_requeteManager.getRequestQueue().cancelAll(TAG);
     }
 
     // Permissions
@@ -264,65 +235,6 @@ public class MainActivity extends AppCompatActivity
         // Activation !!!
         m_lieuxSource.rafraichir();
         m_bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
-    }
-
-    @SuppressLint("StaticFieldLeak")
-    private void getTypes() {
-        // Check pref
-        if (!m_preferences.getBoolean(getString(R.string.pref_internet), true)) {
-            return;
-        }
-
-        // Requete
-        m_requeteManager.addRequest(new JsonArrayRequest(getString(R.string.url_types, getString(R.string.serveur)), new Response.Listener<JSONArray>() {
-            @Override
-            public void onResponse(JSONArray reponse) {
-                Type[] types = new Type[reponse.length()];
-
-                // Création des objets
-                for (int i = 0; i < reponse.length(); ++i) {
-                    try {
-                        types[i] = new Type(reponse.getJSONObject(i));
-
-                    } catch (JSONException err) {
-                        Log.e(TAG, "Erreur JSON types", err);
-                    }
-                }
-
-                // Log
-                Log.i(TAG, "Types mis à jour !");
-
-                // Ajout au fragment
-                new AsyncTask<Type,Void,Void>() {
-                    @Override
-                    protected Void doInBackground(Type... types) {
-                        Type.TypeDAO dao = m_db.getTypeDAO();
-                        m_db.beginTransaction();
-
-                        try {
-                            for (Type t : types) {
-                                try {
-                                    dao.insert(t);
-                                } catch (SQLiteConstraintException err) {
-                                    dao.maj(t);
-                                }
-                            }
-
-                            m_db.setTransactionSuccessful();
-                        } finally {
-                            m_db.endTransaction();
-                        }
-
-                        return null;
-                    }
-                }.execute(types);
-            }
-        }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                Log.w(TAG, error.toString());
-            }
-        }));
     }
 
     // - service

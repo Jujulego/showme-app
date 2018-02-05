@@ -20,9 +20,9 @@ import android.view.ViewGroup;
 import android.widget.RatingBar;
 import android.widget.TextView;
 
+import net.capellari.showme.data.DiffLieu;
 import net.capellari.showme.data.LieuxModel;
 import net.capellari.showme.db.Lieu;
-import net.capellari.showme.data.DiffLieu;
 
 import java.util.ArrayList;
 import java.util.Collections;

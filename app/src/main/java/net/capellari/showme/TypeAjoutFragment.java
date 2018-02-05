@@ -17,10 +17,10 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import net.capellari.showme.db.Type;
-import net.capellari.showme.db.TypeBase;
 import net.capellari.showme.data.DiffType;
 import net.capellari.showme.data.TypesModel;
+import net.capellari.showme.db.Type;
+import net.capellari.showme.db.TypeBase;
 
 import java.util.LinkedList;
 import java.util.List;

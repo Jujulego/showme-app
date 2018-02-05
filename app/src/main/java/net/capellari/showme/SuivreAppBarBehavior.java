@@ -1,12 +1,9 @@
 package net.capellari.showme;
 
 import android.content.Context;
-import android.os.Parcelable;
 import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.CoordinatorLayout;
 import android.util.AttributeSet;
-import android.util.Log;
-import android.view.AbsSavedState;
 import android.view.View;
 
 import java.util.List;

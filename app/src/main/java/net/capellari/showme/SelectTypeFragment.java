@@ -22,9 +22,9 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import net.capellari.showme.db.TypeBase;
 import net.capellari.showme.data.DiffType;
 import net.capellari.showme.data.LieuxModel;
+import net.capellari.showme.db.TypeBase;
 
 import java.util.ArrayList;
 import java.util.List;

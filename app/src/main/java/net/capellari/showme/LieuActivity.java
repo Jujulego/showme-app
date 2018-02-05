@@ -22,9 +22,9 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.Marker;
 
 import net.capellari.showme.data.LieuxModel;
+import net.capellari.showme.data.RequeteManager;
 import net.capellari.showme.db.Lieu;
 import net.capellari.showme.db.TypeBase;
-import net.capellari.showme.data.RequeteManager;
 
 import java.util.List;
 

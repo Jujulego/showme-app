@@ -2,20 +2,28 @@ package net.capellari.showme.data;
 
 import android.app.Application;
 import android.arch.lifecycle.AndroidViewModel;
-import android.arch.lifecycle.Lifecycle;
 import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.MutableLiveData;
-import android.content.Context;
+import android.database.sqlite.SQLiteConstraintException;
 import android.os.AsyncTask;
-import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
+import android.util.Log;
 import android.util.LongSparseArray;
 
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonArrayRequest;
+
+import net.capellari.showme.R;
 import net.capellari.showme.db.AppDatabase;
 import net.capellari.showme.db.Lieu;
 import net.capellari.showme.db.ParamDatabase;
+import net.capellari.showme.db.Type;
 import net.capellari.showme.db.TypeBase;
 import net.capellari.showme.db.TypeParam;
+
+import org.json.JSONArray;
+import org.json.JSONException;
 
 import java.util.Collection;
 import java.util.LinkedList;
@@ -58,17 +66,34 @@ public class LieuxModel extends AndroidViewModel {
     private AppDatabase m_appdb;
     private ParamDatabase m_paramdb;
     private LieuxSource m_lieuxSource;
+    private RequeteManager m_requeteManager;
     private List<SelectTypesTask> m_taches = new LinkedList<>();
 
     // Constructeur
     public LieuxModel(Application application) {
         super(application);
 
-        // ouverture des bases
+        // Ouverture des bases
         m_appdb   = AppDatabase.getInstance(application);
         m_paramdb = ParamDatabase.getInstance(application);
 
-        // récupération des parametres
+        // Gestion des requêtes
+        m_requeteManager = RequeteManager.getInstance(application);
+
+        // Mise à jour des types
+        JsonArrayRequest rq = new JsonArrayRequest(
+                application.getString(R.string.url_types, application.getString(R.string.serveur)),
+                new TypesRequeteListener(), new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Log.w(TAG, error.toString());
+            }
+        });
+        rq.setTag(TAG);
+
+        m_requeteManager.addRequest(rq);
+
+        // Récupération des paramètres
         new RecupTypeParamTask().execute();
     }
 
@@ -82,6 +107,9 @@ public class LieuxModel extends AndroidViewModel {
         if (m_lieuxSource != null) {
             m_lieuxSource.onDestroy();
         }
+
+        // Arrêt des requêtes
+        m_requeteManager.getRequestQueue().cancelAll(TAG);
 
         // Fermeture des bases
         m_appdb.close();
@@ -277,7 +305,55 @@ public class LieuxModel extends AndroidViewModel {
         m_taches.clear();
     }
 
+    // Requêtes
+    private class TypesRequeteListener implements Response.Listener<JSONArray> {
+        @Override
+        public void onResponse(JSONArray reponse) {
+            Type[] types = new Type[reponse.length()];
+
+            // Création des objets
+            for (int i = 0; i < reponse.length(); ++i) {
+                try {
+                    types[i] = new Type(reponse.getJSONObject(i));
+
+                } catch (JSONException err) {
+                    Log.e(TAG, "Erreur JSON types", err);
+                }
+            }
+
+            // Log
+            Log.i(TAG, "Types mis à jour !");
+
+            // Ajout au fragment
+            new UpdateTypes().execute(types);
+        }
+    }
+
     // Taches
+    // - types
+    private class UpdateTypes extends AsyncTask<Type,Void,Void> {
+        @Override
+        protected Void doInBackground(Type... types) {
+            Type.TypeDAO dao = m_appdb.getTypeDAO();
+            m_appdb.beginTransaction();
+
+            try {
+                for (Type t : types) {
+                    try {
+                        dao.insert(t);
+                    } catch (SQLiteConstraintException err) {
+                        dao.maj(t);
+                    }
+                }
+
+                m_appdb.setTransactionSuccessful();
+            } finally {
+                m_appdb.endTransaction();
+            }
+
+            return null;
+        }
+    }
     private class RecupTypeParamTask extends AsyncTask<Void,Void,List<TypeParam>> {
         // Events
         @Override
@@ -292,6 +368,8 @@ public class LieuxModel extends AndroidViewModel {
             return m_paramdb.getTypeDAO().recup();
         }
     }
+
+    // - types pour d'un lieu
     private class SelectTypesTask extends AsyncTask<Void,Void,List<TypeBase>> {
         // Attributs
         private Lieu m_lieu;

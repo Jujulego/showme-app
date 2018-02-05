@@ -1,13 +1,10 @@
 package net.capellari.showme.db;
 
-import android.arch.lifecycle.ComputableLiveData;
 import android.arch.lifecycle.LiveData;
 import android.arch.persistence.room.ColumnInfo;
 import android.arch.persistence.room.Dao;
-import android.arch.persistence.room.Delete;
 import android.arch.persistence.room.Embedded;
 import android.arch.persistence.room.Entity;
-import android.arch.persistence.room.Ignore;
 import android.arch.persistence.room.Insert;
 import android.arch.persistence.room.OnConflictStrategy;
 import android.arch.persistence.room.PrimaryKey;
@@ -22,14 +19,12 @@ import com.google.android.gms.maps.model.LatLng;
 
 import net.capellari.showme.R;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Date;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 

@@ -8,7 +8,6 @@ import android.os.Bundle;
 import android.provider.SearchRecentSuggestions;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.DialogFragment;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.preference.Preference;
 import android.support.v7.preference.PreferenceFragmentCompat;
 import android.support.v7.preference.SwitchPreferenceCompat;
@@ -17,7 +16,6 @@ import android.text.Spanned;
 import android.text.style.ForegroundColorSpan;
 import android.util.Log;
 import android.view.View;
-import android.widget.TextView;
 
 import net.capellari.showme.db.AppDatabase;
 
