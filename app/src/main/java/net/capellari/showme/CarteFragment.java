@@ -22,7 +22,7 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import net.capellari.showme.data.FiltresModel;
-import net.capellari.showme.data.LocationObserver;
+import net.capellari.showme.data.PositionSource;
 import net.capellari.showme.db.Lieu;
 
 import java.util.List;
@@ -40,7 +40,7 @@ public class CarteFragment extends Fragment implements OnMapReadyCallback, Googl
     private SupportMapFragment m_fragmentMap;
 
     private LiveData<Location> m_location;
-    private LocationObserver m_locationObserver;
+    private PositionSource m_positionSource;
 
     private FiltresModel m_filtresModel;
     private LiveData<List<Lieu>> m_lieux;
@@ -53,10 +53,10 @@ public class CarteFragment extends Fragment implements OnMapReadyCallback, Googl
         super.onCreate(savedInstanceState);
 
         // Init location
-        m_locationObserver = new LocationObserver(getContext(), getLifecycle());
-        getLifecycle().addObserver(m_locationObserver);
+        m_positionSource = new PositionSource(getContext(), getLifecycle());
+        getLifecycle().addObserver(m_positionSource);
 
-        m_location = m_locationObserver.getLocation();
+        m_location = m_positionSource.getLocation();
         m_location.observe(this, new LocationObs());
 
         // Récupération du FiltreModel
@@ -112,8 +112,8 @@ public class CarteFragment extends Fragment implements OnMapReadyCallback, Googl
 
         // Paramétrage de la carte
         m_map.setOnInfoWindowClickListener(this);
-        m_map.setLocationSource(m_locationObserver);
-        if (m_locationObserver.checkLocationPermission()) {
+        m_map.setLocationSource(m_positionSource);
+        if (m_positionSource.checkLocationPermission()) {
             m_map.setMyLocationEnabled(true);
         }
 

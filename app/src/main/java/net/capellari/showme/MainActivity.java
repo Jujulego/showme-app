@@ -17,7 +17,6 @@ import android.location.Location;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
-import android.provider.SearchRecentSuggestions;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
@@ -46,20 +45,16 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.google.android.gms.maps.GoogleMap;
 
-import net.capellari.showme.data.LocationObserver;
+import net.capellari.showme.data.LieuxSource;
+import net.capellari.showme.data.PositionSource;
 import net.capellari.showme.db.AppDatabase;
 import net.capellari.showme.db.Lieu;
 import net.capellari.showme.db.Type;
-import net.capellari.showme.data.FiltresModel;
 import net.capellari.showme.data.LieuxModel;
 import net.capellari.showme.data.RequeteManager;
 
 import org.json.JSONArray;
 import org.json.JSONException;
-
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity
         implements CarteFragment.OnCarteEventListener,
@@ -71,11 +66,7 @@ public class MainActivity extends AppCompatActivity
     private static final int SEARCH_ICON_POS   = 2;     // Position de la loupe dans la toolbar, depuis la droite
     private static final boolean MENU_OVERFLOW = false; // Les 3 points dans la toolbar
 
-    private static final String QUERY = "showme.QUERY";
-    private static final String TAG   = "MainActivity";
-
-    // Attributs
-    private String m_query = null;
+    private static final String TAG = "MainActivity";
 
     // - toolbar
     private Toolbar m_toolbar;
@@ -87,7 +78,6 @@ public class MainActivity extends AppCompatActivity
     private CarteFragment m_carteFragment;
     private ResultatFragment m_resultatFragment;
     private RayonFragment m_rayonFragment;
-    private FiltresFragment m_filtresFragment;
 
     // - bottom sheet
     private NestedScrollView m_bottomSheet;
@@ -97,13 +87,11 @@ public class MainActivity extends AppCompatActivity
     private DrawerLayout m_drawerLayout;
     private ActionBarDrawerToggle m_drawerToggle;
 
-    // - position
-    private LiveData<Location> m_live_location;
-    private LocationObserver m_locationObserver;
-
-    // - models
+    // - données
     private LieuxModel m_lieuxModel;
-    private FiltresModel m_filtresModel;
+    private LieuxSource m_lieuxSource;
+    private PositionSource m_positionSource;
+    private LiveData<Location> m_live_location;
 
     // - outils
     private AppDatabase m_db;
@@ -119,25 +107,12 @@ public class MainActivity extends AppCompatActivity
         m_preferences = PreferenceManager.getDefaultSharedPreferences(this);
         m_preferences.registerOnSharedPreferenceChangeListener(this);
 
-        // Models
-        m_lieuxModel  = ViewModelProviders.of(this).get(LieuxModel.class);
-        m_filtresModel = ViewModelProviders.of(this).get(FiltresModel.class);
-
         // Ouverture DB
         m_db = AppDatabase.getInstance(this);
 
         // Gestion des requêtes
         m_requeteManager = RequeteManager.getInstance(this.getApplicationContext());
         getTypes();
-
-        // Préparation des maj position
-        setupLocation();
-
-        // Préparations et affichage de l'accueil
-        if (savedInstanceState != null) {
-            // Récupération de l'état
-            m_query = savedInstanceState.getString(QUERY);
-        }
 
         // Inflate !
         setContentView(R.layout.activity_main);
@@ -150,6 +125,9 @@ public class MainActivity extends AppCompatActivity
         setupFragments();
         setupDrawer();
         setupBottomSheet();
+
+        // Source de données
+        setupSource();
     }
 
     @Override
@@ -183,31 +161,11 @@ public class MainActivity extends AppCompatActivity
         m_requeteManager.getRequestQueue().cancelAll(TAG);
     }
 
-    // Statut
-    @Override
-    protected void onRestoreInstanceState(Bundle savedInstanceState) {
-        super.onRestoreInstanceState(savedInstanceState);
-
-        // Restauration de l'état recherche
-        if (m_query != null) {
-            setupRecherche();
-            m_searchView.setQuery(m_query, true);
-        }
-    }
-
-    @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-
-        // Enregistrement du status
-        outState.putString(QUERY, m_query);
-    }
-
     // Permissions
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         // Transmission à l'observer
-        m_locationObserver.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        m_positionSource.onRequestPermissionsResult(requestCode, permissions, grantResults);
     }
 
     // Menu
@@ -296,41 +254,16 @@ public class MainActivity extends AppCompatActivity
     }
 
     // Méthodes
-    private void rechercher(final String query) {
-        // Récupération de la postion
-        Location location = m_locationObserver.getLastLocation();
-
-        // Chargement ...
-        if (location != null) {
-            m_resultatFragment.setRefreshing(true);
-            getLieux(location, m_rayonFragment.get_rayon(), query);
-
-            // Enregistrement !
-            SearchRecentSuggestions suggestions = new SearchRecentSuggestions(this,
-                    HistoriqueProvider.AUTORITE,
-                    HistoriqueProvider.MODE
-            );
-            suggestions.saveRecentQuery(query, null);
-
-            // Sauvegarde pour rafraichissement
-            m_query = query;
-        }
+    // - requêtes
+    private void rechercher(String query) {
+        // Activation !!!
+        m_lieuxSource.rechercher(query);
+        m_bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
     }
     private void rafraichir() {
-        // Récupération de la position
-        Location location = m_locationObserver.getLastLocation();
-
-        // Chargement ...
-        if (location != null) {
-            m_resultatFragment.setRefreshing(true);
-            m_bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
-
-            if (m_query != null) {
-                getLieux(location, m_rayonFragment.get_rayon(), m_query);
-            } else {
-                getLieux(location, m_rayonFragment.get_rayon());
-            }
-        }
+        // Activation !!!
+        m_lieuxSource.rafraichir();
+        m_bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
     }
 
     @SuppressLint("StaticFieldLeak")
@@ -391,47 +324,8 @@ public class MainActivity extends AppCompatActivity
             }
         }));
     }
-    private void getLieux(Location location, int rayon) {
-        // Check pref
-        /*if (!m_preferences.getBoolean(getString(R.string.pref_internet), true)) {
-            m_resultatFragment.setRefreshing(false);
-            return;
-        }*/
 
-        // Requete
-        m_requeteManager.addRequest(new LieuxRequete(location, rayon));
-    }
-    private void getLieux(Location location, int rayon, String query) {
-        // Check pref
-        /*if (!m_preferences.getBoolean(getString(R.string.pref_internet), true)) {
-            m_resultatFragment.setRefreshing(false);
-            return;
-        }*/
-
-        // Requete
-        try {
-            m_requeteManager.addRequest(new LieuxRequete(location, rayon, query));
-        } catch (UnsupportedEncodingException err) {
-            Log.w(TAG, "Erreur !", err);
-        }
-    }
-
-    private void setupFragments() {
-        FragmentManager manager = getSupportFragmentManager();
-
-        // Récupération
-        m_carteFragment    = (CarteFragment)    manager.findFragmentById(R.id.carte);
-        m_resultatFragment = (ResultatFragment) manager.findFragmentById(R.id.resultat);
-        m_rayonFragment    = (RayonFragment)    manager.findFragmentById(R.id.rayon);
-        m_filtresFragment  = (FiltresFragment)  manager.findFragmentById(R.id.filtres);
-
-        // Paramétrages
-        m_resultatFragment.setRefreshMenuItem(R.id.nav_refresh);
-
-        m_carteFragment.setOnCarteEventListener(this);
-        m_resultatFragment.setOnResultatListener(this);
-        m_rayonFragment.setOnRayonListener(this);
-    }
+    // - service
     private void gestionService() {
         boolean start = m_preferences.getBoolean(getString(R.string.pref_nombre), false);
         Intent intent = new Intent(this, NombreService.class);
@@ -447,9 +341,10 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
+    // - status
     private void setupAccueil() {
         // Vidage m_query
-        m_query = null;
+        m_lieuxModel.getLieuxSource(this).setQuery(null);
     }
     private void setupRecherche() {
         // Gestion du drawer et du searchView
@@ -457,66 +352,7 @@ public class MainActivity extends AppCompatActivity
         m_searchMenuItem.expandActionView();
     }
 
-    private void setupDrawer() {
-        // Récupération des éléments
-        m_drawerLayout           = findViewById(R.id.drawer_layout);
-        NavigationView drawerNav = findViewById(R.id.drawer_nav);
-
-        // Gestion de l'ouverture
-        m_drawerToggle = new ActionBarDrawerToggle(
-                this, m_drawerLayout,
-                R.string.nav_open, R.string.nav_close
-        );
-        m_drawerLayout.addDrawerListener(m_drawerToggle);
-
-        // Gestion des boutons
-        drawerNav.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
-            @Override
-            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-                boolean ret = false;
-                Intent intent;
-
-                // Evolution des fragments
-                switch (item.getItemId()) {
-                    case R.id.nav_accueil:
-                        setupAccueil();
-                        ret = true;
-                        break;
-
-                    case R.id.nav_recherche:
-                        setupRecherche();
-                        ret = true;
-                        break;
-
-                    case R.id.nav_lieu:
-                        intent = new Intent(MainActivity.this, LieuActivity.class);
-                        startActivity(intent);
-
-                        ret = true;
-                        break;
-
-                    case R.id.nav_types:
-                        intent = new Intent(MainActivity.this, TypesActivity.class);
-                        startActivity(intent);
-
-                        ret = true;
-                        break;
-
-                    case R.id.nav_pref:
-                        intent = new Intent(MainActivity.this, ParametresActivity.class);
-                        startActivity(intent);
-
-                        ret = true;
-                        break;
-                }
-
-                // Fermeture !
-                if (ret) m_drawerLayout.closeDrawers();
-
-                return ret;
-            }
-        });
-    }
+    // - toolbar
     private void setupToolbar() {
         // Récupération de la toolbar
         m_toolbar = findViewById(R.id.toolbar);
@@ -632,19 +468,108 @@ public class MainActivity extends AppCompatActivity
             m_searchView.setQuery(query, true);
         }
     }
+
+    // - éléments
+    private void setupFragments() {
+        FragmentManager manager = getSupportFragmentManager();
+
+        // Récupération
+        m_carteFragment    = (CarteFragment)    manager.findFragmentById(R.id.carte);
+        m_resultatFragment = (ResultatFragment) manager.findFragmentById(R.id.resultat);
+        m_rayonFragment    = (RayonFragment)    manager.findFragmentById(R.id.rayon);
+
+        // Paramétrages
+        m_resultatFragment.setRefreshMenuItem(R.id.nav_refresh);
+
+        m_carteFragment.setOnCarteEventListener(this);
+        m_resultatFragment.setOnResultatListener(this);
+        m_rayonFragment.setOnRayonListener(this);
+    }
+    private void setupDrawer() {
+        // Récupération des éléments
+        m_drawerLayout           = findViewById(R.id.drawer_layout);
+        NavigationView drawerNav = findViewById(R.id.drawer_nav);
+
+        // Gestion de l'ouverture
+        m_drawerToggle = new ActionBarDrawerToggle(
+                this, m_drawerLayout,
+                R.string.nav_open, R.string.nav_close
+        );
+        m_drawerLayout.addDrawerListener(m_drawerToggle);
+
+        // Gestion des boutons
+        drawerNav.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
+            @Override
+            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                boolean ret = false;
+                Intent intent;
+
+                // Evolution des fragments
+                switch (item.getItemId()) {
+                    case R.id.nav_accueil:
+                        setupAccueil();
+                        ret = true;
+                        break;
+
+                    case R.id.nav_recherche:
+                        setupRecherche();
+                        ret = true;
+                        break;
+
+                    case R.id.nav_lieu:
+                        intent = new Intent(MainActivity.this, LieuActivity.class);
+                        startActivity(intent);
+
+                        ret = true;
+                        break;
+
+                    case R.id.nav_types:
+                        intent = new Intent(MainActivity.this, TypesActivity.class);
+                        startActivity(intent);
+
+                        ret = true;
+                        break;
+
+                    case R.id.nav_pref:
+                        intent = new Intent(MainActivity.this, ParametresActivity.class);
+                        startActivity(intent);
+
+                        ret = true;
+                        break;
+                }
+
+                // Fermeture !
+                if (ret) m_drawerLayout.closeDrawers();
+
+                return ret;
+            }
+        });
+    }
     private void setupBottomSheet() {
         // Récupération des éléments
         m_bottomSheet = findViewById(R.id.nested_bottom_view);
         m_bottomSheetBehavior = BottomSheetBehavior.from(m_bottomSheet);
     }
-    private void setupLocation() {
-        // Récupération observer
-        m_locationObserver = new LocationObserver(this, getLifecycle());
-        getLifecycle().addObserver(m_locationObserver);
 
-        // Récupération location
+    // - source de données
+    private void setupSource() {
+        // Model
+        m_lieuxModel = ViewModelProviders.of(this).get(LieuxModel.class);
+
+        // Récupération des sources
+        m_lieuxSource    = m_lieuxModel.getLieuxSource(this);
+        m_positionSource = m_lieuxSource.getPositionSource();
+
+        // Recherche
+        String query = m_lieuxSource.getQuery();
+        if (query != null) {
+            setupRecherche();
+            m_searchView.setQuery(query, false);
+        }
+
+        // Récupération position
         if (m_live_location == null) {
-            m_live_location = m_locationObserver.getLocation();
+            m_live_location = m_positionSource.getLocation();
             m_live_location.observe(this, new Observer<Location>() {
                 @Override
                 public void onChanged(@Nullable Location location) {
@@ -658,6 +583,18 @@ public class MainActivity extends AppCompatActivity
                 }
             });
         }
+
+        // Status rafraîchissement
+        LiveData<Boolean> refreshing = m_lieuxSource.isRefreshing();
+        refreshing.observe(this, new Observer<Boolean>() {
+            @Override
+            public void onChanged(@Nullable Boolean refreshing) {
+                if (refreshing == null) return;
+
+                // Animation
+                m_resultatFragment.setRefreshing(refreshing);
+            }
+        });
     }
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
@@ -711,91 +648,5 @@ public class MainActivity extends AppCompatActivity
 
         // start the animation
         anim.start();
-    }
-
-    // Requêtes
-    class LieuxRequete extends JsonArrayRequest {
-        private LieuxRequete(String url) {
-            super(url, new LieuxListener(), new Response.ErrorListener() {
-                @Override
-                public void onErrorResponse(VolleyError error) {
-                    Log.w(TAG, error.toString());
-
-                    // Message d'erreur
-                    m_resultatFragment.setRefreshing(false);
-                }
-            });
-
-            setTag(TAG);
-        }
-
-        public LieuxRequete(Location location, int rayon) {
-            this(String.format(Locale.US, getString(R.string.url_lieux),
-                    getString(R.string.serveur),
-                    location.getLongitude(), location.getLatitude(),
-                    rayon
-            ));
-        }
-
-        public LieuxRequete(Location location, int rayon, String query) throws UnsupportedEncodingException {
-            this(String.format(Locale.US, getString(R.string.url_rechr),
-                    getString(R.string.serveur),
-                    location.getLongitude(), location.getLatitude(),
-                    rayon, URLEncoder.encode(query, "UTF-8"), query.length() / 2
-            ));
-        }
-    }
-    class LieuxListener implements Response.Listener<JSONArray> {
-        @Override
-        public void onResponse(JSONArray reponse) {
-            // Vidage
-            m_filtresModel.vider();
-
-            // Cas de la réponse vide :
-            if (reponse.length() == 0) {
-                m_resultatFragment.setRefreshing(false);
-                return;
-            }
-
-            // Traitement
-            Long[] ids = new Long[reponse.length()];
-
-            // Récupération des IDs
-            for (int i = 0; i < reponse.length(); ++i) {
-                try {
-                    ids[i] = reponse.getLong(i);
-
-                } catch (JSONException err) {
-                    ids[i] = null;
-                    Log.e(TAG, "Erreur JSON lieux", err);
-                }
-            }
-
-            // Récupération des lieux
-            m_resultatFragment.initCompteur(ids.length);
-
-            for (Long id : ids) {
-                // Cas spéciaux
-                if (id == null) {
-                    m_resultatFragment.decrementer();
-                    continue;
-                }
-
-                // Récupération du suivant !
-                final LiveData<Lieu> liveData = m_lieuxModel.recup(id);
-                liveData.observe(MainActivity.this, new Observer<Lieu>() {
-                    @Override
-                    public void onChanged(@Nullable Lieu lieu) {
-                        m_resultatFragment.decrementer();
-
-                        if (lieu != null) {
-                            m_filtresModel.ajouterLieu(lieu);
-
-                            liveData.removeObserver(this);
-                        }
-                    }
-                });
-            }
-        }
     }
 }

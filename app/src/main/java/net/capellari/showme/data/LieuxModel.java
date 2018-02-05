@@ -4,6 +4,8 @@ import android.app.Application;
 import android.arch.lifecycle.AndroidViewModel;
 import android.arch.lifecycle.LiveData;
 import android.support.annotation.NonNull;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentActivity;
 import android.util.LongSparseArray;
 
 import net.capellari.showme.db.AppDatabase;
@@ -26,6 +28,7 @@ public class LieuxModel extends AndroidViewModel {
     private LongSparseArray<LiveData<List<TypeBase>>> m_cacheTypes = new LongSparseArray<>();
 
     private AppDatabase m_db;
+    private LieuxSource m_lieuxSource;
 
     // Constructeur
     public LieuxModel(@NonNull Application application) {
@@ -39,6 +42,11 @@ public class LieuxModel extends AndroidViewModel {
     @Override
     protected void onCleared() {
         m_db.close();
+
+        // DESTRUCTION !!! Ouais !
+        if (m_lieuxSource != null) {
+            m_lieuxSource.onDestroy();
+        }
     }
 
     // Méthodes
@@ -65,5 +73,24 @@ public class LieuxModel extends AndroidViewModel {
         }
 
         return types;
+    }
+
+    public synchronized LieuxSource getLieuxSource(Fragment fragment) {
+        // Initialisation !
+        if (m_lieuxSource == null) {
+            m_lieuxSource = new LieuxSource(fragment);
+            fragment.getLifecycle().addObserver(m_lieuxSource);
+        }
+
+        return m_lieuxSource;
+    }
+    public synchronized LieuxSource getLieuxSource(FragmentActivity activity) {
+        // Initialisation !
+        if (m_lieuxSource == null) {
+            m_lieuxSource = new LieuxSource(activity);
+            activity.getLifecycle().addObserver(m_lieuxSource);
+        }
+
+        return m_lieuxSource;
     }
 }

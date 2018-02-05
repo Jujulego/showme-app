@@ -33,9 +33,9 @@ import net.capellari.showme.R;
  * Gestion des mise à jour position
  */
 
-public class LocationObserver implements LifecycleObserver, LocationSource, SharedPreferences.OnSharedPreferenceChangeListener {
+public class PositionSource implements LifecycleObserver, LocationSource, SharedPreferences.OnSharedPreferenceChangeListener {
     // Constante
-    private static final String TAG = "LocationObserver";
+    private static final String TAG = "PositionSource";
     private static final float  DISTANCE_MINIMUM = 5; // metres
 
     public static final int REQUEST_PERMISSION = 100;
@@ -55,7 +55,7 @@ public class LocationObserver implements LifecycleObserver, LocationSource, Shar
     private MutableLiveData<Location> m_live_location = new MutableLiveData<>();
 
     // Constructeur
-    public LocationObserver(Context context, Lifecycle lifecycle) {
+    public PositionSource(Context context, Lifecycle lifecycle) {
         m_context = context;
         m_lifecycle = lifecycle;
 

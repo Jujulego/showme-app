@@ -21,7 +21,7 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonArrayRequest;
 
-import net.capellari.showme.data.LocationObserver;
+import net.capellari.showme.data.PositionSource;
 import net.capellari.showme.data.RequeteManager;
 
 import org.json.JSONArray;
@@ -50,7 +50,7 @@ public class NombreService extends LifecycleService {
     private NotificationManager m_notifManager;
 
     private LiveData<Location> m_live_location;
-    private LocationObserver m_locationObserver;
+    private PositionSource m_positionSource;
 
     // Events
     @Override
@@ -61,8 +61,8 @@ public class NombreService extends LifecycleService {
         m_preferences = PreferenceManager.getDefaultSharedPreferences(this);
 
         // Init Location
-        m_locationObserver = new LocationObserver(this, getLifecycle());
-        getLifecycle().addObserver(m_locationObserver);
+        m_positionSource = new PositionSource(this, getLifecycle());
+        getLifecycle().addObserver(m_positionSource);
 
         // Initialisation gestion des requetes
         m_requeteManager = RequeteManager.getInstance(this.getApplicationContext());
@@ -99,7 +99,7 @@ public class NombreService extends LifecycleService {
     // Méthodes
     private void setup() {
         // Test
-        if (m_locationObserver.checkLocationPermission()) {
+        if (m_positionSource.checkLocationPermission()) {
             // Notification !
             Intent notifIntent = new Intent(this, MainActivity.class);
             PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notifIntent, 0);
@@ -120,7 +120,7 @@ public class NombreService extends LifecycleService {
 
             // Requêtes
             if (m_live_location == null) {
-                m_live_location = m_locationObserver.getLocation();
+                m_live_location = m_positionSource.getLocation();
                 m_live_location.observe(this, new Observer<Location>() {
                     @Override
                     public void onChanged(@Nullable Location location) {
