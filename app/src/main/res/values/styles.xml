@@ -7,8 +7,8 @@
         <item name="colorAccent">@color/colorAccent</item>
 
         <!-- Texte -->
-        <item name="android:textColor">@color/couleur_police</item>
         <item name="android:textSize">@dimen/moyenne_police</item>
+        <item name="android:textColor">@color/police</item>
 
         <!-- Préférences -->
         <item name="preferenceTheme">@style/AppTheme.PreferenceThemeOverlay</item>
@@ -22,8 +22,8 @@
         <item name="colorAccent">@color/colorAccent</item>
 
         <!-- Texte -->
-        <item name="android:textColor">@color/couleur_police</item>
         <item name="android:textSize">@dimen/moyenne_police</item>
+        <item name="android:textColor">@color/police</item>
 
         <!-- Préférences -->
         <item name="preferenceTheme">@style/AppTheme.PreferenceThemeOverlay</item>

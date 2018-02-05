@@ -12,6 +12,7 @@ import android.support.v4.app.Fragment;
 import android.support.v7.util.DiffUtil;
 import android.support.v7.widget.RecyclerView;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.MenuInflater;
@@ -139,6 +140,25 @@ public class SelectTypeFragment extends Fragment {
         // header
         menu.setHeaderIcon(R.drawable.ic_filter_list_black_24dp);
         menu.setHeaderTitle(R.string.menu_select_title);
+
+        // Désactive les options inutiles
+        boolean tout_actif = true;
+        boolean rien_actif = true;
+
+        for (TypeBase type : m_types) {
+            tout_actif &=  m_lieuxModel.getFiltreType(type._id);
+            rien_actif &= !m_lieuxModel.getFiltreType(type._id);
+        }
+
+        // Récupération de l'option
+        MenuItem item = null;
+        if (tout_actif) item = menu.findItem(R.id.menu_select);
+        if (rien_actif) item = menu.findItem(R.id.menu_deselect);
+
+        // Désactivation
+        if (item != null) {
+            item.setEnabled(false);
+        }
     }
 
     @Override

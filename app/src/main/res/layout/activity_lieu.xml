@@ -42,9 +42,9 @@
 
                 style="@style/AppTheme.RatingBar"
                 android:progressDrawable="@drawable/ratingbar"
-                android:progressTint="@color/couleur_ratingbar"
-                android:secondaryProgressTint="@color/couleur_ratingbar"
-                android:progressBackgroundTint="@color/couleur_ratingbar"
+                android:progressTint="@color/ratingbar"
+                android:secondaryProgressTint="@color/ratingbar"
+                android:progressBackgroundTint="@color/ratingbar"
 
                 android:isIndicator="true"
                 android:numStars="5"

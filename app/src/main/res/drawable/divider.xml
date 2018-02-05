@@ -6,7 +6,7 @@
 
         <shape>
             <size android:height="1dp"/>
-            <solid android:color="@color/couleur_divider" />
+            <solid android:color="@color/divider" />
         </shape>
     </item>
 </layer-list>

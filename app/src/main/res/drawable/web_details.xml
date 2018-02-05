@@ -3,7 +3,7 @@
     <item android:state_enabled="false">
         <bitmap
             android:src="@drawable/ic_public_black_24dp"
-            android:tint="@color/couleur_icone"/>
+            android:tint="@color/icone"/>
     </item>
     <item>
         <bitmap
