@@ -11,7 +11,7 @@ import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 
-import net.capellari.showme.data.FiltresModel;
+import net.capellari.showme.data.LieuxModel;
 
 /**
  * Created by julien on 02/02/18.
@@ -26,7 +26,7 @@ public class FiltresFragment extends Fragment {
     // Attributs
     private CheckBox m_filtrerTypes;
 
-    private FiltresModel m_filtresModel;
+    private LieuxModel m_lieuxModel;
 
     // Events
     @Override
@@ -34,7 +34,7 @@ public class FiltresFragment extends Fragment {
         super.onCreate(savedInstanceState);
 
         // Récupération du model
-        m_filtresModel = ViewModelProviders.of(getActivity()).get(FiltresModel.class);
+        m_lieuxModel = ViewModelProviders.of(getActivity()).get(LieuxModel.class);
     }
 
     @Nullable @Override
@@ -46,7 +46,7 @@ public class FiltresFragment extends Fragment {
         m_filtrerTypes.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                m_filtresModel.setFiltreParam(isChecked);
+                m_lieuxModel.setFiltreParam(isChecked);
             }
         });
 

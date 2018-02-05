@@ -8,14 +8,11 @@ import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.MutableLiveData;
 import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.OnLifecycleEvent;
-import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.location.Location;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentActivity;
 import android.support.v7.preference.PreferenceManager;
 import android.util.Log;
 
@@ -52,7 +49,6 @@ public class LieuxSource implements LifecycleOwner, LifecycleObserver {
     private SharedPreferences m_preferences;
 
     private LieuxModel m_lieuxModel;
-    private FiltresModel m_filtresModel;
 
     private int m_compteur = 0;
     private String m_query = null;
@@ -62,8 +58,9 @@ public class LieuxSource implements LifecycleOwner, LifecycleObserver {
     private MutableLiveData<Boolean> m_live_refreshing = new MutableLiveData<>();
 
     // Constructeur
-    private LieuxSource(Context context) {
+    public LieuxSource(Context context, LieuxModel lieuxModel) {
         m_context = context;
+        m_lieuxModel = lieuxModel;
 
         // Init lifecycle
         m_lifecycle = new LifecycleRegistry(this);
@@ -78,20 +75,6 @@ public class LieuxSource implements LifecycleOwner, LifecycleObserver {
 
         // Init requête
         m_requeteManager = RequeteManager.getInstance(m_context);
-    }
-    public LieuxSource(Fragment fragment) {
-        this(fragment.getContext());
-
-        // Récupération des models
-        m_lieuxModel   = ViewModelProviders.of(fragment).get(LieuxModel.class);
-        m_filtresModel = ViewModelProviders.of(fragment).get(FiltresModel.class);
-    }
-    public LieuxSource(FragmentActivity activity) {
-        this((Context) activity);
-
-        // Récupération des models
-        m_lieuxModel   = ViewModelProviders.of(activity).get(LieuxModel.class);
-        m_filtresModel = ViewModelProviders.of(activity).get(FiltresModel.class);
     }
 
     // Events
@@ -239,7 +222,7 @@ public class LieuxSource implements LifecycleOwner, LifecycleObserver {
         @Override
         public void onResponse(JSONArray reponse) {
             // Vidage
-            m_filtresModel.vider();
+            m_lieuxModel.vider();
 
             // Cas de la réponse vide :
             if (reponse.length() == 0) {
@@ -279,7 +262,7 @@ public class LieuxSource implements LifecycleOwner, LifecycleObserver {
                         decrementer();
 
                         if (lieu != null) {
-                            m_filtresModel.ajouterLieu(lieu);
+                            m_lieuxModel.ajouterLieu(lieu);
                             liveData.removeObserver(this);
                         }
                     }

@@ -21,7 +21,7 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
-import net.capellari.showme.data.FiltresModel;
+import net.capellari.showme.data.LieuxModel;
 import net.capellari.showme.data.PositionSource;
 import net.capellari.showme.db.Lieu;
 
@@ -42,7 +42,7 @@ public class CarteFragment extends Fragment implements OnMapReadyCallback, Googl
     private LiveData<Location> m_location;
     private PositionSource m_positionSource;
 
-    private FiltresModel m_filtresModel;
+    private LieuxModel m_lieuxModel;
     private LiveData<List<Lieu>> m_lieux;
 
     private OnCarteEventListener m_listener;
@@ -52,17 +52,17 @@ public class CarteFragment extends Fragment implements OnMapReadyCallback, Googl
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // Init location
-        m_positionSource = new PositionSource(getContext(), getLifecycle());
-        getLifecycle().addObserver(m_positionSource);
+        // Récupération du model
+        m_lieuxModel = ViewModelProviders.of(getActivity()).get(LieuxModel.class);
+
+        // Récupération position
+        m_positionSource = m_lieuxModel.getPositionSource(getActivity());
 
         m_location = m_positionSource.getLocation();
         m_location.observe(this, new LocationObs());
 
-        // Récupération du FiltreModel
-        m_filtresModel = ViewModelProviders.of(getActivity()).get(FiltresModel.class);
-
-        m_lieux = m_filtresModel.recupLieux();
+        // Récupération des lieux
+        m_lieux = m_lieuxModel.recupLieux();
         m_lieux.observe(this, new LieuxObs());
     }
 
@@ -118,7 +118,7 @@ public class CarteFragment extends Fragment implements OnMapReadyCallback, Googl
         }
 
         // Ajout des marqueurs
-        m_filtresModel.maj_ui();
+        m_lieuxModel.maj_ui();
 
         // Transmission de l'event
         if (m_listener != null) m_listener.onMapReady(map);

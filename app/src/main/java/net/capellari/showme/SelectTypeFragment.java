@@ -24,7 +24,7 @@ import android.widget.TextView;
 
 import net.capellari.showme.db.TypeBase;
 import net.capellari.showme.data.DiffType;
-import net.capellari.showme.data.FiltresModel;
+import net.capellari.showme.data.LieuxModel;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -50,7 +50,7 @@ public class SelectTypeFragment extends Fragment {
     private boolean m_actif = false;
     private OnSelectTypeListener m_listener;
 
-    private FiltresModel m_filtresModel;
+    private LieuxModel m_lieuxModel;
     private LiveData<List<TypeBase>> m_liveTypes;
     protected List<TypeBase> m_types = new ArrayList<>();
 
@@ -60,7 +60,7 @@ public class SelectTypeFragment extends Fragment {
         super.onCreate(savedInstanceState);
 
         // Récupération du model
-        m_filtresModel = ViewModelProviders.of(getActivity()).get(FiltresModel.class);
+        m_lieuxModel = ViewModelProviders.of(getActivity()).get(LieuxModel.class);
     }
 
     @Override
@@ -89,7 +89,7 @@ public class SelectTypeFragment extends Fragment {
         m_listeIcone.setAdapter(m_iconeAdapter);
 
         // Récupération des types
-        m_liveTypes = m_filtresModel.recupTypes();
+        m_liveTypes = m_lieuxModel.recupTypes();
         m_liveTypes.observe(this, new Observer<List<TypeBase>>() {
             @Override
             public void onChanged(@Nullable List<TypeBase> types) {
@@ -183,7 +183,7 @@ public class SelectTypeFragment extends Fragment {
 
     private void selectType(TypeBase type) {
         // chg de status
-        m_filtresModel.setFiltreType(type._id, true);
+        m_lieuxModel.setFiltreType(type._id, true);
 
         // Maj UI
         int pos = m_types.indexOf(type);
@@ -197,7 +197,7 @@ public class SelectTypeFragment extends Fragment {
     }
     private void unSelectType(TypeBase type) {
         // chg de status
-        m_filtresModel.setFiltreType(type._id, false);
+        m_lieuxModel.setFiltreType(type._id, false);
 
         // Maj UI
         int pos = m_types.indexOf(type);
@@ -268,7 +268,7 @@ public class SelectTypeFragment extends Fragment {
 
             // Remplissage
             m_nom.setText(type.nom);
-            m_nom.setSelected(!m_actif || m_filtresModel.getFiltreType(type._id));
+            m_nom.setSelected(!m_actif || m_lieuxModel.getFiltreType(type._id));
             m_nom.setCompoundDrawablesRelativeWithIntrinsicBounds(
                     TypeBase.getIconRessource((int) type._id),
                     0, 0,0
@@ -294,7 +294,7 @@ public class SelectTypeFragment extends Fragment {
             m_type = type;
 
             // Remplissage
-            m_icone.setSelected(!m_actif || m_filtresModel.getFiltreType(type._id));
+            m_icone.setSelected(!m_actif || m_lieuxModel.getFiltreType(type._id));
             m_icone.setImageDrawable(TypeBase.getIcone(getContext(), (int) type._id));
         }
     }

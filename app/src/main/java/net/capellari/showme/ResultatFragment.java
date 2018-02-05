@@ -3,7 +3,6 @@ package net.capellari.showme;
 import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
-import android.content.Context;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -21,9 +20,9 @@ import android.view.ViewGroup;
 import android.widget.RatingBar;
 import android.widget.TextView;
 
+import net.capellari.showme.data.LieuxModel;
 import net.capellari.showme.db.Lieu;
 import net.capellari.showme.data.DiffLieu;
-import net.capellari.showme.data.FiltresModel;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -52,8 +51,8 @@ public class ResultatFragment extends Fragment {
     private int m_compteur = 0; // inversé : mis au max puis réduit jusqu'à 0 => plein !
     private LieuAdapter m_adapter = new LieuAdapter();
 
-    private FiltresModel m_filtresModel;
-    private LiveData<List<Lieu>> m_livedata;
+    private LieuxModel m_lieuxModel;
+    private LiveData<List<Lieu>> m_live_lieux;
 
     // Events
     @Override
@@ -64,10 +63,10 @@ public class ResultatFragment extends Fragment {
         setHasOptionsMenu(true);
 
         // Récupération du model
-        m_filtresModel = ViewModelProviders.of(getActivity()).get(FiltresModel.class);
+        m_lieuxModel = ViewModelProviders.of(getActivity()).get(LieuxModel.class);
 
-        m_livedata = m_filtresModel.recupLieux();
-        m_livedata.observe(this, new Observer<List<Lieu>>() {
+        m_live_lieux = m_lieuxModel.recupLieux();
+        m_live_lieux.observe(this, new Observer<List<Lieu>>() {
             @Override
             public void onChanged(@Nullable List<Lieu> lieux) {
                 m_adapter.setLieux(lieux);
@@ -121,7 +120,7 @@ public class ResultatFragment extends Fragment {
         super.onDestroy();
 
         // Arret reception maj
-        m_livedata.removeObservers(this);
+        m_live_lieux.removeObservers(this);
     }
 
     // Menu

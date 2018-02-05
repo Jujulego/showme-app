@@ -45,12 +45,12 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.google.android.gms.maps.GoogleMap;
 
+import net.capellari.showme.data.LieuxModel;
 import net.capellari.showme.data.LieuxSource;
 import net.capellari.showme.data.PositionSource;
 import net.capellari.showme.db.AppDatabase;
 import net.capellari.showme.db.Lieu;
 import net.capellari.showme.db.Type;
-import net.capellari.showme.data.LieuxModel;
 import net.capellari.showme.data.RequeteManager;
 
 import org.json.JSONArray;
@@ -344,7 +344,7 @@ public class MainActivity extends AppCompatActivity
     // - status
     private void setupAccueil() {
         // Vidage m_query
-        m_lieuxModel.getLieuxSource(this).setQuery(null);
+        m_lieuxSource.setQuery(null);
     }
     private void setupRecherche() {
         // Gestion du drawer et du searchView
