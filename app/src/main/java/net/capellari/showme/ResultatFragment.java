@@ -75,17 +75,6 @@ public class ResultatFragment extends Fragment {
         });
     }
 
-    @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
-
-        // Listener !
-        m_listener = null;
-        if (context instanceof OnResultatListener) {
-            m_listener = (OnResultatListener) context;
-        }
-    }
-
     @Nullable @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         // Infalte !
@@ -111,6 +100,23 @@ public class ResultatFragment extends Fragment {
     }
 
     @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+
+        // Vidage
+        m_liste = null;
+        m_swipeRefresh = null;
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+
+        // Vidage
+        m_listener = null;
+    }
+
+    @Override
     public void onDestroy() {
         super.onDestroy();
 
@@ -133,6 +139,9 @@ public class ResultatFragment extends Fragment {
     // Méthodes
     public void setRefreshMenuItem(@SuppressWarnings("SameParameterValue") int id) {
         m_refreshMenuItem = id;
+    }
+    public void setOnResultatListener(OnResultatListener listener) {
+        m_listener = listener;
     }
 
     public void setRefreshing(boolean refresh) {

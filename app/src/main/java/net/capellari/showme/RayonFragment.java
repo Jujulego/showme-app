@@ -13,8 +13,6 @@ import android.view.ViewGroup;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
-import java.util.Locale;
-
 /**
  * Created by julien on 03/01/18.
  *
@@ -35,7 +33,8 @@ public class RayonFragment extends Fragment {
     private int m_attr_min   = 0;
     private int m_attr_rayon = 0;
 
-    private OnRayonChangeListener m_listener;
+    private boolean m_pret = false;
+    private OnRayonListener m_listener;
 
     // Events
     @Override
@@ -55,19 +54,7 @@ public class RayonFragment extends Fragment {
         }
     }
 
-    @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
-
-        try {
-            m_listener = (OnRayonChangeListener) context;
-        } catch (ClassCastException err) {
-            throw new ClassCastException(context.toString() + " must implement OnRayonChangeListener");
-        }
-    }
-
-    @Nullable
-    @Override
+    @Nullable @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_rayon, container, false);
 
@@ -94,7 +81,7 @@ public class RayonFragment extends Fragment {
         });
 
         // Maj valeurs
-        OnRayonChangeListener listener = m_listener;
+        OnRayonListener listener = m_listener;
         m_listener = null;
 
         set_fact( m_attr_fact);
@@ -102,8 +89,9 @@ public class RayonFragment extends Fragment {
         set_min(  m_attr_min);
         set_rayon(m_attr_rayon);
 
+        m_pret = true;
         m_listener = listener;
-        listener.onRayonReady();
+        if (m_listener != null) m_listener.onRayonReady();
 
         return view;
     }
@@ -115,6 +103,7 @@ public class RayonFragment extends Fragment {
         // Vidage
         m_seek_bar = null;
         m_valeur   = null;
+        m_pret = false;
     }
 
     @Override
@@ -133,25 +122,6 @@ public class RayonFragment extends Fragment {
 
         return progress * m_fact + m_min;
     }
-
-    @SuppressWarnings("unused")
-    public int get_fact() {
-        if (m_seek_bar == null) return m_attr_fact;
-        return m_fact;
-    }
-
-    @SuppressWarnings("unused")
-    public int get_min() {
-        if (m_seek_bar == null) return m_attr_min;
-        return m_min;
-    }
-
-    @SuppressWarnings("unused")
-    public int get_max() {
-        if (m_seek_bar == null) return m_attr_max;
-        return m_max;
-    }
-
     public void set_rayon(int rayon) {
         if (m_seek_bar == null) {
             m_attr_rayon = rayon;
@@ -167,6 +137,11 @@ public class RayonFragment extends Fragment {
         if (m_listener != null) m_listener.onRayonChange(get_rayon(), false);
     }
 
+    @SuppressWarnings("unused")
+    public int get_max() {
+        if (m_seek_bar == null) return m_attr_max;
+        return m_max;
+    }
     public void set_max(int max) {
         if (m_seek_bar == null) {
             m_attr_max = max;
@@ -181,6 +156,11 @@ public class RayonFragment extends Fragment {
         m_seek_bar.setMax((m_max - m_min) / m_fact);
     }
 
+    @SuppressWarnings("unused")
+    public int get_min() {
+        if (m_seek_bar == null) return m_attr_min;
+        return m_min;
+    }
     public void set_min(int min) {
         if (m_seek_bar == null) {
             m_attr_min = min;
@@ -197,6 +177,11 @@ public class RayonFragment extends Fragment {
         set_rayon(rayon < min ? min : rayon);
     }
 
+    @SuppressWarnings("unused")
+    public int get_fact() {
+        if (m_seek_bar == null) return m_attr_fact;
+        return m_fact;
+    }
     public void set_fact(int fact) {
         if (m_seek_bar == null) {
             m_attr_fact = fact;
@@ -218,8 +203,13 @@ public class RayonFragment extends Fragment {
         }
     }
 
+    public void setOnRayonListener(OnRayonListener listener) {
+        m_listener = listener;
+        if (m_pret) listener.onRayonReady();
+    }
+
     // Interface
-    interface OnRayonChangeListener {
+    interface OnRayonListener {
         void onRayonReady();
         void onRayonChange(int rayon, boolean user);
     }

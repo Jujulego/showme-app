@@ -23,7 +23,7 @@ import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
 import android.support.design.widget.BottomSheetBehavior;
 import android.support.design.widget.NavigationView;
-import android.support.v4.app.FragmentTransaction;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v4.widget.NestedScrollView;
 import android.support.v7.app.ActionBar;
@@ -44,11 +44,7 @@ import android.widget.ImageView;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonArrayRequest;
-import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.CameraPosition;
-import com.google.android.gms.maps.model.LatLng;
 
 import net.capellari.showme.data.LocationObserver;
 import net.capellari.showme.db.AppDatabase;
@@ -66,7 +62,8 @@ import java.net.URLEncoder;
 import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity
-        implements RayonFragment.OnRayonChangeListener,
+        implements CarteFragment.OnCarteEventListener,
+                   RayonFragment.OnRayonListener,
                    ResultatFragment.OnResultatListener,
                    SharedPreferences.OnSharedPreferenceChangeListener {
 
@@ -74,49 +71,44 @@ public class MainActivity extends AppCompatActivity
     private static final int SEARCH_ICON_POS   = 2;     // Position de la loupe dans la toolbar, depuis la droite
     private static final boolean MENU_OVERFLOW = false; // Les 3 points dans la toolbar
 
-    private static final String STATUS = "showme.STATUS";
-    private static final String TAG    = "MainActivity";
-
-    private static final String CARTE_TAG    = "carte";
-    private static final String RESULTAT_TAG = "resultat";
-    private static final String RAYON_TAG    = "rayon";
-    private static final String FILTRES_TAG  = "filtres";
-
-    // Enumération
-    enum Status {
-        VIDE, ACCUEIL, RECHERCHE
-    }
+    private static final String QUERY = "showme.QUERY";
+    private static final String TAG   = "MainActivity";
 
     // Attributs
+    private String m_query = null;
+
+    // - toolbar
     private Toolbar m_toolbar;
     private Toolbar m_searchBar;
     private SearchView m_searchView;
     private MenuItem m_searchMenuItem;
 
-    private NestedScrollView m_bottomSheet;
-    private BottomSheetBehavior m_bottomSheetBehavior;
-
-    private DrawerLayout m_drawerLayout;
-    private ActionBarDrawerToggle m_drawerToggle;
-
-    private LiveData<Location> m_live_location;
-    private LocationObserver m_locationObserver;
-
-    private Status m_status = Status.VIDE;
-
+    // - fragments
     private CarteFragment m_carteFragment;
     private ResultatFragment m_resultatFragment;
     private RayonFragment m_rayonFragment;
     private FiltresFragment m_filtresFragment;
 
+    // - bottom sheet
+    private NestedScrollView m_bottomSheet;
+    private BottomSheetBehavior m_bottomSheetBehavior;
+
+    // - drawer
+    private DrawerLayout m_drawerLayout;
+    private ActionBarDrawerToggle m_drawerToggle;
+
+    // - position
+    private LiveData<Location> m_live_location;
+    private LocationObserver m_locationObserver;
+
+    // - models
     private LieuxModel m_lieuxModel;
     private FiltresModel m_filtresModel;
 
+    // - outils
     private AppDatabase m_db;
     private RequeteManager m_requeteManager;
     private SharedPreferences m_preferences;
-
-    private String m_query = null;
 
     // Events
     @Override
@@ -127,55 +119,37 @@ public class MainActivity extends AppCompatActivity
         m_preferences = PreferenceManager.getDefaultSharedPreferences(this);
         m_preferences.registerOnSharedPreferenceChangeListener(this);
 
-        // Chargement DB
-        m_db = AppDatabase.getInstance(this);
-
         // Models
         m_lieuxModel  = ViewModelProviders.of(this).get(LieuxModel.class);
         m_filtresModel = ViewModelProviders.of(this).get(FiltresModel.class);
 
-        // Initialisation gestion des requetes
+        // Ouverture DB
+        m_db = AppDatabase.getInstance(this);
+
+        // Gestion des requêtes
         m_requeteManager = RequeteManager.getInstance(this.getApplicationContext());
         getTypes();
 
-        // Ajout du layout
-        setContentView(R.layout.activity_main);
-        setupDrawer();
-        setupBottomSheet();
-
-        // Préparation des maj location
+        // Préparation des maj position
         setupLocation();
 
         // Préparations et affichage de l'accueil
-        if (savedInstanceState != null) { // Ne rien faire en cas de restoration
+        if (savedInstanceState != null) {
             // Récupération de l'état
-            m_status = Status.valueOf(savedInstanceState.getString(STATUS));
-
-            // Récupération des fragments
-            m_carteFragment    = (CarteFragment)    getSupportFragmentManager().findFragmentByTag(CARTE_TAG);
-            m_resultatFragment = (ResultatFragment) getSupportFragmentManager().findFragmentByTag(RESULTAT_TAG);
-            m_rayonFragment    = (RayonFragment)    getSupportFragmentManager().findFragmentByTag(RAYON_TAG);
-            m_filtresFragment  = (FiltresFragment)  getSupportFragmentManager().findFragmentByTag(FILTRES_TAG);
+            m_query = savedInstanceState.getString(QUERY);
         }
 
-        // Complète les fragments manquants
-        prepareFragments();
-
-        if (savedInstanceState == null) setupAccueil(); // Ne rien faire en cas de restoration
+        // Inflate !
+        setContentView(R.layout.activity_main);
 
         // Mise en place de la toolbar
         setupToolbar();
         setupSearchbar();
-    }
 
-    @Override
-    protected void onRestoreInstanceState(Bundle savedInstanceState) {
-        super.onRestoreInstanceState(savedInstanceState);
-
-        // Restauration de l'état recherche
-        if (m_status == Status.RECHERCHE) {
-            setupRecherche();
-        }
+        // Préparation
+        setupFragments();
+        setupDrawer();
+        setupBottomSheet();
     }
 
     @Override
@@ -202,14 +176,6 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-
-        // Enregistrement du status
-        outState.putString(STATUS, m_status.name());
-    }
-
-    @Override
     protected void onStop() {
         super.onStop();
 
@@ -217,7 +183,27 @@ public class MainActivity extends AppCompatActivity
         m_requeteManager.getRequestQueue().cancelAll(TAG);
     }
 
-    // Permission
+    // Statut
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+
+        // Restauration de l'état recherche
+        if (m_query != null) {
+            setupRecherche();
+            m_searchView.setQuery(m_query, true);
+        }
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+
+        // Enregistrement du status
+        outState.putString(QUERY, m_query);
+    }
+
+    // Permissions
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         // Transmission à l'observer
@@ -248,6 +234,17 @@ public class MainActivity extends AppCompatActivity
 
         // Action par défaut
         return super.onOptionsItemSelected(item);
+    }
+
+    // Carte
+    @Override
+    public void onMapReady(@NonNull GoogleMap map) {
+
+    }
+
+    @Override
+    public void onMarkerClick(@NonNull Lieu lieu) {
+        onLieuClick(lieu);
     }
 
     // Rayon
@@ -300,9 +297,6 @@ public class MainActivity extends AppCompatActivity
 
     // Méthodes
     private void rechercher(final String query) {
-        // Gardien
-        if (m_status != Status.RECHERCHE) return;
-
         // Récupération de la postion
         Location location = m_locationObserver.getLastLocation();
 
@@ -323,9 +317,6 @@ public class MainActivity extends AppCompatActivity
         }
     }
     private void rafraichir() {
-        // Gardien
-        if (m_status != Status.ACCUEIL && m_status != Status.RECHERCHE) return;
-
         // Récupération de la position
         Location location = m_locationObserver.getLastLocation();
 
@@ -334,7 +325,7 @@ public class MainActivity extends AppCompatActivity
             m_resultatFragment.setRefreshing(true);
             m_bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
 
-            if (m_status == Status.RECHERCHE && m_query != null) {
+            if (m_query != null) {
                 getLieux(location, m_rayonFragment.get_rayon(), m_query);
             } else {
                 getLieux(location, m_rayonFragment.get_rayon());
@@ -425,28 +416,21 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    private void prepareFragments() {
-        // Carte
-        if (m_carteFragment == null) {
-            m_carteFragment = new CarteFragment();
-        }
+    private void setupFragments() {
+        FragmentManager manager = getSupportFragmentManager();
 
-        // Résultat
-        if (m_resultatFragment == null) {
-            m_resultatFragment = new ResultatFragment();
-        }
+        // Récupération
+        m_carteFragment    = (CarteFragment)    manager.findFragmentById(R.id.carte);
+        m_resultatFragment = (ResultatFragment) manager.findFragmentById(R.id.resultat);
+        m_rayonFragment    = (RayonFragment)    manager.findFragmentById(R.id.rayon);
+        m_filtresFragment  = (FiltresFragment)  manager.findFragmentById(R.id.filtres);
 
+        // Paramétrages
         m_resultatFragment.setRefreshMenuItem(R.id.nav_refresh);
 
-        // Rayon
-        if (m_rayonFragment == null) {
-            m_rayonFragment = new RayonFragment();
-        }
-
-        // Filtres
-        if (m_filtresFragment == null) {
-            m_filtresFragment = new FiltresFragment();
-        }
+        m_carteFragment.setOnCarteEventListener(this);
+        m_resultatFragment.setOnResultatListener(this);
+        m_rayonFragment.setOnRayonListener(this);
     }
     private void gestionService() {
         boolean start = m_preferences.getBoolean(getString(R.string.pref_nombre), false);
@@ -464,50 +448,13 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void setupAccueil() {
-        // Gardien
-        if (m_status == Status.ACCUEIL) return;
-
-        // Evolution des fragments
-        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-
-        switch (m_status) {
-            case VIDE:
-                transaction.add(R.id.layout_central, m_resultatFragment, RESULTAT_TAG);
-                transaction.add(R.id.layout_carte,   m_carteFragment,    CARTE_TAG);
-                transaction.add(R.id.bottom_sheet,   m_rayonFragment,    RAYON_TAG);
-                transaction.add(R.id.bottom_sheet,   m_filtresFragment,  FILTRES_TAG);
-        }
-
-        transaction.commit();
-
-        // Chg de status
-        m_status = Status.ACCUEIL;
+        // Vidage m_query
+        m_query = null;
     }
     private void setupRecherche() {
-        // Gardien
-        if (m_status == Status.RECHERCHE) return;
-
         // Gestion du drawer et du searchView
         m_drawerLayout.closeDrawers();
         m_searchMenuItem.expandActionView();
-
-        // Evolution des fragments
-        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-
-        switch (m_status) {
-            case VIDE:
-                transaction.add(R.id.layout_central, m_resultatFragment, RESULTAT_TAG);
-                transaction.add(R.id.layout_carte,   m_carteFragment,    CARTE_TAG);
-                transaction.add(R.id.bottom_sheet,   m_rayonFragment,    RAYON_TAG);
-                transaction.add(R.id.bottom_sheet,   m_filtresFragment,  FILTRES_TAG);
-
-                break;
-        }
-
-        transaction.commit();
-
-        // Chg de status
-        m_status = Status.RECHERCHE;
     }
 
     private void setupDrawer() {
@@ -766,7 +713,7 @@ public class MainActivity extends AppCompatActivity
         anim.start();
     }
 
-    // Requetes
+    // Requêtes
     class LieuxRequete extends JsonArrayRequest {
         private LieuxRequete(String url) {
             super(url, new LieuxListener(), new Response.ErrorListener() {

@@ -54,7 +54,6 @@ public class LieuxModel extends AndroidViewModel {
 
         return lieu;
     }
-
     public LiveData<List<TypeBase>> recupTypes(long id) {
         // Check
         LiveData<List<TypeBase>> types = m_cacheTypes.get(id, null);

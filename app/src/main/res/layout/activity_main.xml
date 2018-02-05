@@ -30,7 +30,7 @@
         android:visibility="invisible"
 
         app:title="@string/app_name"
-        app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />
+        app:popupTheme="@style/AppTheme.PopupOverlay" />
 
     <!-- Drawer -->
     <android.support.v4.widget.DrawerLayout android:id="@+id/drawer_layout"
@@ -47,33 +47,29 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent">
 
-                <LinearLayout android:id="@+id/layout_full"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:orientation="vertical"
-
-                    app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintBottom_toBottomOf="parent" />
-
-                <FrameLayout android:id="@+id/layout_carte"
+                <fragment android:id="@+id/carte"
+                    android:name="net.capellari.showme.CarteFragment"
                     android:layout_width="match_parent"
                     android:layout_height="@dimen/taille_carte"
 
                     app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintBottom_toTopOf="@id/layout_central"  />
+                    app:layout_constraintBottom_toTopOf="@id/resultat"
 
-                <LinearLayout android:id="@+id/layout_central"
+                    tools:layout="@layout/dummy_map" />
+
+                <fragment android:id="@+id/resultat"
+                    android:name="net.capellari.showme.ResultatFragment"
                     android:layout_width="0dp"
                     android:layout_height="0dp"
                     android:layout_marginBottom="@dimen/bottom_sheet_peek_height"
                     android:orientation="vertical"
 
-                    app:layout_constraintTop_toBottomOf="@id/layout_carte"
+                    app:layout_constraintTop_toBottomOf="@id/carte"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintBottom_toBottomOf="parent" />
+                    app:layout_constraintBottom_toBottomOf="parent"
+
+                    tools:layout="@layout/fragment_resultat" />
 
             </android.support.constraint.ConstraintLayout>
 
@@ -96,7 +92,22 @@
                     android:orientation="vertical"
 
                     android:divider="@drawable/divider"
-                    android:showDividers="middle" />
+                    android:showDividers="middle">
+
+                    <fragment android:id="@+id/rayon"
+                        android:name="net.capellari.showme.RayonFragment"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+
+                        tools:layout="@layout/fragment_rayon"/>
+
+                    <fragment android:id="@+id/filtres"
+                        android:name="net.capellari.showme.FiltresFragment"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+
+                        tools:layout="@layout/fragment_filtres" />
+                </LinearLayout>
 
             </android.support.v4.widget.NestedScrollView>
         </android.support.design.widget.CoordinatorLayout>
