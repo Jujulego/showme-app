@@ -32,6 +32,11 @@
         <item name="drawerArrowStyle">@style/AppTheme.DrawerArrowStyle</item>
     </style>
 
+    <!-- SplashScreen -->
+    <style name="AppTheme.SplashScreen" parent="AppTheme.NoActionBar">
+        <item name="android:windowBackground">@drawable/splash_screen</item>
+    </style>
+
     <!-- Préférences -->
     <style name="AppTheme.PreferenceThemeOverlay" parent="PreferenceThemeOverlay">
         <item name="switchPreferenceCompatStyle">@style/Preference.SwitchPreferenceCompat</item>

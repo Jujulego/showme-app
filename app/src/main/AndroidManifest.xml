@@ -29,14 +29,17 @@
             android:value="@string/maps_api_key" />
 
         <!-- Activités -->
-        <activity android:name=".MainActivity"
-            android:theme="@style/AppTheme.NoActionBar">
+        <activity android:name=".SplashActivity"
+            android:theme="@style/AppTheme.SplashScreen">
 
             <!-- Démarage -->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+        </activity>
+        <activity android:name=".MainActivity"
+            android:theme="@style/AppTheme.NoActionBar">
 
             <!-- Recherche -->
             <intent-filter>
