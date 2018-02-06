@@ -18,6 +18,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import net.capellari.showme.data.DiffType;
+import net.capellari.showme.data.StringUtils;
 import net.capellari.showme.data.TypesModel;
 import net.capellari.showme.db.Type;
 import net.capellari.showme.db.TypeBase;
@@ -110,7 +111,7 @@ public class TypeAjoutFragment extends Fragment {
             m_type = type;
 
             // Remplissage
-            m_nom.setText(type.nom);
+            m_nom.setText(StringUtils.toTitle(type.nom));
             m_nom.setCompoundDrawablesRelativeWithIntrinsicBounds(
                     TypeBase.getIconRessource((int) type._id),
                     0, R.drawable.add_gris,0

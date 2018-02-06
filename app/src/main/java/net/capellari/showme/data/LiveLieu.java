@@ -14,6 +14,7 @@ import com.android.volley.toolbox.JsonObjectRequest;
 
 import net.capellari.showme.R;
 import net.capellari.showme.db.AppDatabase;
+import net.capellari.showme.db.Horaire;
 import net.capellari.showme.db.Lieu;
 import net.capellari.showme.db.TypeLieu;
 
@@ -128,6 +129,7 @@ public class LiveLieu extends LiveData<Lieu> {
         protected Lieu doInBackground(JSONObject... objets) {
             // Initialisation
             Lieu.LieuDAO dao = m_db.getLieuDAO();
+
             m_db.beginTransaction();
             Lieu lieu = null;
 
@@ -135,6 +137,15 @@ public class LiveLieu extends LiveData<Lieu> {
                 // Analyse lieux
                 lieu = new Lieu(m_context, objets[0]);
                 dao.ajouter(lieu);
+
+                // Horaires
+                JSONArray horaires = objets[0].getJSONArray("horaires");
+                Horaire h;
+
+                for (int i = 0; i < horaires.length(); ++i) {
+                    h = new Horaire(horaires.getJSONObject(i), lieu);
+                    dao.ajoutHoraire(h);
+                }
 
                 // Liens types
                 JSONArray types = objets[0].getJSONArray("types");

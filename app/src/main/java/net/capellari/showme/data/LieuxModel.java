@@ -16,6 +16,7 @@ import com.android.volley.toolbox.JsonArrayRequest;
 
 import net.capellari.showme.R;
 import net.capellari.showme.db.AppDatabase;
+import net.capellari.showme.db.Horaire;
 import net.capellari.showme.db.Lieu;
 import net.capellari.showme.db.ParamDatabase;
 import net.capellari.showme.db.Type;
@@ -46,6 +47,7 @@ public class LieuxModel extends AndroidViewModel {
     // - cache
     private LongSparseArray<LiveLieu> m_cacheLieu = new LongSparseArray<>();
     private LongSparseArray<LiveData<List<TypeBase>>> m_cacheTypes = new LongSparseArray<>();
+    private LongSparseArray<LiveData<List<Horaire>>> m_cacheHoraires = new LongSparseArray<>();
 
     // - filtres
     private boolean m_filtreParams = true;
@@ -117,7 +119,7 @@ public class LieuxModel extends AndroidViewModel {
     }
 
     // Méthodes
-    // - accès aux lieux
+    // - accès a un lieu
     public LiveData<Lieu> recup(long id) {
         // Check
         LiveLieu lieu = m_cacheLieu.get(id, null);
@@ -141,6 +143,18 @@ public class LieuxModel extends AndroidViewModel {
         }
 
         return types;
+    }
+    public LiveData<List<Horaire>> recupHoraires(long id) {
+        // Check
+        LiveData<List<Horaire>> horaires = m_cacheHoraires.get(id, null);
+
+        // Lancement si jamais lancé
+        if (horaires == null) {
+            horaires = m_appdb.getLieuDAO().selectLiveHoraires(id);
+            m_cacheHoraires.append(id, horaires);
+        }
+
+        return horaires;
     }
 
     // - accès aux données filtrées
@@ -395,7 +409,7 @@ public class LieuxModel extends AndroidViewModel {
         // Méthodes
         @Override
         protected List<TypeBase> doInBackground(Void... voids) {
-            return m_appdb.getLieuDAO().selectTypesData(m_lieu._id);
+            return m_appdb.getLieuDAO().selectTypes(m_lieu._id);
         }
     }
 }

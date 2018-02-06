@@ -29,7 +29,6 @@ public abstract class AppDatabase extends RoomDatabase {
     // DAOs
     public abstract Type.TypeDAO getTypeDAO();
     public abstract Lieu.LieuDAO getLieuDAO();
-    public abstract Horaire.HoraireDAO getHoraireDAO();
 
     // Méthodes
     @NonNull

@@ -66,7 +66,10 @@
 
     <!-- Lieu -->
     <string name="inconnu">Inconnu</string>
+    <string name="inconnus">Inconnus</string>
     <string name="distance">%d m</string>
+    <string name="ouvert">Ouvert</string>
+    <string name="ferme">Fermé</string>
 
     <!-- Types -->
     <string name="types_activity">Catégories visibles</string>

@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout
+<LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
 
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:orientation="vertical">
 
     <fragment android:id="@+id/selecttype"
         android:name="net.capellari.showme.SelectTypeFragment"
@@ -22,7 +23,5 @@
         android:padding="@dimen/text_margin"
 
         android:text="@string/filtrer_types"
-        android:checked="true"
-
-        app:layout_constraintTop_toBottomOf="@id/selecttype" />
-</android.support.constraint.ConstraintLayout>
+        android:checked="true" />
+</LinearLayout>

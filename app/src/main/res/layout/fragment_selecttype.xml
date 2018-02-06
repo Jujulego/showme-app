@@ -14,15 +14,26 @@
 
         android:orientation="horizontal">
 
+        <TextView android:id="@+id/vide"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="40dp"
+
+            android:padding="@dimen/text_margin"
+            android:text="@string/inconnu"
+            android:enabled="false" />
+
         <android.support.v7.widget.RecyclerView android:id="@+id/liste_icones"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
+            android:visibility="gone"
 
             android:orientation="horizontal"
-            android:paddingTop="8dp"
+            android:paddingTop="11dp"
             android:paddingStart="16dp"
-            android:paddingBottom="8dp"
+            android:paddingBottom="11dp"
 
             app:layoutManager="LinearLayoutManager"
 
@@ -32,7 +43,7 @@
         <ImageButton android:id="@+id/bouton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:padding="13dp"
+            android:padding="16dp"
 
             android:background="?android:attr/selectableItemBackground"
             android:contentDescription="@null"
@@ -51,5 +62,5 @@
         app:spanCount="2"
 
         tools:listitem="@layout/item_type"
-        tools:visibility="visible" />
+        tools:visibility="gone" />
 </LinearLayout>

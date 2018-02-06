@@ -70,13 +70,13 @@ public class Lieu {
         coordonnees.longitude = obj.getJSONObject("pos").getDouble("lng");
 
         // Adresse
-        adresse.numero      = obj.getJSONObject("carte").getString("numero");
-        adresse.rue         = obj.getJSONObject("carte").getString("route");
-        adresse.codePostal  = obj.getJSONObject("carte").getString("codepostal");
-        adresse.ville       = obj.getJSONObject("carte").getString("ville");
-        adresse.departement = obj.getJSONObject("carte").getString("departement");
-        adresse.region      = obj.getJSONObject("carte").getString("region");
-        adresse.pays        = obj.getJSONObject("carte").getString("pays");
+        adresse.numero      = obj.getJSONObject("adresse").getString("numero");
+        adresse.rue         = obj.getJSONObject("adresse").getString("route");
+        adresse.codePostal  = obj.getJSONObject("adresse").getString("codepostal");
+        adresse.ville       = obj.getJSONObject("adresse").getString("ville");
+        adresse.departement = obj.getJSONObject("adresse").getString("departement");
+        adresse.region      = obj.getJSONObject("adresse").getString("region");
+        adresse.pays        = obj.getJSONObject("adresse").getString("pays");
 
         // Optionnel
         note      = obj.has("note")      ? obj.getDouble("note")      : null;
@@ -180,14 +180,14 @@ public class Lieu {
         @Query("select * from Lieu where _id == :id")
         public abstract Lieu select(long id);
 
-        @Query("select TypeLieu.type_id from TypeLieu where lieu_id = :id")
-        public abstract List<Long> selectTypes(long id);
-
         @Query("select Type._id,Type.nom from TypeLieu join Type on TypeLieu.type_id = Type._id where lieu_id = :id")
-        public abstract List<TypeBase> selectTypesData(long id);
+        public abstract List<TypeBase> selectTypes(long id);
 
         @Query("select Type._id,Type.nom from TypeLieu join Type on TypeLieu.type_id = Type._id where lieu_id = :id")
         public abstract LiveData<List<TypeBase>> selectLiveTypes(long id);
+
+        @Query("select Horaire.* from Horaire where lieu_id = :id")
+        public abstract LiveData<List<Horaire>> selectLiveHoraires(long id);
 
         // Modif
         @Insert(onConflict = OnConflictStrategy.REPLACE)
@@ -195,6 +195,9 @@ public class Lieu {
 
         @Insert(onConflict = OnConflictStrategy.IGNORE)
         public abstract void ajoutLienType(TypeLieu typeLieu);
+
+        @Insert(onConflict = OnConflictStrategy.REPLACE)
+        public abstract void ajoutHoraire(Horaire horaire);
 
         // Vider
         @Query("delete from Lieu")

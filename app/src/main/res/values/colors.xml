@@ -9,10 +9,10 @@
     <!-- Texte -->
     <color name="colorTextPrimary">@android:color/white</color> <!-- toolbar ! -->
     <color name="police_enable">@android:color/black</color>
-    <color name="police_disable">#CCCCCC</color>
+    <color name="police_disable">@android:color/tertiary_text_light</color>
 
     <!-- Elements -->
-    <color name="divider">#CCCCCC</color>
+    <color name="divider">#CCC</color>
     <color name="ratingbar">@android:color/white</color>
     <color name="icone">@android:color/tertiary_text_light</color>
 </resources>

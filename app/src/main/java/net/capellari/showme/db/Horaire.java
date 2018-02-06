@@ -1,16 +1,16 @@
 package net.capellari.showme.db;
 
 import android.arch.persistence.room.ColumnInfo;
-import android.arch.persistence.room.Dao;
-import android.arch.persistence.room.Delete;
 import android.arch.persistence.room.Entity;
 import android.arch.persistence.room.ForeignKey;
-import android.arch.persistence.room.Insert;
 import android.arch.persistence.room.PrimaryKey;
-import android.arch.persistence.room.Query;
-import android.arch.persistence.room.Update;
+import android.support.annotation.NonNull;
 
-import java.util.List;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.Calendar;
+import java.util.Locale;
 
 import static android.arch.persistence.room.ForeignKey.CASCADE;
 
@@ -28,7 +28,18 @@ import static android.arch.persistence.room.ForeignKey.CASCADE;
                 onDelete = CASCADE
         )
 })
-public class Horaire {
+public class Horaire implements Comparable<Horaire> {
+    // Constantes
+    private static final int[] TABLE_JOURS = {
+            Calendar.SUNDAY,
+            Calendar.MONDAY,
+            Calendar.TUESDAY,
+            Calendar.WEDNESDAY,
+            Calendar.THURSDAY,
+            Calendar.FRIDAY,
+            Calendar.SATURDAY
+    };
+
     // Champs
     @PrimaryKey @ColumnInfo(index = true)
     public long _id;
@@ -40,24 +51,80 @@ public class Horaire {
     public int ouverture = 0;
     public int fermeture = 0;
 
-    // DAO
-    @Dao
-    public interface HoraireDAO {
-        // Accès
-        @Query("select * from Horaire")
-        List<Horaire> recup();
+    // Constructeurs
+    public Horaire() {
+    }
+    public Horaire(JSONObject obj, Lieu lieu) throws JSONException {
+        // Lien !
+        lieu_id = lieu._id;
 
-        @Query("select * from Horaire where lieu_id == :lieu")
-        List<Horaire> recupLieu(long lieu);
+        // Infos
+        _id       = obj.getInt("id");
+        jour      = obj.getInt("jour");
+        ouverture = obj.getInt("open");
+        fermeture = obj.getInt("close");
+    }
 
-        // Edition
-        @Insert
-        List<Long> insert(Horaire... horaires);
+    // Méthodes
+    public int getCalendarDay() {
+        return TABLE_JOURS[jour];
+    }
 
-        @Update
-        int update(Horaire... horaires);
+    @Override
+    public String toString() {
+        return String.format(Locale.getDefault(), "%d:%02d - %d:%02d",
+                ouverture / 100, ouverture % 100, fermeture / 100, fermeture % 100);
+    }
 
-        @Delete
-        int delete(Horaire... horaires);
+    @Override
+    public int compareTo(@NonNull Horaire obj) {
+        if (ouverture < obj.ouverture) {
+            return -1;
+        } else if (ouverture > obj.ouverture) {
+            return 1;
+        } else {
+            return 0;
+        }
+    }
+
+    public Calendar getJour(Calendar calendar) {
+        // Copie avant modif
+        calendar = (Calendar) calendar.clone();
+
+        // Semaine suivante si le jour avant "aujourd'hui" dans la semaine
+        if (calendar.get(Calendar.DAY_OF_WEEK) > getCalendarDay()) {
+            calendar.add(Calendar.WEEK_OF_YEAR, 1);
+        }
+
+        // Modification du jour !
+        calendar.set(Calendar.DAY_OF_WEEK, getCalendarDay());
+
+        return calendar;
+    }
+    public Calendar getOuverture(Calendar calendar) {
+        calendar = getJour(calendar);
+
+        // Analyse horaire
+        int heure  = ouverture / 100;
+        int minute = ouverture % 100;
+
+        // Modification de l'heure !
+        calendar.set(Calendar.HOUR_OF_DAY, heure);
+        calendar.set(Calendar.MINUTE,      minute);
+
+        return calendar;
+    }
+    public Calendar getFermeture(Calendar calendar) {
+        calendar = getJour(calendar);
+
+        // Analyse horaire
+        int heure  = fermeture / 100;
+        int minute = fermeture % 100;
+
+        // Modification de l'heure !
+        calendar.set(Calendar.HOUR_OF_DAY, heure);
+        calendar.set(Calendar.MINUTE,      minute);
+
+        return calendar;
     }
 }

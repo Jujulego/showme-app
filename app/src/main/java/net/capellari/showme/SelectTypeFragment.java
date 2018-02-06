@@ -12,7 +12,6 @@ import android.support.v4.app.Fragment;
 import android.support.v7.util.DiffUtil;
 import android.support.v7.widget.RecyclerView;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.MenuInflater;
@@ -25,6 +24,7 @@ import android.widget.TextView;
 
 import net.capellari.showme.data.DiffType;
 import net.capellari.showme.data.LieuxModel;
+import net.capellari.showme.data.StringUtils;
 import net.capellari.showme.db.TypeBase;
 
 import java.util.ArrayList;
@@ -41,8 +41,9 @@ public class SelectTypeFragment extends Fragment {
     private static final String TAG = "SelectTypeFragment";
 
     // Attributs
+    private TextView m_vide;
     private RecyclerView m_liste;
-    private RecyclerView m_listeIcone;
+    private RecyclerView m_listeIcones;
     private ImageButton m_bouton;
 
     private TypeAdapter  m_typeAdapter  = new TypeAdapter();
@@ -82,12 +83,15 @@ public class SelectTypeFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_selecttype, container, false);
 
+        // Texte
+        m_vide = view.findViewById(R.id.vide);
+
         // Gestion des listes
         m_liste = view.findViewById(R.id.liste);
         m_liste.setAdapter(m_typeAdapter);
 
-        m_listeIcone = view.findViewById(R.id.liste_icones);
-        m_listeIcone.setAdapter(m_iconeAdapter);
+        m_listeIcones = view.findViewById(R.id.liste_icones);
+        m_listeIcones.setAdapter(m_iconeAdapter);
 
         // Récupération des types
         m_liveTypes = m_lieuxModel.recupTypes();
@@ -195,6 +199,18 @@ public class SelectTypeFragment extends Fragment {
         // Maj UI
         result.dispatchUpdatesTo(m_typeAdapter);
         result.dispatchUpdatesTo(m_iconeAdapter);
+
+        if (types.size() == 0) {
+            m_vide.setVisibility(View.VISIBLE);
+            m_listeIcones.setVisibility(View.GONE);
+            m_liste.setVisibility(View.GONE);
+            m_bouton.setSelected(false);
+            m_bouton.setEnabled(false);
+        } else {
+            m_vide.setVisibility(View.GONE);
+            m_listeIcones.setVisibility(View.VISIBLE);
+            m_bouton.setEnabled(true);
+        }
     }
 
     public void setListener(OnSelectTypeListener listener) {
@@ -287,7 +303,7 @@ public class SelectTypeFragment extends Fragment {
             m_type = type;
 
             // Remplissage
-            m_nom.setText(type.nom);
+            m_nom.setText(StringUtils.toTitle(type.nom));
             m_nom.setSelected(!m_actif || m_lieuxModel.getFiltreType(type._id));
             m_nom.setCompoundDrawablesRelativeWithIntrinsicBounds(
                     TypeBase.getIconRessource((int) type._id),

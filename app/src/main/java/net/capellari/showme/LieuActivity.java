@@ -23,6 +23,7 @@ import com.google.android.gms.maps.model.Marker;
 
 import net.capellari.showme.data.LieuxModel;
 import net.capellari.showme.data.RequeteManager;
+import net.capellari.showme.db.Horaire;
 import net.capellari.showme.db.Lieu;
 import net.capellari.showme.db.TypeBase;
 
@@ -45,6 +46,7 @@ public class LieuActivity extends AppCompatActivity implements CarteFragment.OnC
     private CarteFragment m_carteFragment;
     private SelectTypeFragment m_selectTypeFragment;
     private TextView m_adresse;
+    private HoraireFragment m_horaireFragment;
     private TextView m_prix;
     private TextView m_telephone;
     private TextView m_siteWeb;
@@ -119,6 +121,9 @@ public class LieuActivity extends AppCompatActivity implements CarteFragment.OnC
 
         // Affichage des types
         m_selectTypeFragment = (SelectTypeFragment) getSupportFragmentManager().findFragmentById(R.id.selecttype);
+
+        // Affichage horaires
+        m_horaireFragment = (HoraireFragment) getSupportFragmentManager().findFragmentById(R.id.horaires);
     }
     private void setupToolbar() {
         m_collapsingToolbar = findViewById(R.id.toolbar_layout);
@@ -169,7 +174,6 @@ public class LieuActivity extends AppCompatActivity implements CarteFragment.OnC
                 @Override
                 public void onChanged(@Nullable List<TypeBase> types) {
                     if (types == null) return;
-
                     m_selectTypeFragment.setTypes(types);
                 }
             });
@@ -177,6 +181,14 @@ public class LieuActivity extends AppCompatActivity implements CarteFragment.OnC
             // Adresse
             m_adresse.setText(lieu.getAdresse());
             m_adresse.setEnabled(true);
+
+            // Horaires
+            m_lieuxModel.recupHoraires(lieu._id).observe(LieuActivity.this, new Observer<List<Horaire>>() {
+                @Override
+                public void onChanged(@Nullable List<Horaire> horaires) {
+                    m_horaireFragment.setHoraires(horaires);
+                }
+            });
 
             // Infos
             if (lieu.note != null) {
