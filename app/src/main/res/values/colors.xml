@@ -5,6 +5,7 @@
     <color name="colorPrimaryDark">#C75C16</color>
     <color name="colorAccent">#3A68AE</color>
     <color name="colorAccentDark">#2F4B73</color>
+    <color name="colorAccentAlpha">#333A68AE</color>
 
     <!-- Texte -->
     <color name="colorTextPrimary">@android:color/white</color> <!-- toolbar ! -->

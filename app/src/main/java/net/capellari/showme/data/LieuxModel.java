@@ -1,5 +1,6 @@
 package net.capellari.showme.data;
 
+import android.annotation.SuppressLint;
 import android.app.Application;
 import android.arch.lifecycle.AndroidViewModel;
 import android.arch.lifecycle.LiveData;
@@ -35,6 +36,7 @@ import java.util.List;
  *
  * Enregistre la liste des lieux et les filtres
  */
+@SuppressLint("StaticFieldLeak")
 public class LieuxModel extends AndroidViewModel {
     // Constantes
     private static final String TAG = "LieuxModel";
@@ -81,6 +83,9 @@ public class LieuxModel extends AndroidViewModel {
 
         // Gestion des requêtes
         m_requeteManager = RequeteManager.getInstance(application);
+
+        // Nettoyage
+        nettoyerCache();
 
         // Mise à jour des types
         JsonArrayRequest rq = new JsonArrayRequest(
@@ -229,6 +234,14 @@ public class LieuxModel extends AndroidViewModel {
     public void maj_ui() {
         m_live_lieux.setValue(m_lieuxFiltres);
         m_live_types.setValue(m_typesFiltres);
+    }
+
+    // - gestion du cache
+    public void viderCache() {
+        new VidageTask().execute();
+    }
+    public void nettoyerCache() {
+        new NettoyageTask().execute();
     }
 
     // - traitement interne
@@ -410,6 +423,22 @@ public class LieuxModel extends AndroidViewModel {
         @Override
         protected List<TypeBase> doInBackground(Void... voids) {
             return m_appdb.getLieuDAO().selectTypes(m_lieu._id);
+        }
+    }
+
+    // - nettoyage & vidage
+    private class NettoyageTask extends AsyncTask<Void,Void,Void> {
+        @Override
+        protected Void doInBackground(Void... voids) {
+            m_appdb.getLieuDAO().nettoyer();
+            return null;
+        }
+    }
+    private class VidageTask extends AsyncTask<Void,Void,Void> {
+        @Override
+        protected Void doInBackground(Void... voids) {
+            m_appdb.getLieuDAO().viderLieux();
+            return null;
         }
     }
 }

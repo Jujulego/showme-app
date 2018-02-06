@@ -10,6 +10,7 @@
     <dimen name="moyenne_police">15sp</dimen>
 
     <!-- Elements -->
+    <dimen name="liste_margin">8dp</dimen>
     <dimen name="taille_carte">200dp</dimen>
     <dimen name="app_bar_height">180dp</dimen>
     <dimen name="bottom_sheet_peek_height">52dp</dimen>

@@ -7,6 +7,7 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
 import android.widget.GridLayout;
 import android.widget.ImageButton;
 import android.widget.TextView;
@@ -34,6 +35,7 @@ public class HoraireFragment extends Fragment {
     private TextView m_aujourdhui;
     private ImageButton m_bouton;
     private GridLayout m_joursLayout;
+    private View m_selecteur;
     private TextView[] m_jours = new TextView[7];
     private HoraireView[] m_horaires = new HoraireView[7];
 
@@ -46,6 +48,7 @@ public class HoraireFragment extends Fragment {
 
         // Textes
         m_aujourdhui = view.findViewById(R.id.aujourdhui);
+        m_selecteur = view.findViewById(R.id.selecteur);
 
         m_joursLayout = view.findViewById(R.id.jours);
         m_jours[0] = view.findViewById(R.id.jour1);
@@ -67,6 +70,9 @@ public class HoraireFragment extends Fragment {
         // Initialisation
         DateFormatSymbols dateSymbols = DateFormatSymbols.getInstance();
         Calendar ajd = Calendar.getInstance();
+
+        GridLayout.LayoutParams params = (GridLayout.LayoutParams) m_selecteur.getLayoutParams();
+        params.rowSpec = GridLayout.spec(getIndex(ajd, ajd.get(Calendar.DAY_OF_WEEK)));
 
         for (int jour : JOURS) {
             getJourView(ajd, jour).setText(StringUtils.toTitle(dateSymbols.getWeekdays()[jour]));
@@ -106,20 +112,21 @@ public class HoraireFragment extends Fragment {
     private boolean vide() {
         return m_liste == null || m_liste.size() == 0;
     }
-    private TextView getJourView(Calendar calendar, int jour) {
+
+    private int getIndex(Calendar calendar, int jour) {
         // petit calcul !
         jour -= calendar.getFirstDayOfWeek(); // -> le 1er jour de la semaine == 0
         if (jour < 0) jour += 7; // modulo 7 !
 
-        return m_jours[jour];
+        return jour;
+    }
+    private TextView getJourView(Calendar calendar, int jour) {
+        return m_jours[getIndex(calendar, jour)];
     }
     private HoraireView getHoraireView(Calendar calendar, int jour) {
-        // petit calcul !
-        jour -= calendar.getFirstDayOfWeek(); // -> le 1er jour de la semaine == 0
-        if (jour < 0) jour += 7; // modulo 7 !
-
-        return m_horaires[jour];
+        return m_horaires[getIndex(calendar, jour)];
     }
+
     private void majUI() {
         if (vide()) {
             // On cache !

@@ -10,7 +10,7 @@ import java.util.Date;
 /**
  * Created by julien on 06/01/18.
  *
- * Définition de convertions pour Room
+ * Définition de conversions pour Room
  */
 
 public class Converters {
