@@ -33,7 +33,11 @@ public class TypeParam extends TypeBase {
         @Insert
         void ajouter(TypeParam... tp);
 
+        // Suppression
         @Delete
         void enlever(TypeParam... tp);
+
+        @Query("delete from Type")
+        void vider();
     }
 }

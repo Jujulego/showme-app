@@ -1,14 +1,18 @@
 package net.capellari.showme;
 
+import android.arch.lifecycle.ViewModelProviders;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBar;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import net.capellari.showme.data.TypesModel;
 import net.capellari.showme.db.AppDatabase;
 
 /**
@@ -32,12 +36,13 @@ public class TypesActivity extends AppCompatActivity {
 
     // Attributs
     private Status m_status = Status.VIDE;
-    private MenuItem m_menuItem;
+    private MenuItem m_itemAjout;
+    private MenuItem m_itemVider;
 
     private TypesFragment m_typesFragment;
     private TypeAjoutFragment m_typeAjoutFragment;
 
-    private AppDatabase m_db;
+    private TypesModel m_typesModel;
 
     // Events
     @Override
@@ -45,7 +50,7 @@ public class TypesActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         // Chargement de la base
-        m_db = AppDatabase.getInstance(this);
+        m_typesModel = ViewModelProviders.of(this).get(TypesModel.class);
 
         // Inflate !
         setContentView(R.layout.activity_types);
@@ -96,21 +101,36 @@ public class TypesActivity extends AppCompatActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        m_menuItem = menu.add(R.string.nav_ajouter);
-        m_menuItem.setIcon(R.drawable.add_blanc);
-        m_menuItem.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
+        // Ajout !
+        m_itemAjout = menu.add(R.string.nav_ajouter);
+        m_itemAjout.setIcon(R.drawable.add_blanc);
+        m_itemAjout.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
+
+        // Vider
+        m_itemVider = menu.add(R.string.nav_vider);
+        m_itemVider.setIcon(R.drawable.clear_all_blanc);
+        m_itemVider.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
 
         return true;
     }
 
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
-        menu.removeItem(m_menuItem.getItemId());
+        // On vide le menu !
+        menu.removeItem(m_itemAjout.getItemId());
+        menu.removeItem(m_itemVider.getItemId());
 
+        // On ajoute les items
         if (m_status == Status.LISTE) {
-            m_menuItem = menu.add(R.string.nav_ajouter);
-            m_menuItem.setIcon(R.drawable.add_blanc);
-            m_menuItem.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
+            // Ajout !
+            m_itemAjout = menu.add(R.string.nav_ajouter);
+            m_itemAjout.setIcon(R.drawable.add_blanc);
+            m_itemAjout.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
+
+            // Vider
+            m_itemVider = menu.add(R.string.nav_vider);
+            m_itemVider.setIcon(R.drawable.clear_all_blanc);
+            m_itemVider.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
         }
 
         return true;
@@ -119,8 +139,11 @@ public class TypesActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Ajout ?
-        if (item == m_menuItem) {
+        if (item == m_itemAjout) {
             setupAjout();
+            return true;
+        } else if (item == m_itemVider) {
+            viderDialog();
             return true;
         }
 
@@ -131,14 +154,6 @@ public class TypesActivity extends AppCompatActivity {
         }
 
         return super.onOptionsItemSelected(item);
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-
-        // Fermeture de la base
-        if (m_db != null) m_db.close();
     }
 
     // Méthodes
@@ -181,5 +196,28 @@ public class TypesActivity extends AppCompatActivity {
         // Chg de status
         m_status = Status.LISTE;
         invalidateOptionsMenu();
+    }
+
+    private void viderDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+
+        builder.setIcon(R.drawable.ic_clear_all_black_48dp);
+        builder.setTitle(R.string.dialog_vider_titre);
+        builder.setMessage(R.string.dialog_vider_texte);
+
+        builder.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                m_typesModel.vider();
+            }
+        });
+        builder.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+
+            }
+        });
+
+        builder.create().show();
     }
 }

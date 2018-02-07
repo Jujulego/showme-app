@@ -105,6 +105,26 @@ public class TypesModel extends AndroidViewModel {
         // Suppression dans la base
         new DeleteTask().execute(tp);
     }
+    public void vider() {
+        // Ajout aux non sélectionnés
+        for (TypeParam type : m_params) {
+            //noinspection SuspiciousMethodCalls
+            int pos = m_types.indexOf(type);
+            m_typesNonSelect.add(m_types.get(pos));
+        }
+
+        Collections.sort(m_typesNonSelect, new TriTypes());
+
+        // Vider
+        m_params.clear();
+
+        // Maj UI
+        m_live_types.setValue(m_typesNonSelect);
+        m_live_params.setValue(m_params);
+
+        // Suppression dans la base
+        new ViderTask().execute();
+    }
 
     // traitement interne
     private void filtrer() {
@@ -182,6 +202,13 @@ public class TypesModel extends AndroidViewModel {
         @Override
         protected Void doInBackground(TypeParam... typeParams) {
             m_paramdb.getTypeDAO().enlever(typeParams);
+            return null;
+        }
+    }
+    private class ViderTask extends AsyncTask<Void,Void,Void> {
+        @Override
+        protected Void doInBackground(Void... voids) {
+            m_paramdb.getTypeDAO().vider();
             return null;
         }
     }

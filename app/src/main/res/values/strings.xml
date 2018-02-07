@@ -82,6 +82,10 @@
     <!-- Types -->
     <string name="types_activity">Catégories visibles</string>
     <string name="nav_ajouter">Ajouter</string>
+    <string name="nav_vider">Supprimer tout</string>
+
+    <string name="dialog_vider_titre">Tout supprimer</string>
+    <string name="dialog_vider_texte">Cette action ne peux pas être annulée.</string>
 
     <!-- Préférences -->
     <string name="parametres_activity">Paramètres</string>
