@@ -3,15 +3,20 @@ package net.capellari.showme;
 import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v7.util.DiffUtil;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
+import android.text.SpannableStringBuilder;
+import android.text.Spanned;
+import android.text.style.ForegroundColorSpan;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,6 +26,7 @@ import android.widget.TextView;
 import net.capellari.showme.data.DiffType;
 import net.capellari.showme.data.StringUtils;
 import net.capellari.showme.data.TypesModel;
+import net.capellari.showme.db.Type;
 import net.capellari.showme.db.TypeBase;
 import net.capellari.showme.db.TypeParam;
 
@@ -87,6 +93,42 @@ public class TypesFragment extends Fragment {
         return m_adapter;
     }
 
+    private void supprimer(TypeBase type) {
+        // Message
+        msgSuppression(type);
+        
+        // Suppression de la base
+        m_typesmodel.enlever(type);
+    }
+    private void supprimer(int type) {
+        // Message
+        msgSuppression(m_adapter.getType(type));
+
+        // Suppression de la base
+        m_typesmodel.enlever(type);
+    }
+    private void msgSuppression(final TypeBase type) {
+        // Préparation texte
+        String texte = getString(R.string.msg_suppr, StringUtils.toTitle(type.nom));
+        SpannableStringBuilder ssb = new SpannableStringBuilder();
+        ssb.append(texte);
+        ssb.setSpan(new ForegroundColorSpan(Color.WHITE), 0,
+                texte.length(),
+                Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+
+        // Snack !
+        Snackbar snackbar = Snackbar.make(getView(), ssb, Snackbar.LENGTH_LONG);
+
+        snackbar.setAction(R.string.msg_annuler, new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                m_typesmodel.ajouter(type);
+            }
+        });
+
+        snackbar.show();
+    }
+
     // Classes
     class TypeViewHolder extends RecyclerView.ViewHolder {
         // Attributs
@@ -111,7 +153,7 @@ public class TypesFragment extends Fragment {
                     if (m_type == null) return;
 
                     // Suppression !
-                    m_typesmodel.enlever(m_type);
+                    supprimer(m_type);
                 }
             });
         }
@@ -169,6 +211,10 @@ public class TypesFragment extends Fragment {
                 }
             });
         }
+
+        public TypeParam getType(int pos) {
+            return m_types.get(pos);
+        }
     }
     class TypesTouchCallback extends ItemTouchHelper.Callback {
         // Attributs
@@ -205,7 +251,7 @@ public class TypesFragment extends Fragment {
 
         @Override
         public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
-            m_typesmodel.enlever(viewHolder.getAdapterPosition());
+            supprimer(viewHolder.getAdapterPosition());
         }
     }
 }

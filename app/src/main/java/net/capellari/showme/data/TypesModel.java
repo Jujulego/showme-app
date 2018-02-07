@@ -64,7 +64,7 @@ public class TypesModel extends AndroidViewModel {
         return m_live_types;
     }
 
-    public void ajouter(Type type) {
+    public void ajouter(TypeBase type) {
         // Construction de l'objet
         TypeParam tp = new TypeParam();
         tp._id = type._id;
@@ -75,6 +75,7 @@ public class TypesModel extends AndroidViewModel {
         Collections.sort(m_params, new TriTypes());
 
         // Suppression
+        //noinspection SuspiciousMethodCalls
         m_typesNonSelect.remove(type);
 
         // Maj UI

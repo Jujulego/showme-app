@@ -141,6 +141,6 @@ public class TypeBase {
 
     @Override
     public String toString() {
-        return String.format("<Type: %s>", nom);
+        return nom;
     }
 }

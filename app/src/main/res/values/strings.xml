@@ -88,6 +88,8 @@
     <string name="dialog_vider_texte">Cette action ne peux pas être annulée.</string>
 
     <string name="popup_suppr">Enlever</string>
+    <string name="msg_suppr">%s enlevé !</string>
+    <string name="msg_annuler">Annuler</string>
 
     <!-- Préférences -->
     <string name="parametres_activity">Paramètres</string>

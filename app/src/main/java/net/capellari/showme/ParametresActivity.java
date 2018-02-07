@@ -12,7 +12,6 @@ import android.support.v7.app.AppCompatActivity;
  */
 
 public class ParametresActivity extends AppCompatActivity {
-
     // Events
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
