@@ -15,6 +15,7 @@ import android.support.v7.widget.helper.ItemTouchHelper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.TextView;
 
 import net.capellari.showme.data.DiffType;
@@ -90,6 +91,9 @@ public class TypesFragment extends Fragment {
     class TypeViewHolder extends RecyclerView.ViewHolder {
         // Attributs
         private TextView m_nom;
+        private ImageButton m_remove;
+
+        private TypeParam m_type = null;
 
         // Constructeur
         public TypeViewHolder(View itemView) {
@@ -98,10 +102,25 @@ public class TypesFragment extends Fragment {
             // Récupération des vues
             m_nom = itemView.findViewById(R.id.nom);
             m_nom.setSelected(true);
+
+            m_remove = itemView.findViewById(R.id.supprimer);
+            m_remove.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    // Gardien
+                    if (m_type == null) return;
+
+                    // Suppression !
+                    m_typesmodel.enlever(m_type);
+                }
+            });
         }
 
         // Méthodes
         public void setType(TypeParam type) {
+            m_type = type;
+
+            // UI
             m_nom.setText(StringUtils.toTitle(type.nom));
             m_nom.setCompoundDrawablesRelativeWithIntrinsicBounds(
                     TypeBase.getIconRessource((int) type._id),
@@ -120,7 +139,7 @@ public class TypesFragment extends Fragment {
         // Events
         @Override
         public TypeViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-            View view = getLayoutInflater().inflate(R.layout.item_type, parent, false);
+            View view = getLayoutInflater().inflate(R.layout.item_typepopup, parent, false);
             return new TypeViewHolder(view);
         }
 
@@ -133,10 +152,6 @@ public class TypesFragment extends Fragment {
         @Override
         public int getItemCount() {
             return m_types.size();
-        }
-
-        public void remove(int pos) {
-            m_typesmodel.enlever(pos);
         }
 
         public void setLiveData(LiveData<List<TypeParam>> livedata) {
@@ -190,7 +205,7 @@ public class TypesFragment extends Fragment {
 
         @Override
         public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
-            m_adapter.remove(viewHolder.getAdapterPosition());
+            m_typesmodel.enlever(viewHolder.getAdapterPosition());
         }
     }
 }

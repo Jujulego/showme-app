@@ -9,4 +9,5 @@
 
     android:contentDescription="@null"
 
-    tools:src="@drawable/autre" />
+    tools:src="@drawable/autre"
+    tools:context=".TypesActivity" />

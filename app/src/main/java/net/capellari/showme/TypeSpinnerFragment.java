@@ -139,7 +139,7 @@ public class TypeSpinnerFragment extends Fragment {
 
         // Inflate menu
         MenuInflater inflater = getActivity().getMenuInflater();
-        inflater.inflate(R.menu.context_selecttype, menu);
+        inflater.inflate(R.menu.context_typespinner, menu);
 
         // header
         menu.setHeaderIcon(R.drawable.ic_filter_list_black_24dp);

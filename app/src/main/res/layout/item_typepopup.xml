@@ -19,5 +19,15 @@
         android:gravity="center_vertical"
 
         tools:drawableStart="@drawable/autre"
-        tools:text="Item !" />
+        tools:text="Item !"/>
+
+    <ImageButton android:id="@+id/supprimer"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+
+        android:background="?android:attr/selectableItemBackground"
+        android:padding="21dp"
+
+        android:src="@drawable/ic_remove_black_24dp"
+        android:contentDescription="@null"/>
 </LinearLayout>

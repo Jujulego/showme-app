@@ -87,6 +87,8 @@
     <string name="dialog_vider_titre">Tout supprimer</string>
     <string name="dialog_vider_texte">Cette action ne peux pas être annulée.</string>
 
+    <string name="popup_suppr">Enlever</string>
+
     <!-- Préférences -->
     <string name="parametres_activity">Paramètres</string>
 
