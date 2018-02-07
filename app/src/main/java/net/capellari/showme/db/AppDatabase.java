@@ -20,7 +20,7 @@ import net.capellari.showme.R;
         Type.class,
         TypeLieu.class,
         Horaire.class
-}, version = 1, exportSchema = false)
+}, version = 1)
 @TypeConverters(Converters.class)
 public abstract class AppDatabase extends RoomDatabase {
     // Attributs

@@ -17,7 +17,7 @@ import net.capellari.showme.R;
 
 @Database(entities = {
         TypeParam.class
-}, version = 1, exportSchema = false)
+}, version = 1)
 @TypeConverters(Converters.class)
 public abstract class ParamDatabase extends RoomDatabase {
     // Attributs
