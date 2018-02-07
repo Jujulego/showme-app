@@ -35,12 +35,20 @@
 
     <string name="nav_debogage">Débogage</string>
     <string name="nav_lieu">Lieu !</string>
+    <string name="nav_bienvenue">Bienvenue !</string>
 
     <string name="nav_open">Ouvrir le panneau</string>
     <string name="nav_close">Fermer le panneau</string>
 
     <!-- Menu -->
     <string name="nav_refresh">Rafraîchir</string>
+
+    <!-- Bienvenue -->
+    <string name="bienvenue_activity">Bienvenue</string>
+    <string name="bienvenue">Bienvenue dans ShowMe !</string>
+    <string name="bienvenue_types">Choisissez les catégories qui vous intéressent :</string>
+    <string name="bienvenue_fin">"C'est fini !"</string>
+    <string name="bienvenue_bouton">Accéder à ShowMe</string>
 
     <!-- RayonFragment -->
     <string name="aff_rayon_defaut" translatable="false">10 m</string>
@@ -86,6 +94,8 @@
     <string name="pref_internet" translatable="false">INTERNET</string>
 
     <string name="pref_nombre" translatable="false">NOMBRE SERVICE</string>
+
+    <string name="pref_bienvenue" translatable="false">BIENVENUE</string>
 
     <!-- "Fausses" préférences : apparaissent dans l'ecran de paramètre sans correspondre à un champ réel du fichier -->
     <string name="pref_cache" translatable="false">CACHE</string>

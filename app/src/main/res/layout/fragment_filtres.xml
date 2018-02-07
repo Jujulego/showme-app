@@ -9,13 +9,13 @@
     android:orientation="vertical">
 
     <fragment android:id="@+id/selecttype"
-        android:name="net.capellari.showme.SelectTypeFragment"
+        android:name="net.capellari.showme.TypeSpinnerFragment"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
 
         app:selecttype_actif="true"
 
-        tools:layout="@layout/fragment_selecttype"/>
+        tools:layout="@layout/fragment_typespinner"/>
 
     <CheckBox android:id="@+id/filtrer_types"
         android:layout_width="match_parent"

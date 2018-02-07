@@ -36,9 +36,9 @@ import java.util.List;
  * Selection de type
  */
 
-public class SelectTypeFragment extends Fragment {
+public class TypeSpinnerFragment extends Fragment {
     // Constantes
-    private static final String TAG = "SelectTypeFragment";
+    private static final String TAG = "TypeSpinnerFragment";
 
     // Attributs
     private TextView m_vide;
@@ -70,10 +70,10 @@ public class SelectTypeFragment extends Fragment {
         super.onInflate(context, attrs, savedInstanceState);
 
         // Traitement des attributs
-        TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.SelectTypeFragment);
+        TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.TypeSpinnerFragment);
 
         try {
-            m_actif = a.getBoolean(R.styleable.SelectTypeFragment_selecttype_actif, m_actif);
+            m_actif = a.getBoolean(R.styleable.TypeSpinnerFragment_selecttype_actif, m_actif);
         } finally {
             a.recycle();
         }
@@ -81,7 +81,7 @@ public class SelectTypeFragment extends Fragment {
 
     @Nullable @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_selecttype, container, false);
+        View view = inflater.inflate(R.layout.fragment_typespinner, container, false);
 
         // Texte
         m_vide = view.findViewById(R.id.vide);

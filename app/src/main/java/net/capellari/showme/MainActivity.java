@@ -428,13 +428,6 @@ public class MainActivity extends AppCompatActivity
                         ret = true;
                         break;
 
-                    case R.id.nav_lieu:
-                        intent = new Intent(MainActivity.this, LieuActivity.class);
-                        startActivity(intent);
-
-                        ret = true;
-                        break;
-
                     case R.id.nav_types:
                         intent = new Intent(MainActivity.this, TypesActivity.class);
                         startActivity(intent);
@@ -444,6 +437,20 @@ public class MainActivity extends AppCompatActivity
 
                     case R.id.nav_pref:
                         intent = new Intent(MainActivity.this, ParametresActivity.class);
+                        startActivity(intent);
+
+                        ret = true;
+                        break;
+
+                    case R.id.nav_lieu:
+                        intent = new Intent(MainActivity.this, LieuActivity.class);
+                        startActivity(intent);
+
+                        ret = true;
+                        break;
+
+                    case R.id.nav_bienvenue:
+                        intent = new Intent(MainActivity.this, BienvenueActivity.class);
                         startActivity(intent);
 
                         ret = true;

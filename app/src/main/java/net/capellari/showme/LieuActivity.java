@@ -44,7 +44,7 @@ public class LieuActivity extends AppCompatActivity implements CarteFragment.OnC
     private CollapsingToolbarLayout m_collapsingToolbar;
     private RatingBar m_note;
     private CarteFragment m_carteFragment;
-    private SelectTypeFragment m_selectTypeFragment;
+    private TypeSpinnerFragment m_typeSpinnerFragment;
     private TextView m_adresse;
     private HoraireFragment m_horaireFragment;
     private TextView m_prix;
@@ -120,7 +120,7 @@ public class LieuActivity extends AppCompatActivity implements CarteFragment.OnC
         m_carteFragment.setOnCarteEventListener(this);
 
         // Affichage des types
-        m_selectTypeFragment = (SelectTypeFragment) getSupportFragmentManager().findFragmentById(R.id.selecttype);
+        m_typeSpinnerFragment = (TypeSpinnerFragment) getSupportFragmentManager().findFragmentById(R.id.selecttype);
 
         // Affichage horaires
         m_horaireFragment = (HoraireFragment) getSupportFragmentManager().findFragmentById(R.id.horaires);
@@ -174,7 +174,7 @@ public class LieuActivity extends AppCompatActivity implements CarteFragment.OnC
                 @Override
                 public void onChanged(@Nullable List<TypeBase> types) {
                     if (types == null) return;
-                    m_selectTypeFragment.setTypes(types);
+                    m_typeSpinnerFragment.setTypes(types);
                 }
             });
 

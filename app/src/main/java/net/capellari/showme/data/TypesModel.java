@@ -54,6 +54,9 @@ public class TypesModel extends AndroidViewModel {
     }
 
     // Méthodes
+    public List<Type> getTypes() {
+        return m_types;
+    }
     public LiveData<List<TypeParam>> getParams() {
         return m_live_params;
     }
@@ -81,11 +84,16 @@ public class TypesModel extends AndroidViewModel {
         // Insertion dans la base
         new InsertTask().execute(tp);
     }
+    public void enlever(TypeBase type) {
+        //noinspection SuspiciousMethodCalls
+        enlever(m_params.indexOf(type));
+    }
     public void enlever(int pos) {
         // Suppression
         TypeParam tp = m_params.remove(pos);
 
         // Ajout et tri
+        //noinspection SuspiciousMethodCalls
         pos = m_types.indexOf(tp);
         m_typesNonSelect.add(m_types.get(pos));
         Collections.sort(m_typesNonSelect, new TriTypes());

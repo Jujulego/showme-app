@@ -8,8 +8,8 @@
         <attr name="rayon"      format="integer" />
     </declare-styleable>
 
-    <!-- SelectTypeFragment -->
-    <declare-styleable name="SelectTypeFragment">
+    <!-- TypeSpinnerFragment -->
+    <declare-styleable name="TypeSpinnerFragment">
         <attr name="selecttype_actif" format="boolean" />
     </declare-styleable>
 </resources>
