@@ -1,15 +1,22 @@
 package net.capellari.showme;
 
+import android.Manifest;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.SearchRecentSuggestions;
+import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.DialogFragment;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.preference.Preference;
 import android.support.v7.preference.PreferenceFragmentCompat;
+import android.support.v7.preference.PreferenceManager;
 import android.support.v7.preference.SwitchPreferenceCompat;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
@@ -30,7 +37,20 @@ public class ParametresFragment extends PreferenceFragmentCompat {
     // Constantes
     private static final String TAG = "ParametresFragment";
 
+    private static final int REQUEST_LOCATION_PERMISSION = 1;
+
+    // Attributs
+    private SharedPreferences m_preferences;
+
     // Events
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        // Ouverture des préférences
+        m_preferences = PreferenceManager.getDefaultSharedPreferences(getContext());
+    }
+
     @Override
     public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
         // Ajout des préférences
@@ -54,6 +74,23 @@ public class ParametresFragment extends PreferenceFragmentCompat {
                 }
 
                 return true;
+            }
+        });
+
+        SwitchPreferenceCompat gpsSwitch = (SwitchPreferenceCompat) findPreference(getString(R.string.pref_gps));
+        gpsSwitch.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+            @Override
+            public boolean onPreferenceChange(Preference preference, Object newValue) {
+                boolean gps = (Boolean) newValue;
+                String permission = gps ? Manifest.permission.ACCESS_FINE_LOCATION : Manifest.permission.ACCESS_COARSE_LOCATION;
+
+                if (ContextCompat.checkSelfPermission(getActivity(), permission) != PackageManager.PERMISSION_GRANTED) {
+                    ActivityCompat.requestPermissions(getActivity(), new String[] {permission}, REQUEST_LOCATION_PERMISSION);
+
+                    return false;
+                } else {
+                    return true;
+                }
             }
         });
     }
@@ -104,6 +141,20 @@ public class ParametresFragment extends PreferenceFragmentCompat {
                     "android.support.v7.preference.PreferenceFragment.DIALOG");
         } else {
             super.onDisplayPreferenceDialog(preference);
+        }
+    }
+
+    // Permission
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        switch (requestCode) {
+            case REQUEST_LOCATION_PERMISSION:
+                if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    boolean gps = (permissions[0].equals(Manifest.permission.ACCESS_FINE_LOCATION));
+                    m_preferences.edit().putBoolean(getString(R.string.pref_gps), gps).apply();
+                }
+
+                break;
         }
     }
 

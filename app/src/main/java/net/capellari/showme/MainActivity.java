@@ -135,8 +135,6 @@ public class MainActivity extends AppCompatActivity
     // Permissions
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        // Transmission à l'observer
-        m_positionSource.onRequestPermissionsResult(requestCode, permissions, grantResults);
     }
 
     // Menu
@@ -260,9 +258,9 @@ public class MainActivity extends AppCompatActivity
     }
     private void setupRecherche() {
         // Gestion du drawer et du searchView
-        m_drawerLayout.closeDrawers();
-        m_searchMenuItem.expandActionView();
-    }
+            m_drawerLayout.closeDrawers();
+            m_searchMenuItem.expandActionView();
+        }
 
     // - toolbar
     private void setupToolbar() {

@@ -37,8 +37,6 @@ public class PositionSource implements LifecycleObserver, LocationSource, Shared
     private static final String TAG = "PositionSource";
     private static final float  DISTANCE_MINIMUM = 5; // metres
 
-    public static final int REQUEST_PERMISSION = 100;
-
     // Attributs
     private Location m_location;
     private boolean m_utiliseGPS = false;
@@ -99,20 +97,7 @@ public class PositionSource implements LifecycleObserver, LocationSource, Shared
         String permission = gps ? Manifest.permission.ACCESS_FINE_LOCATION : Manifest.permission.ACCESS_COARSE_LOCATION;
 
         // Test
-        if (ContextCompat.checkSelfPermission(m_context, permission) != PackageManager.PERMISSION_GRANTED) {
-            Activity activity = getActivity();
-
-            if (activity != null) {
-                // On demande gentillement !
-                ActivityCompat.requestPermissions(activity,
-                        new String[]{permission}, REQUEST_PERMISSION
-                );
-            }
-
-            return false;
-        }
-
-        return true;
+        return ContextCompat.checkSelfPermission(m_context, permission) == PackageManager.PERMISSION_GRANTED;
     }
 
     @Nullable
@@ -181,19 +166,6 @@ public class PositionSource implements LifecycleObserver, LocationSource, Shared
     public void onStop() {
         // On arrête tout !
         stopLocationUpdate();
-    }
-
-    // Permission
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        switch (requestCode) {
-            case REQUEST_PERMISSION:
-                if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    // Execution !
-                    onStart();
-                }
-
-                break;
-        }
     }
 
     // Préférences

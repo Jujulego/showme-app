@@ -366,8 +366,6 @@ public class LieuxModel extends AndroidViewModel {
 
             try {
                 for (Type t : types) {
-                    Log.d(TAG, t.toString() + " : " + String.valueOf(t.blacklist));
-
                     if (dao.recup(t._id) == null) {
                         dao.insert(t);
                     } else {
