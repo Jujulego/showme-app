@@ -42,7 +42,8 @@
             android:label="@string/bienvenue_activity"
             android:theme="@style/AppTheme.NoActionBar"/>
         <activity android:name=".MainActivity"
-            android:theme="@style/AppTheme.NoActionBar">
+            android:theme="@style/AppTheme.NoActionBar"
+            android:launchMode="singleTask">
 
             <!-- Recherche -->
             <intent-filter>

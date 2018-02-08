@@ -44,6 +44,8 @@ import net.capellari.showme.data.LieuxSource;
 import net.capellari.showme.data.PositionSource;
 import net.capellari.showme.db.Lieu;
 
+import java.io.IOException;
+
 public class MainActivity extends AppCompatActivity
         implements CarteFragment.OnCarteEventListener,
                    RayonFragment.OnRayonListener,
@@ -132,9 +134,20 @@ public class MainActivity extends AppCompatActivity
         m_drawerToggle.onConfigurationChanged(newConfig);
     }
 
-    // Permissions
+    // Intent
     @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+    protected void onNewIntent(Intent intent) {
+        // Traitement de l'intent ACTION_SEARCH
+        if (intent != null && Intent.ACTION_SEARCH.equals(intent.getAction())) {
+            onSearchIntent(intent);
+        }
+    }
+
+    private void onSearchIntent(Intent intent) {
+        String query = intent.getStringExtra(SearchManager.QUERY);
+
+        setupRecherche();
+        m_searchView.setQuery(query, true);
     }
 
     // Menu
@@ -258,9 +271,11 @@ public class MainActivity extends AppCompatActivity
     }
     private void setupRecherche() {
         // Gestion du drawer et du searchView
+        if (!m_searchMenuItem.isActionViewExpanded()) {
             m_drawerLayout.closeDrawers();
             m_searchMenuItem.expandActionView();
         }
+    }
 
     // - toolbar
     private void setupToolbar() {
@@ -340,43 +355,11 @@ public class MainActivity extends AppCompatActivity
                 return false;
             }
         });
-        m_searchView.setOnSuggestionListener(new SearchView.OnSuggestionListener() {
-            @Override
-            public boolean onSuggestionSelect(int position) {
-                return false;
-            }
-
-            @Override
-            public boolean onSuggestionClick(int position) {
-                // Récupération du curseur
-                Cursor cursor = m_searchView.getSuggestionsAdapter().getCursor();
-                cursor.moveToPosition(position);
-
-                // Récupération & lancement de la recherche
-                String query = cursor.getString(2); // 3eme colonne !
-                rechercher(query);
-
-                // suivi de l'ecran !
-                m_searchView.clearFocus();
-                m_searchView.setQuery(query, false);
-
-                return true;
-            }
-        });
 
         // suppression de l'icone loupe
         ImageView searchViewIcon = m_searchView.findViewById(android.support.v7.appcompat.R.id.search_mag_icon);
         ViewGroup linearLayoutSearchView = (ViewGroup) searchViewIcon.getParent();
         linearLayoutSearchView.removeView(searchViewIcon);
-
-        // Traitement de l'intent ACTION_SEARCH
-        Intent intent = getIntent();
-        if (intent != null && Intent.ACTION_SEARCH.equals(intent.getAction())) {
-            String query = intent.getStringExtra(SearchManager.QUERY);
-
-            setupRecherche();
-            m_searchView.setQuery(query, true);
-        }
     }
 
     // - éléments
