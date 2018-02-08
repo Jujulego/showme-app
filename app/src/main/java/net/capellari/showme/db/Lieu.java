@@ -180,10 +180,10 @@ public class Lieu {
         @Query("select * from Lieu where _id == :id")
         public abstract Lieu select(long id);
 
-        @Query("select Type._id,Type.nom from TypeLieu join Type on TypeLieu.type_id = Type._id where lieu_id = :id")
+        @Query("select Type._id,Type.nom from TypeLieu join Type on TypeLieu.type_id = Type._id where lieu_id = :id and not Type.blacklist")
         public abstract List<TypeBase> selectTypes(long id);
 
-        @Query("select Type._id,Type.nom from TypeLieu join Type on TypeLieu.type_id = Type._id where lieu_id = :id")
+        @Query("select Type._id,Type.nom from TypeLieu join Type on TypeLieu.type_id = Type._id where lieu_id = :id and not Type.blacklist")
         public abstract LiveData<List<TypeBase>> selectLiveTypes(long id);
 
         @Query("select Horaire.* from Horaire where lieu_id = :id")

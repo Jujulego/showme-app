@@ -366,9 +366,11 @@ public class LieuxModel extends AndroidViewModel {
 
             try {
                 for (Type t : types) {
-                    try {
+                    Log.d(TAG, t.toString() + " : " + String.valueOf(t.blacklist));
+
+                    if (dao.recup(t._id) == null) {
                         dao.insert(t);
-                    } catch (SQLiteConstraintException err) {
+                    } else {
                         dao.maj(t);
                     }
                 }

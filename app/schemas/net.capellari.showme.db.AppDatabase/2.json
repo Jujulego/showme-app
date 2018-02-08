@@ -1,0 +1,338 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 2,
+    "identityHash": "5222a892dbf18bc23b8c4ec0d1592901",
+    "entities": [
+      {
+        "tableName": "Lieu",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`_id` INTEGER NOT NULL, `date` INTEGER NOT NULL, `nom` TEXT NOT NULL, `note` REAL, `prix` INTEGER, `telephone` TEXT, `site` TEXT, `photo` TEXT, `numero` TEXT, `rue` TEXT, `codePostal` TEXT, `ville` TEXT, `departement` TEXT, `region` TEXT, `pays` TEXT, `latitude` REAL NOT NULL, `longitude` REAL NOT NULL, PRIMARY KEY(`_id`))",
+        "fields": [
+          {
+            "fieldPath": "_id",
+            "columnName": "_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "date",
+            "columnName": "date",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "nom",
+            "columnName": "nom",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "note",
+            "columnName": "note",
+            "affinity": "REAL",
+            "notNull": false
+          },
+          {
+            "fieldPath": "prix",
+            "columnName": "prix",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "telephone",
+            "columnName": "telephone",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "site",
+            "columnName": "site",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "photo",
+            "columnName": "photo",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "adresse.numero",
+            "columnName": "numero",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "adresse.rue",
+            "columnName": "rue",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "adresse.codePostal",
+            "columnName": "codePostal",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "adresse.ville",
+            "columnName": "ville",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "adresse.departement",
+            "columnName": "departement",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "adresse.region",
+            "columnName": "region",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "adresse.pays",
+            "columnName": "pays",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "coordonnees.latitude",
+            "columnName": "latitude",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "coordonnees.longitude",
+            "columnName": "longitude",
+            "affinity": "REAL",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "columnNames": [
+            "_id"
+          ],
+          "autoGenerate": false
+        },
+        "indices": [
+          {
+            "name": "index_Lieu__id",
+            "unique": false,
+            "columnNames": [
+              "_id"
+            ],
+            "createSql": "CREATE  INDEX `index_Lieu__id` ON `${TABLE_NAME}` (`_id`)"
+          }
+        ],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "Type",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`_id` INTEGER NOT NULL, `nom` TEXT NOT NULL, `pluriel` TEXT NOT NULL, `blacklist` INTEGER NOT NULL, PRIMARY KEY(`_id`))",
+        "fields": [
+          {
+            "fieldPath": "_id",
+            "columnName": "_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "nom",
+            "columnName": "nom",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "pluriel",
+            "columnName": "pluriel",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "blacklist",
+            "columnName": "blacklist",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "columnNames": [
+            "_id"
+          ],
+          "autoGenerate": false
+        },
+        "indices": [
+          {
+            "name": "index_Type__id",
+            "unique": false,
+            "columnNames": [
+              "_id"
+            ],
+            "createSql": "CREATE  INDEX `index_Type__id` ON `${TABLE_NAME}` (`_id`)"
+          }
+        ],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "TypeLieu",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`_id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `lieu_id` INTEGER NOT NULL, `type_id` INTEGER NOT NULL, FOREIGN KEY(`lieu_id`) REFERENCES `Lieu`(`_id`) ON UPDATE CASCADE ON DELETE CASCADE , FOREIGN KEY(`type_id`) REFERENCES `Type`(`_id`) ON UPDATE CASCADE ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "_id",
+            "columnName": "_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lieu_id",
+            "columnName": "lieu_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "type_id",
+            "columnName": "type_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "columnNames": [
+            "_id"
+          ],
+          "autoGenerate": true
+        },
+        "indices": [
+          {
+            "name": "index_TypeLieu__id",
+            "unique": false,
+            "columnNames": [
+              "_id"
+            ],
+            "createSql": "CREATE  INDEX `index_TypeLieu__id` ON `${TABLE_NAME}` (`_id`)"
+          },
+          {
+            "name": "index_TypeLieu_lieu_id",
+            "unique": false,
+            "columnNames": [
+              "lieu_id"
+            ],
+            "createSql": "CREATE  INDEX `index_TypeLieu_lieu_id` ON `${TABLE_NAME}` (`lieu_id`)"
+          },
+          {
+            "name": "index_TypeLieu_type_id",
+            "unique": false,
+            "columnNames": [
+              "type_id"
+            ],
+            "createSql": "CREATE  INDEX `index_TypeLieu_type_id` ON `${TABLE_NAME}` (`type_id`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "Lieu",
+            "onDelete": "CASCADE",
+            "onUpdate": "CASCADE",
+            "columns": [
+              "lieu_id"
+            ],
+            "referencedColumns": [
+              "_id"
+            ]
+          },
+          {
+            "table": "Type",
+            "onDelete": "CASCADE",
+            "onUpdate": "CASCADE",
+            "columns": [
+              "type_id"
+            ],
+            "referencedColumns": [
+              "_id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "Horaire",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`_id` INTEGER NOT NULL, `lieu_id` INTEGER NOT NULL, `jour` INTEGER NOT NULL, `ouverture` INTEGER NOT NULL, `fermeture` INTEGER NOT NULL, PRIMARY KEY(`_id`), FOREIGN KEY(`lieu_id`) REFERENCES `Lieu`(`_id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "_id",
+            "columnName": "_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lieu_id",
+            "columnName": "lieu_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "jour",
+            "columnName": "jour",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "ouverture",
+            "columnName": "ouverture",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "fermeture",
+            "columnName": "fermeture",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "columnNames": [
+            "_id"
+          ],
+          "autoGenerate": false
+        },
+        "indices": [
+          {
+            "name": "index_Horaire__id",
+            "unique": false,
+            "columnNames": [
+              "_id"
+            ],
+            "createSql": "CREATE  INDEX `index_Horaire__id` ON `${TABLE_NAME}` (`_id`)"
+          },
+          {
+            "name": "index_Horaire_lieu_id",
+            "unique": false,
+            "columnNames": [
+              "lieu_id"
+            ],
+            "createSql": "CREATE  INDEX `index_Horaire_lieu_id` ON `${TABLE_NAME}` (`lieu_id`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "Lieu",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "lieu_id"
+            ],
+            "referencedColumns": [
+              "_id"
+            ]
+          }
+        ]
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, \"5222a892dbf18bc23b8c4ec0d1592901\")"
+    ]
+  }
+}

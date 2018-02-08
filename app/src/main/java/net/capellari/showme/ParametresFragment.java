@@ -17,6 +17,7 @@ import android.text.style.ForegroundColorSpan;
 import android.util.Log;
 import android.view.View;
 
+import net.capellari.showme.data.RequeteManager;
 import net.capellari.showme.db.AppDatabase;
 
 /**
@@ -112,6 +113,7 @@ public class ParametresFragment extends PreferenceFragmentCompat {
         protected Void doInBackground(Void... voids) {
             // Vidage ... :(
             AppDatabase.getInstance(getContext()).getLieuDAO().viderLieux();
+            RequeteManager.getInstance(getContext()).getRequestQueue().getCache().clear();
 
             return null;
         }
