@@ -181,6 +181,9 @@ public class LieuxModel extends AndroidViewModel {
     }
 
     // - accès aux données filtrées
+    public int nbLieuxFiltres() {
+        return m_lieux.size() - m_lieuxFiltres.size();
+    }
     public LiveData<List<Lieu>>     recupLieux() {
         return m_live_lieux;
     }

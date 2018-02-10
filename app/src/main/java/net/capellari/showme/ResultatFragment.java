@@ -13,7 +13,6 @@ import android.support.v7.util.DiffUtil;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.RecyclerView;
-import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -43,9 +42,11 @@ public class ResultatFragment extends Fragment {
     private static final String TAG = "ResultatFragment";
 
     // Attributs
+    private TextView m_message;
     private RecyclerView m_liste;
     private SwipeRefreshLayout m_swipeRefresh;
 
+    private boolean m_neverRefreshed = true;
     private int m_refreshMenuItem;
     private OnResultatListener m_listener;
 
@@ -78,6 +79,11 @@ public class ResultatFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         // Inflate !
         View view = inflater.inflate(R.layout.fragment_resultat, container, false);
+
+        // Message
+        m_message = view.findViewById(R.id.message);
+        m_message.setText(getString(R.string.liste_rafraichir));
+        m_message.setVisibility(View.VISIBLE);
 
         // Liste
         m_liste = view.findViewById(R.id.liste);
@@ -144,6 +150,7 @@ public class ResultatFragment extends Fragment {
     }
 
     public void setRefreshing(boolean refresh) {
+        m_neverRefreshed &= !refresh;
         m_swipeRefresh.setRefreshing(refresh);
     }
     public boolean isRefreshing() {
@@ -259,6 +266,21 @@ public class ResultatFragment extends Fragment {
 
             // Maj UI
             result.dispatchUpdatesTo(this);
+
+            if (lieux.size() == 0) {
+                int nb = m_lieuxModel.nbLieuxFiltres();
+
+                // Message !
+                if (nb == 0) {
+                    m_message.setText(getString(m_neverRefreshed ? R.string.liste_rafraichir : R.string.liste_vide));
+                } else {
+                    m_message.setText(getResources().getQuantityString(R.plurals.liste_filtree, nb, nb));
+                }
+
+                m_message.setVisibility(View.VISIBLE);
+            } else {
+                m_message.setVisibility(View.GONE);
+            }
         }
 
         public void majDistances(Location location) {

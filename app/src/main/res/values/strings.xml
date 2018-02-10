@@ -73,6 +73,14 @@
         <item>maximum</item>
     </string-array>
 
+    <!-- RésultatFragment -->
+    <string name="liste_rafraichir">Rafraîchissez la liste !</string>
+    <string name="liste_vide">"J'ai rien trouvé &#8230;"</string>
+    <plurals name="liste_filtree">
+        <item quantity="one">%d lieu filtré</item>
+        <item quantity="other">%d lieux filtrés</item>
+    </plurals>
+
     <!-- SelectType -->
     <string name="menu_select_title">Sélection</string>
     <string name="menu_select">Tout sélectionner</string>
