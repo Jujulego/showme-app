@@ -16,15 +16,6 @@
             app:rayon_max="1000"
             app:rayon_min="100" />
 
-        <!--suppress AndroidElementNotAllowed -->
-        <net.capellari.showme.NettoyagePreference
-            android:key="@string/pref_historique"
-            android:title="@string/pref_txt_historique"
-
-            app:dialogMessage="@string/pref_dialog_historique"
-            app:positiveButtonText="@android:string/ok"
-            app:negativeButtonText="@android:string/cancel"/>
-
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/pref_cat_economie">
         <!--suppress AndroidElementNotAllowed -->

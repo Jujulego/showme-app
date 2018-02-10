@@ -3,5 +3,4 @@
     android:label="@string/app_name"
     android:hint="@string/champ_hint"
 
-    android:searchSuggestAuthority="net.capellari.showme.data.HistoriqueProvider"
-    android:searchSuggestSelection=" ?" />
+    android:searchSuggestAuthority="net.capellari.showme.data.LieuProvider" />

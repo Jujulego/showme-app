@@ -216,6 +216,9 @@ public class Lieu {
         @Query("select * from Lieu where _id == :id")
         public abstract Lieu select(long id);
 
+        @Query("select * from Lieu where lower(nom) like lower(:nom)")
+        public abstract List<Lieu> suggestions(String nom);
+
         @Query("select Type._id,Type.nom from TypeLieu join Type on TypeLieu.type_id = Type._id where lieu_id = :id and not Type.blacklist")
         public abstract List<TypeBase> selectTypes(long id);
 
