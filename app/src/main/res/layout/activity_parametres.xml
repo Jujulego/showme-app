@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout
+<android.support.design.widget.CoordinatorLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
 
@@ -10,7 +10,6 @@
 
     <fragment android:id="@+id/pref_fragment"
         android:name="net.capellari.showme.ParametresFragment"
-
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
-</FrameLayout>
+</android.support.design.widget.CoordinatorLayout>

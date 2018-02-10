@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.design.widget.CoordinatorLayout android:id="@+id/coordinator"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+
+    tools:context=".LieuActivity">
+
+    <!-- ToolBar -->
+    <android.support.design.widget.AppBarLayout android:id="@+id/app_bar"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/app_bar_height"
+        android:theme="@style/AppTheme.AppBarOverlay"
+        android:elevation="4dp"
+        android:stateListAnimator="@animator/appbar_elevation">
+
+        <android.support.design.widget.CollapsingToolbarLayout android:id="@+id/toolbar_layout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:elevation="4dp"
+
+            app:contentScrim="?attr/colorPrimary"
+            app:layout_scrollFlags="scroll|exitUntilCollapsed"
+            app:toolbarId="@id/toolbar">
+
+            <com.android.volley.toolbox.NetworkImageView android:id="@+id/image"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+
+                android:scaleType="centerCrop" />
+
+            <RatingBar android:id="@+id/note"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end"
+                android:layout_marginTop="?attr/actionBarSize"
+                android:layout_marginEnd="8dp"
+                android:visibility="gone"
+
+                style="@style/AppTheme.RatingBar"
+                android:progressDrawable="@drawable/ratingbar"
+                android:progressTint="@color/ratingbar"
+                android:secondaryProgressTint="@color/ratingbar"
+                android:progressBackgroundTint="@color/ratingbar"
+
+                android:isIndicator="true"
+                android:numStars="5"
+                android:stepSize="0.5"
+                android:rating="2.5"
+
+                app:layout_collapseMode="pin"
+
+                tools:visibility="visible"/>
+
+            <android.support.v7.widget.Toolbar android:id="@+id/toolbar"
+                android:layout_width="match_parent"
+                android:layout_height="?attr/actionBarSize"
+                android:elevation="4dp"
+
+                app:layout_collapseMode="pin"
+                app:popupTheme="@style/AppTheme.PopupOverlay" />
+
+        </android.support.design.widget.CollapsingToolbarLayout>
+    </android.support.design.widget.AppBarLayout>
+
+    <!-- Contenu -->
+    <android.support.v4.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+        <android.support.constraint.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <android.support.constraint.Guideline android:id="@+id/guideline"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+
+                app:layout_constraintGuide_begin="@dimen/taille_carte"/>
+
+            <include layout="@layout/contenu_lieu" />
+        </android.support.constraint.ConstraintLayout>
+    </android.support.v4.widget.NestedScrollView>
+
+    <fragment android:id="@+id/carte"
+        android:name="net.capellari.showme.CarteFragment"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/taille_carte"
+
+        app:layout_behavior="net.capellari.showme.SuivreAppBarBehavior"
+
+        tools:layout="@layout/dummy_map" />
+
+</android.support.design.widget.CoordinatorLayout>

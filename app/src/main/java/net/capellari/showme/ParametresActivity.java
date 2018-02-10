@@ -6,24 +6,24 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 
 /**
- * Created by julien on 01/01/18.
+ * Created by julien on 23/01/18.
  *
  * Gestion des paramètres
  */
 
 public class ParametresActivity extends AppCompatActivity {
+    // Events
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // Ajout du layout
+        // Inflate !
         setContentView(R.layout.activity_parametres);
 
-        // Action bar !
-        ActionBar actionBar = getSupportActionBar();
-        if (actionBar != null) {
-            actionBar.setDisplayHomeAsUpEnabled(true);
-            actionBar.setHomeButtonEnabled(true);
+        // Toolbar
+        ActionBar ab = getSupportActionBar();
+        if (ab != null) {
+            ab.setDisplayHomeAsUpEnabled(true);
         }
     }
 }

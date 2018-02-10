@@ -8,10 +8,10 @@
 
         <!-- Texte -->
         <item name="android:textSize">@dimen/moyenne_police</item>
-        <item name="android:textColor">@color/couleur_police</item>
+        <item name="android:textColor">@color/police</item>
 
         <!-- Préférences -->
-        <item name="preferenceTheme">@style/PreferenceThemeOverlay</item>
+        <item name="preferenceTheme">@style/AppTheme.PreferenceThemeOverlay</item>
     </style>
 
     <!-- Theme de base, sans l'action bar -->
@@ -23,17 +23,35 @@
 
         <!-- Texte -->
         <item name="android:textSize">@dimen/moyenne_police</item>
-        <item name="android:textColor">@color/couleur_police</item>
+        <item name="android:textColor">@color/police</item>
 
         <!-- Préférences -->
-        <item name="preferenceTheme">@style/PreferenceThemeOverlay</item>
+        <item name="preferenceTheme">@style/AppTheme.PreferenceThemeOverlay</item>
 
-        <!-- Icones -->
+        <!-- Icônes -->
         <item name="drawerArrowStyle">@style/AppTheme.DrawerArrowStyle</item>
     </style>
 
-    <!-- Icones -->
+    <!-- SplashScreen -->
+    <style name="AppTheme.SplashScreen" parent="AppTheme.NoActionBar">
+        <item name="android:windowBackground">@drawable/splash_screen</item>
+    </style>
+
+    <!-- Préférences -->
+    <style name="AppTheme.PreferenceThemeOverlay" parent="PreferenceThemeOverlay">
+        <item name="switchPreferenceCompatStyle">@style/Preference.SwitchPreferenceCompat</item>
+        <item name="android:dividerHeight">0dp</item>
+    </style>
+
+    <!-- Toolbars -->
+    <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
+    <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
+
+    <!-- Icônes -->
     <style name="AppTheme.DrawerArrowStyle" parent="Widget.AppCompat.DrawerArrowToggle">
         <item name="color">@android:color/white</item>
     </style>
+
+    <!-- RatingBar -->
+    <style name="AppTheme.RatingBar" parent="Widget.AppCompat.RatingBar.Indicator" />
 </resources>

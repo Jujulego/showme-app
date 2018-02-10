@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+
+    android:divider="@drawable/divider"
+    android:showDividers="middle"
+
+    app:layout_constraintTop_toBottomOf="@id/guideline"
+
+    tools:showIn="@layout/activity_lieu"
+    tools:context=".LieuActivity">
+
+    <fragment android:id="@+id/selecttype"
+        android:name="net.capellari.showme.TypeSpinnerFragment"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+
+        app:selecttype_actif="false"
+
+        tools:layout="@layout/fragment_typespinner"/>
+
+    <TextView android:id="@+id/adresse"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="@dimen/text_margin"
+        android:text="@string/inconnu"
+        android:enabled="false"
+
+        android:drawableStart="@drawable/map_details"
+        android:drawablePadding="@dimen/text_margin" />
+
+    <fragment android:id="@+id/horaires"
+        android:name="net.capellari.showme.HoraireFragment"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+
+        tools:layout="@layout/fragment_horaires" />
+
+    <TextView android:id="@+id/prix"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="@dimen/text_margin"
+        android:text="@string/inconnu"
+        android:enabled="false"
+
+        android:drawableStart="@drawable/credit_card_details"
+        android:drawablePadding="@dimen/text_margin" />
+
+    <TextView android:id="@+id/telephone"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="@dimen/text_margin"
+        android:text="@string/inconnu"
+        android:enabled="false"
+
+        android:drawableStart="@drawable/phone_details"
+        android:drawablePadding="@dimen/text_margin" />
+
+    <TextView android:id="@+id/site_web"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="@dimen/text_margin"
+        android:text="@string/inconnu"
+        android:enabled="false"
+
+        android:drawableStart="@drawable/web_details"
+        android:drawablePadding="@dimen/text_margin" />
+</LinearLayout>

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<lint>
+    <issue id="IconLocation">
+        <ignore path="src/debug/res/drawable/dummy_map.png" />
+    </issue>
+    <issue id="UnusedResources">
+        <ignore path="src/debug/res/drawable/dummy_map.png" />
+    </issue>
+</lint>

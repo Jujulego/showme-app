@@ -1,10 +1,34 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:id="@+id/nav_rechr"
-        android:icon="@drawable/ic_search_black_48dp"
-        android:title="@string/title_activity_recherche" />
+    <item android:id="@+id/nav_accueil"
+        android:icon="@drawable/ic_home_black_48dp"
+        android:title="@string/nav_accueil" />
 
-    <item android:id="@+id/nav_pref"
-        android:icon="@drawable/ic_settings_black_48dp"
-        android:title="@string/title_activity_parametres" />
+    <item android:id="@+id/nav_recherche"
+        android:icon="@drawable/ic_search_black_48dp"
+        android:title="@string/nav_recherche" />
+
+    <item android:title="@string/nav_perso">
+        <menu>
+            <item android:id="@+id/nav_types"
+                android:icon="@drawable/ic_view_list_black_48dp"
+                android:title="@string/nav_types"/>
+
+            <item android:id="@+id/nav_pref"
+                android:icon="@drawable/ic_settings_black_48dp"
+                android:title="@string/nav_parametres" />
+        </menu>
+    </item>
+
+    <item android:title="@string/nav_debogage">
+        <menu>
+            <item android:id="@+id/nav_lieu"
+                android:icon="@drawable/ic_launch_black_24dp"
+                android:title="@string/nav_lieu"/>
+
+            <item android:id="@+id/nav_bienvenue"
+                android:icon="@drawable/ic_launch_black_24dp"
+                android:title="@string/nav_bienvenue"/>
+        </menu>
+    </item>
 </menu>

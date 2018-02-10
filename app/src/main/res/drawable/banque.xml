@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@drawable/cercle" />
+    <item
+        android:top="@dimen/icone_margin"
+        android:start="3dp"
+        android:end="7dp"
+        android:bottom="@dimen/icone_margin">
+
+        <bitmap
+            android:src="@drawable/ic_euro_symbol_white_24dp"
+            android:gravity="center"/>
+    </item>
+</layer-list>

@@ -1,14 +1,14 @@
 package net.capellari.showme;
 
-import android.Manifest;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.app.SearchManager;
-import android.content.ComponentName;
+import android.arch.lifecycle.LiveData;
+import android.arch.lifecycle.Observer;
+import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.location.Location;
 import android.os.Build;
@@ -16,10 +16,11 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
+import android.support.design.widget.BottomSheetBehavior;
 import android.support.design.widget.NavigationView;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.widget.DrawerLayout;
+import android.support.v4.widget.NestedScrollView;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
@@ -32,158 +33,81 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewAnimationUtils;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.ImageView;
-import android.widget.SeekBar;
-import android.widget.TextView;
 
-import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.location.LocationCallback;
-import com.google.android.gms.location.LocationRequest;
-import com.google.android.gms.location.LocationResult;
-import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.OnMapReadyCallback;
-import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.CameraPosition;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.tasks.OnSuccessListener;
 
-import java.util.Locale;
+import net.capellari.showme.data.LieuxModel;
+import net.capellari.showme.data.LieuxSource;
+import net.capellari.showme.data.PositionSource;
+import net.capellari.showme.db.Lieu;
 
-/**
- * Created by julien on 31/12/17.
- *
- * Activité principale
- */
+public class MainActivity extends AppCompatActivity
+        implements CarteFragment.OnCarteEventListener,
+                   RayonFragment.OnRayonListener,
+                   ResultatFragment.OnResultatListener,
+                   SharedPreferences.OnSharedPreferenceChangeListener {
 
-public class MainActivity extends AppCompatActivity implements OnMapReadyCallback {
     // Constantes
-    public static final int RQ_FINE_LOCATION = 1;
+    private static final int SEARCH_ICON_POS   = 2;     // Position de la loupe dans la toolbar, depuis la droite
+    private static final boolean MENU_OVERFLOW = false; // Les 3 points dans la toolbar
 
-    private static final int RAYON_MIN  = 10;
-    private static final int RAYON_FACT = 10;
+    private static final String TAG = "MainActivity";
 
     // Attributs
-    private GoogleMap m_map;
-    private FusedLocationProviderClient m_locationClient;
-    private LocationCallback m_locationCallback;
-    private boolean m_locationStarted = false;
-
+    // - toolbar
     private Toolbar m_toolbar;
-    private DrawerLayout m_drawerLayout;
-    private NavigationView m_drawerNav;
-    private ActionBarDrawerToggle m_drawerToggle;
-
-    private Toolbar m_searchToolbar;
-    private Menu m_searchMenu;
+    private Toolbar m_searchBar;
+    private SearchView m_searchView;
     private MenuItem m_searchMenuItem;
 
-    private SeekBar m_seekRayon;
-    private TextView m_affRayon;
+    // - fragments
+    private CarteFragment m_carteFragment;
+    private ResultatFragment m_resultatFragment;
+    private RayonFragment m_rayonFragment;
 
-    private SharedPreferences m_prefs;
+    // - bottom sheet
+    private NestedScrollView m_bottomSheet;
+    private BottomSheetBehavior m_bottomSheetBehavior;
+
+    // - drawer
+    private DrawerLayout m_drawerLayout;
+    private ActionBarDrawerToggle m_drawerToggle;
+
+    // - données
+    private LieuxModel m_lieuxModel;
+    private LieuxSource m_lieuxSource;
+    private PositionSource m_positionSource;
+    private LiveData<Location> m_live_location;
+
+    // - outils
+    private boolean m_recherche = false;
+    private SharedPreferences m_preferences;
 
     // Events
     @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // Ajout du layout
+        // Ouverture des préférences
+        m_preferences = PreferenceManager.getDefaultSharedPreferences(this);
+        m_preferences.registerOnSharedPreferenceChangeListener(this);
+
+        // Inflate !
         setContentView(R.layout.activity_main);
 
-        // Ouverture des préférences
-        m_prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        // Mise en place de la toolbar
+        setupToolbar();
+        setupSearchbar();
 
-        // Gestion du drawer
-        m_drawerLayout = findViewById(R.id.drawer_layout);
-        m_drawerNav    = findViewById(R.id.drawer_nav);
+        // Préparation
+        setupFragments();
+        setupDrawer();
+        setupBottomSheet();
 
-        m_drawerToggle = new ActionBarDrawerToggle(
-                this, m_drawerLayout,
-                R.string.nav_open, R.string.nav_close
-        );
-        m_drawerLayout.addDrawerListener(m_drawerToggle);
-
-        m_drawerNav.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
-            @Override
-            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-                Intent intent = null;
-
-                switch (item.getItemId()) {
-                    case R.id.nav_pref:
-                        intent = new Intent(MainActivity.this, ParametresActivity.class);
-                        break;
-
-                    case R.id.nav_rechr:
-                        intent = new Intent(MainActivity.this, RechercheActivity.class);
-                        break;
-                }
-
-                if (intent != null) {
-                    startActivity(intent);
-                    return true;
-                }
-
-                return false;
-            }
-        });
-
-        // Action bar !
-        m_toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(m_toolbar);
-
-        ActionBar actionBar = getSupportActionBar();
-        if (actionBar != null) {
-            actionBar.setDisplayHomeAsUpEnabled(true);
-            actionBar.setHomeButtonEnabled(true);
-        }
-
-        setupSearchToolbar();
-
-        // Initialisation carte
-        m_locationClient = LocationServices.getFusedLocationProviderClient(this);
-        m_locationCallback = new LocationCallback() {
-            @Override
-            public void onLocationResult(LocationResult locationResult) {
-                Location location = locationResult.getLastLocation();
-
-                // Centrage
-                m_map.animateCamera(CameraUpdateFactory.newLatLng(new LatLng(
-                    location.getLatitude(),
-                    location.getLongitude()
-                )));
-            }
-        };
-
-        SupportMapFragment frag_map = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.carte);
-        frag_map.getMapAsync(this);
-
-        // Gestion du rayon de recherche
-        m_seekRayon = findViewById(R.id.seek_rayon);
-        m_affRayon  = findViewById(R.id.aff_rayon);
-
-        m_seekRayon.setMax((m_prefs.getInt(getString(R.string.pref_rayon_max), 100) - RAYON_MIN) / RAYON_FACT);
-        m_seekRayon.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                m_affRayon.setText(String.format(Locale.getDefault(),"%d m", get_rayon()));
-            }
-
-            @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
-
-            }
-
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
-                // Enregistrement
-                SharedPreferences.Editor editor = m_prefs.edit();
-                editor.putInt(getString(R.string.pref_rayon), get_rayon());
-                editor.apply();
-            }
-        });
-        m_seekRayon.setProgress((m_prefs.getInt(getString(R.string.pref_rayon), RAYON_MIN) - RAYON_MIN) / RAYON_FACT);
+        // Source de données
+        setupSource();
     }
 
     @Override
@@ -195,19 +119,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     @Override
-    protected void onResume() {
-        super.onResume();
+    protected void onStart() {
+        super.onStart();
 
-        // Start location updates
-        if (!m_locationStarted) start_location_updates();
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-
-        // Stop location updates
-        stop_location_updates();
+        // Service
+        gestionService();
     }
 
     @Override
@@ -217,170 +133,394 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         m_drawerToggle.onConfigurationChanged(newConfig);
     }
 
+    // Intent
     @Override
-    public void onMapReady(GoogleMap googleMap) {
-        m_map = googleMap;
-
-        // Centrage sur la position actuelle
-        centrer_carte();
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        switch (requestCode) {
-            case RQ_FINE_LOCATION:
-                if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    centrer_carte();
-
-                    if (!m_locationStarted) start_location_updates();
-                }
-
-                break;
+    protected void onNewIntent(Intent intent) {
+        // Traitement de l'intent ACTION_SEARCH
+        if (intent != null && Intent.ACTION_SEARCH.equals(intent.getAction())) {
+            onSearchIntent(intent);
         }
     }
 
+    private void onSearchIntent(Intent intent) {
+        String query = intent.getStringExtra(SearchManager.QUERY);
+
+        setupRecherche();
+        m_searchView.setQuery(query, true);
+    }
+
+    // Menu
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Ajout des options
-        getMenuInflater().inflate(R.menu.main_toolbar, menu);
+        getMenuInflater().inflate(R.menu.toolbar_main, menu);
         return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Pass the event to ActionBarDrawerToggle, if it returns
-        // true, then it has handled the app icon touch event
+        // Pass the event to ActionBarDrawerToggle
         if (m_drawerToggle.onOptionsItemSelected(item)) {
             return true;
         }
 
+        // Passage en mode recherche
         switch (item.getItemId()) {
-            case R.id.nav_rechr:
-                m_searchMenuItem.expandActionView();
-
+            case R.id.nav_recherche:
+                setupRecherche();
                 return true;
         }
 
+        // Action par défaut
         return super.onOptionsItemSelected(item);
     }
 
+    // Carte
+    @Override
+    public void onMapReady(@NonNull GoogleMap map) {
+
+    }
+
+    @Override
+    public void onMarkerClick(@NonNull Lieu lieu) {
+        onLieuClick(lieu);
+    }
+
+    // Rayon
+    @Override
+    public void onRayonReady() {
+        // Suivi du rayon
+        int rayon = m_preferences.getInt(getString(R.string.pref_rayon), 10);
+
+        m_rayonFragment.set_fact(10);
+        m_rayonFragment.set_min(10);
+        m_rayonFragment.set_max(m_preferences.getInt(getString(R.string.pref_rayon_max), 100));
+        m_rayonFragment.set_rayon(rayon);
+    }
+
+    @Override
+    public void onRayonChange(int rayon, boolean user) {
+        // Enregistrement
+        SharedPreferences.Editor editor = m_preferences.edit();
+        editor.putInt(getString(R.string.pref_rayon), rayon);
+        editor.apply();
+
+        // Rafraîchissement !
+        if (user) rafraichir();
+    }
+
+    // Résultat
+    @Override
+    public void onRefresh() {
+        rafraichir();
+    }
+
+    @Override
+    public void onLieuClick(Lieu lieu) {
+        Intent intent = new Intent(this, LieuActivity.class);
+        intent.putExtra(LieuActivity.INTENT_LIEU, lieu._id);
+
+        startActivity(intent);
+    }
+
+    // Préférences
+    @Override
+    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+        if (key.equals(getString(R.string.pref_rayon_max))) {
+            m_rayonFragment.set_max(m_preferences.getInt(getString(R.string.pref_rayon_max), 100));
+
+        } else if (key.equals(getString(R.string.pref_nombre))) {
+            gestionService();
+        }
+    }
+
     // Méthodes
-    private void centrer_carte() {
-        // On a la carte ?
-        if (m_map == null) return;
+    // - requêtes
+    private void rechercher(String query) {
+        // Activation !!!
+        m_lieuxSource.rechercher(query);
+        m_bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+    }
+    private void rafraichir() {
+        // Activation !!!
+        m_lieuxSource.rafraichir();
+        m_bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+    }
 
-        // Check permission
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            m_map.setMyLocationEnabled(true);
+    // - service
+    private void gestionService() {
+        boolean start = m_preferences.getBoolean(getString(R.string.pref_nombre), false);
+        Intent intent = new Intent(this, NombreService.class);
 
-            m_locationClient.getLastLocation().addOnSuccessListener(new OnSuccessListener<Location>() {
+        if (start) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                startForegroundService(intent);
+            } else {
+                startService(intent);
+            }
+        } else {
+            stopService(intent);
+        }
+    }
+
+    // - status
+    private void setupAccueil() {
+        // Vidage m_query
+        m_lieuxSource.setQuery(null);
+    }
+    private void setupRecherche() {
+        // Gestion du drawer et du searchView
+        if (!m_recherche) {
+            m_drawerLayout.closeDrawers();
+            m_searchMenuItem.expandActionView();
+        }
+    }
+
+    // - toolbar
+    private void setupToolbar() {
+        // Récupération de la toolbar
+        m_toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(m_toolbar);
+
+        // Bouton Home
+        ActionBar actionBar = getSupportActionBar();
+        if (actionBar != null) {
+            actionBar.setDisplayHomeAsUpEnabled(true);
+            actionBar.setHomeButtonEnabled(true);
+        }
+    }
+    private void setupSearchbar() {
+        // Récupération de la searchBar
+        m_searchBar = findViewById(R.id.search_bar);
+        if (m_searchBar == null) {
+            Log.w(TAG, "Pas de search bar !");
+            return;
+        }
+
+        // Ajout du menu
+        m_searchBar.inflateMenu(R.menu.searchbar_main);
+        Menu menu = m_searchBar.getMenu();
+
+        // On renvoie les events à l'activité
+        m_searchBar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                return m_resultatFragment.onOptionsItemSelected(item) || onOptionsItemSelected(item);
+            }
+        });
+
+        // Mise en place de l'animation
+        m_searchMenuItem = menu.findItem(R.id.nav_recherche);
+        m_searchMenuItem.setOnActionExpandListener(new MenuItem.OnActionExpandListener() {
+            @Override
+            public boolean onMenuItemActionExpand(MenuItem item) {
+                circleReveal(R.id.search_bar, SEARCH_ICON_POS, true);
+                m_recherche = true;
+
+                // Affichage du clavier
+                m_searchView.requestFocus();
+                InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                if (imm != null) {
+                    imm.toggleSoftInput(0, InputMethodManager.HIDE_NOT_ALWAYS);
+                }
+
+                return true;
+            }
+
+            @Override
+            public boolean onMenuItemActionCollapse(MenuItem item) {
+                circleReveal(R.id.search_bar, SEARCH_ICON_POS, false);
+                m_recherche = false;
+
+                setupAccueil();
+
+                return false;
+            }
+        });
+
+        // Préparation du searchView
+        SearchManager manager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
+        if (manager == null) return;
+
+        m_searchView = (SearchView) m_searchMenuItem.getActionView();
+        m_searchView.setSearchableInfo(manager.getSearchableInfo(getComponentName()));
+
+        // gestion du on submit
+        m_searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                m_searchView.clearFocus();
+                rechercher(query);
+                return true;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                return false;
+            }
+        });
+
+        // suppression de l'icone loupe
+        ImageView searchViewIcon = m_searchView.findViewById(android.support.v7.appcompat.R.id.search_mag_icon);
+        ViewGroup linearLayoutSearchView = (ViewGroup) searchViewIcon.getParent();
+        linearLayoutSearchView.removeView(searchViewIcon);
+    }
+
+    // - éléments
+    private void setupFragments() {
+        FragmentManager manager = getSupportFragmentManager();
+
+        // Récupération
+        m_carteFragment    = (CarteFragment)    manager.findFragmentById(R.id.carte);
+        m_resultatFragment = (ResultatFragment) manager.findFragmentById(R.id.resultat);
+        m_rayonFragment    = (RayonFragment)    manager.findFragmentById(R.id.rayon);
+
+        // Paramétrages
+        m_resultatFragment.setRefreshMenuItem(R.id.nav_refresh);
+
+        m_carteFragment.setOnCarteEventListener(this);
+        m_resultatFragment.setOnResultatListener(this);
+        m_rayonFragment.setOnRayonListener(this);
+    }
+    private void setupDrawer() {
+        // Récupération des éléments
+        m_drawerLayout           = findViewById(R.id.drawer_layout);
+        NavigationView drawerNav = findViewById(R.id.drawer_nav);
+
+        // Gestion de l'ouverture
+        m_drawerToggle = new ActionBarDrawerToggle(
+                this, m_drawerLayout,
+                R.string.nav_open, R.string.nav_close
+        );
+        m_drawerLayout.addDrawerListener(m_drawerToggle);
+
+        // Gestion des boutons
+        drawerNav.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
+            @Override
+            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                boolean ret = false;
+                Intent intent;
+
+                // Evolution des fragments
+                switch (item.getItemId()) {
+                    case R.id.nav_accueil:
+                        setupAccueil();
+                        ret = true;
+                        break;
+
+                    case R.id.nav_recherche:
+                        setupRecherche();
+                        ret = true;
+                        break;
+
+                    case R.id.nav_types:
+                        intent = new Intent(MainActivity.this, TypesActivity.class);
+                        startActivity(intent);
+
+                        ret = true;
+                        break;
+
+                    case R.id.nav_pref:
+                        intent = new Intent(MainActivity.this, ParametresActivity.class);
+                        startActivity(intent);
+
+                        ret = true;
+                        break;
+
+                    case R.id.nav_lieu:
+                        intent = new Intent(MainActivity.this, LieuActivity.class);
+                        startActivity(intent);
+
+                        ret = true;
+                        break;
+
+                    case R.id.nav_bienvenue:
+                        intent = new Intent(MainActivity.this, BienvenueActivity.class);
+                        startActivity(intent);
+
+                        ret = true;
+                        break;
+                }
+
+                // Fermeture !
+                if (ret) m_drawerLayout.closeDrawers();
+
+                return ret;
+            }
+        });
+    }
+    private void setupBottomSheet() {
+        // Récupération des éléments
+        m_bottomSheet = findViewById(R.id.nested_bottom_view);
+        m_bottomSheetBehavior = BottomSheetBehavior.from(m_bottomSheet);
+    }
+
+    // - source de données
+    private void setupSource() {
+        // Model
+        m_lieuxModel = ViewModelProviders.of(this).get(LieuxModel.class);
+
+        // Récupération des sources
+        m_lieuxSource    = m_lieuxModel.getLieuxSource(this);
+        m_positionSource = m_lieuxSource.getPositionSource();
+
+        // Recherche
+        String query = m_lieuxSource.getQuery();
+        if (query != null) {
+            setupRecherche();
+            m_searchView.setQuery(query, false);
+        }
+
+        // Récupération position
+        if (m_live_location == null) {
+            m_live_location = m_positionSource.getLocation();
+            m_live_location.observe(this, new Observer<Location>() {
                 @Override
-                public void onSuccess(Location location) {
+                public void onChanged(@Nullable Location location) {
                     // Gardien
                     if (location == null) return;
 
-                    // Centrage
-                    CameraPosition.Builder builder = new CameraPosition.Builder();
-                    builder.target(new LatLng(
-                        location.getLatitude(),
-                        location.getLongitude()
-                    )).zoom(15).tilt(45);
-
-                    m_map.moveCamera(CameraUpdateFactory.newCameraPosition(builder.build()));
-                }
-            });
-        } else {
-            // Show rationale and request permission.
-            ActivityCompat.requestPermissions(this,
-                    new String[] { Manifest.permission.ACCESS_FINE_LOCATION }, RQ_FINE_LOCATION);
-        }
-    }
-
-    private int get_rayon() {
-        return m_seekRayon.getProgress() * RAYON_FACT + RAYON_MIN;
-    }
-
-    private void start_location_updates() {
-        LocationRequest rq = new LocationRequest();
-        rq.setFastestInterval(1000);
-        rq.setPriority(m_prefs.getBoolean(getString(R.string.pref_gps), true) ? LocationRequest.PRIORITY_HIGH_ACCURACY : LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
-
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            m_locationClient.requestLocationUpdates(rq, m_locationCallback, null);
-            m_locationStarted = true;
-        } else {
-            // Show rationale and request permission.
-            ActivityCompat.requestPermissions(this,
-                    new String[] { Manifest.permission.ACCESS_FINE_LOCATION }, RQ_FINE_LOCATION);
-        }
-    }
-    private void stop_location_updates() {
-        m_locationClient.removeLocationUpdates(m_locationCallback);
-        m_locationStarted = false;
-    }
-
-    // Animation search toolbar
-    public void setupSearchToolbar() {
-        m_searchToolbar = findViewById(R.id.searchtoolbar);
-
-        if (m_searchToolbar != null) {
-            // Préparation toolbar
-            m_searchToolbar.inflateMenu(R.menu.main_search);
-            m_searchMenu = m_searchToolbar.getMenu();
-
-            m_searchMenuItem = m_searchMenu.findItem(R.id.nav_rechr);
-            m_searchMenuItem.setOnActionExpandListener(new MenuItem.OnActionExpandListener() {
-                @Override
-                public boolean onMenuItemActionExpand(MenuItem item) {
-                    circleReveal(R.id.searchtoolbar, 1, true, true);
-                    return true;
-                }
-
-                @Override
-                public boolean onMenuItemActionCollapse(MenuItem item) {
-                    circleReveal(R.id.searchtoolbar, 1, true, false);
-                    return false;
-                }
-            });
-
-            // Préparation search view
-            SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
-            if (searchManager != null) {
-                SearchView searchView = (SearchView) m_searchMenu.findItem(R.id.nav_rechr).getActionView();
-
-                searchView.setIconified(false);
-                searchView.setIconifiedByDefault(false);
-                searchView.setSearchableInfo(searchManager.getSearchableInfo(
-                        new ComponentName(this, RechercheActivity.class)
-                ));
-
-                searchView.setOnSearchClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        m_drawerLayout.closeDrawers();
+                    // Maj distances
+                    if (m_resultatFragment != null) {
+                        m_resultatFragment.majDistances(location);
                     }
-                });
-
-                ImageView searchViewIcon = searchView.findViewById(android.support.v7.appcompat.R.id.search_mag_icon);
-                ViewGroup linearLayoutSearchView = (ViewGroup) searchViewIcon.getParent();
-                linearLayoutSearchView.removeView(searchViewIcon);
-            }
-
-        } else {
-            Log.d("MainActivity", "setSearchtollbar: NULL");
+                }
+            });
         }
+
+        // Status rafraîchissement
+        LiveData<Boolean> refreshing = m_lieuxSource.isRefreshing();
+        refreshing.observe(this, new Observer<Boolean>() {
+            @Override
+            public void onChanged(@Nullable Boolean refreshing) {
+                if (refreshing == null) return;
+
+                // Animation
+                m_resultatFragment.setRefreshing(refreshing);
+            }
+        });
     }
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-    public void circleReveal(int viewID, int posFromRight, boolean containsOverflow, final boolean isShow) {
+    public void circleReveal(@SuppressWarnings("SameParameterValue") int viewID, @SuppressWarnings("SameParameterValue") int posFromRight, final boolean isShow) {
         final View myView = findViewById(viewID);
+        if (!myView.isAttachedToWindow()) {
+            if (isShow) {
+                myView.setVisibility(View.VISIBLE);
+            } else {
+                myView.setVisibility(View.INVISIBLE);
+            }
+
+            return;
+        }
+
         int width = myView.getWidth();
 
         if (posFromRight > 0) {
-            width -= (posFromRight - 0.5) * myView.getHeight(); // les icones sont carrées !
+            width -= (posFromRight - 0.5) * myView.getHeight(); // les icônes sont carrées !
         }
 
-        if (containsOverflow) {
+        if (MENU_OVERFLOW) {
             width -= 2 * myView.getHeight() / 3; // bah oui !
         }
 
@@ -394,7 +534,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             anim = ViewAnimationUtils.createCircularReveal(myView, cx, cy, (float) width, 0);
         }
 
-        anim.setDuration((long) 500);
+        anim.setDuration(getResources().getInteger(android.R.integer.config_mediumAnimTime));
 
         // make the view invisible when the animation is done
         anim.addListener(new AnimatorListenerAdapter() {

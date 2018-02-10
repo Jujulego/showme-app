@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <LinearLayout android:id="@+id/layout_icones"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+
+        android:orientation="horizontal">
+
+        <TextView android:id="@+id/vide"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="40dp"
+
+            android:padding="@dimen/text_margin"
+            android:text="@string/inconnu"
+            android:enabled="false" />
+
+        <android.support.v7.widget.RecyclerView android:id="@+id/liste_icones"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:visibility="gone"
+
+            android:orientation="horizontal"
+            android:paddingTop="11dp"
+            android:paddingStart="16dp"
+            android:paddingBottom="11dp"
+
+            app:layoutManager="LinearLayoutManager"
+
+            tools:listitem="@layout/item_typeicone"
+            tools:ignore="RtlSymmetry" />
+
+        <ImageButton android:id="@+id/bouton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="16dp"
+
+            android:background="?android:attr/selectableItemBackground"
+            android:contentDescription="@null"
+            android:src="@drawable/expand"
+
+            app:layout_constraintEnd_toEndOf="parent" />
+    </LinearLayout>
+
+    <android.support.v7.widget.RecyclerView android:id="@+id/liste"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:visibility="gone"
+
+        app:layoutManager="StaggeredGridLayoutManager"
+        app:spanCount="2"
+
+        tools:listitem="@layout/item_type"
+        tools:visibility="gone" />
+</LinearLayout>

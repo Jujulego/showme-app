@@ -1,27 +1,73 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
 
-    tools:context=".ParametresActivity">
+    android:fragment="net.capellari.showme.ParametresFragment">
 
-    <PreferenceCategory
-        android:title="@string/pref_cat_recherche">
-
+    <PreferenceCategory android:title="@string/pref_cat_recherche">
+        <!--suppress AndroidElementNotAllowed -->
         <net.capellari.showme.RayonPreference
             android:key="@string/pref_rayon_max"
-            android:title="@string/pref_txt_rayon_max"/>
+            android:title="@string/pref_txt_rayon_max"
+
+            app:rayon="100"
+            app:rayon_fact="100"
+            app:rayon_max="1000"
+            app:rayon_min="100" />
+
+        <!--suppress AndroidElementNotAllowed -->
+        <net.capellari.showme.NettoyagePreference
+            android:key="@string/pref_historique"
+            android:title="@string/pref_txt_historique"
+
+            app:dialogMessage="@string/pref_dialog_historique"
+            app:positiveButtonText="@android:string/ok"
+            app:negativeButtonText="@android:string/cancel"/>
 
     </PreferenceCategory>
-
-    <PreferenceCategory
-        android:title="@string/pref_cat_energie">
-
+    <PreferenceCategory android:title="@string/pref_cat_economie">
+        <!--suppress AndroidElementNotAllowed -->
         <android.support.v7.preference.SwitchPreferenceCompat
             android:key="@string/pref_gps"
             android:title="@string/pref_txt_gps"
 
             android:defaultValue="true"/>
 
+        <!--suppress AndroidElementNotAllowed -->
+        <android.support.v7.preference.SwitchPreferenceCompat
+            android:key="@string/pref_internet"
+            android:title="@string/pref_txt_internet"
+
+            android:defaultValue="true"/>
+
+        <!--suppress AndroidElementNotAllowed -->
+        <net.capellari.showme.NettoyagePreference
+            android:key="@string/pref_cache"
+            android:title="@string/pref_txt_cache"
+
+            app:dialogMessage="@string/pref_dialog_cache"
+            app:positiveButtonText="@android:string/ok"
+            app:negativeButtonText="@android:string/cancel"/>
+
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="@string/pref_cat_service">
+        <!--suppress AndroidElementNotAllowed -->
+        <android.support.v7.preference.SwitchPreferenceCompat
+            android:key="@string/pref_nombre"
+            android:title="@string/pref_txt_nombre"
+
+            android:defaultValue="false" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="@string/nav_debogage">
+        <!--suppress AndroidElementNotAllowed -->
+        <android.support.v7.preference.SwitchPreferenceCompat
+            android:key="@string/pref_bienvenue"
+            android:title="@string/nav_bienvenue"
+
+            android:defaultValue="false" />
     </PreferenceCategory>
 </PreferenceScreen>

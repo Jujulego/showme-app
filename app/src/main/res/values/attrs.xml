@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- RayonFragment & RayonPreference -->
+    <declare-styleable name="RayonFragment">
+        <attr name="rayon_min"  format="integer" />
+        <attr name="rayon_max"  format="integer" />
+        <attr name="rayon_fact" format="integer" />
+        <attr name="rayon"      format="integer" />
+    </declare-styleable>
+
+    <!-- TypeSpinnerFragment -->
+    <declare-styleable name="TypeSpinnerFragment">
+        <attr name="selecttype_actif" format="boolean" />
+    </declare-styleable>
+</resources>
