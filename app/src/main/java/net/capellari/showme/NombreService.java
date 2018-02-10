@@ -64,7 +64,7 @@ public class NombreService extends LifecycleService {
         m_positionSource = new PositionSource(this, getLifecycle());
         getLifecycle().addObserver(m_positionSource);
 
-        // Initialisation gestion des requetes
+        // Initialisation gestion des requêtes
         m_requeteManager = RequeteManager.getInstance(this.getApplicationContext());
 
         // Initialisation Notif Channel
@@ -86,7 +86,7 @@ public class NombreService extends LifecycleService {
         Log.d(TAG, "Démarré !");
         setup();
 
-        // Redémarrage si nécéssaire
+        // Redémarrage si nécessaire
         return START_NOT_STICKY;
     }
 
@@ -124,7 +124,7 @@ public class NombreService extends LifecycleService {
                 m_live_location.observe(this, new Observer<Location>() {
                     @Override
                     public void onChanged(@Nullable Location location) {
-                        // Envoi d'une requete
+                        // Envoi d'une requête
                         m_requeteManager.addRequest(new LieuxRequete(
                                 location,
                                 m_preferences.getInt(getString(R.string.pref_rayon), 10)
@@ -141,7 +141,7 @@ public class NombreService extends LifecycleService {
         }
     }
 
-    // Requete
+    // Requête
     class LieuxRequete extends JsonArrayRequest {
         protected  LieuxRequete(String url) {
             super(url, new Response.Listener<JSONArray>() {

@@ -1,10 +1,8 @@
 package net.capellari.showme.db;
 
-import android.arch.lifecycle.LiveData;
 import android.arch.persistence.room.Dao;
 import android.arch.persistence.room.Entity;
 import android.arch.persistence.room.Insert;
-import android.arch.persistence.room.OnConflictStrategy;
 import android.arch.persistence.room.Query;
 import android.arch.persistence.room.Update;
 import android.support.annotation.NonNull;
@@ -41,9 +39,6 @@ public class Type extends TypeBase {
         // Accès
         @Query("select * from Type where not blacklist order by nom")
         List<Type> recup();
-
-        @Query("select * from Type where not blacklist order by nom")
-        LiveData<List<Type>> recupLive();
 
         @Query("select * from Type where _id == :id")
         Type recup(long id);

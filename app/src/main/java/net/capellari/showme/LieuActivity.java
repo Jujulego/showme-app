@@ -60,7 +60,7 @@ public class LieuActivity extends AppCompatActivity implements CarteFragment.OnC
         // Ouverture des préférences
         m_preferences = PreferenceManager.getDefaultSharedPreferences(this);
 
-        // Initialisation gestion des requetes
+        // Initialisation gestion des requêtes
         m_requeteManager = RequeteManager.getInstance(this.getApplicationContext());
 
         // Inflate !

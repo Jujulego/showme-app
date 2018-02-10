@@ -12,7 +12,7 @@ import com.android.volley.toolbox.Volley;
 /**
  * Created by julien on 11/01/18.
  *
- * Gestion des requetes HTTPS faites au serveur
+ * Gestion des requêtes HTTPS faites au serveur
  */
 
 public class RequeteManager {

@@ -73,12 +73,7 @@ public class LiveLieu extends LiveData<Lieu> {
         if (m_analyzeTask != null) m_analyzeTask.cancel(true);
     }
 
-    // Méthodes
-    public long get_lieuId() {
-        return m_id;
-    }
-
-    // Requete
+    // Requête
     private class Requete extends JsonObjectRequest {
         // Constructeur
         public Requete() {

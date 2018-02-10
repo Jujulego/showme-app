@@ -100,7 +100,7 @@ public class CarteFragment extends Fragment implements OnMapReadyCallback, Googl
     public void onDestroy() {
         super.onDestroy();
 
-        // Arret des mise à jours
+        // Arrêt des mise à jours
         m_lieux.removeObservers(this);
         m_location.removeObservers(this);
     }

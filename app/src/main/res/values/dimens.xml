@@ -2,7 +2,7 @@
     <!-- Default screen margins, per the Android Design guidelines. -->
     <dimen name="activity_horizontal_margin">10dp</dimen>
 
-    <!-- icones dans le cercle bleu -->
+    <!-- icônes dans le cercle bleu -->
     <dimen name="icone_margin">5dp</dimen>
 
     <!-- Texte -->

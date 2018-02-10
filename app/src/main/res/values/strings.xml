@@ -1,4 +1,4 @@
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Général -->
     <string name="app_name" translatable="false">ShowMe</string>
     <string name="database" translatable="false">showme.db</string>
@@ -54,7 +54,13 @@
     <string name="aff_rayon_defaut" translatable="false">10 m</string>
 
     <!-- FiltresFragment -->
-    <string name="filtrer_types">Filtrer par catégories</string>
+    <string name="filtrer_types">Limiter à vos catégories préférées</string>
+    <string-array name="status">
+        <item>Indéterminé</item>
+        <item>Ouvert</item>
+        <item>Fermé</item>
+    </string-array>
+    <string name="status_texte">Seulement les lieux</string>
 
     <!-- SelectType -->
     <string name="menu_select_title">Sélection</string>
@@ -64,13 +70,6 @@
     <!-- Recherches -->
     <!-- Champ de texte -->
     <string name="champ_hint">Quoi ?</string>
-
-    <!-- Messages d'erreur -->
-    <string name="rechr_tuto">Entrez votre recherche …</string>
-    <string name="chargement_indetermine">Chargement …</string>
-    <string name="chargement_determine">Chargement (%d / %d)</string>
-    <string name="vide">Aucun résultat</string>
-    <string name="erreur">Erreur !</string>
 
     <!-- Lieu -->
     <string name="inconnu">Inconnu</string>
@@ -87,7 +86,6 @@
     <string name="dialog_vider_titre">Tout supprimer</string>
     <string name="dialog_vider_texte">Cette action ne peux pas être annulée.</string>
 
-    <string name="popup_suppr">Enlever</string>
     <string name="msg_suppr">%s enlevé !</string>
     <string name="msg_annuler">Annuler</string>
 
@@ -118,7 +116,7 @@
     <string name="pref_txt_internet">Internet</string>
 
     <string name="pref_txt_cache">Vider le cache</string>
-    <string name="pref_dialog_cache">"Vider le cache permet de liberer de l'espace de stockage, mais va ralentir les prochaines requêtes, et va augmenter l'utilisation d'internet."</string>
+    <string name="pref_dialog_cache">"Vider le cache permet de libérer de l'espace de stockage, mais va ralentir les prochaines requêtes, et va augmenter l'utilisation d'internet."</string>
     <string name="pref_snackbar_cache">Cache vidé !</string>
 
     <string name="pref_txt_historique">"Vider l'historique"</string>
@@ -131,7 +129,7 @@
     <string name="pref_dialog_internet">Désactiver internet empêche la mise à jour des données locales, le résultat des recherches sera donc incomplet, et les données seront peut-être invalides.</string>
 
     <!-- Bonus ! -->
-    <string name="large_text">
+    <string name="large_text" tools:keep="@string/large_text">
         "Material is the metaphor.\n\n"
 
         "A material metaphor is the unifying theory of a rationalized space and a system of motion."

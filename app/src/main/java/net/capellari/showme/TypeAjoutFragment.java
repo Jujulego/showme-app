@@ -49,15 +49,15 @@ public class TypeAjoutFragment extends Fragment {
 
         // Récupération du model
         m_typesmodel = ViewModelProviders.of(getActivity()).get(TypesModel.class);
+
+        // Préparation adapter
+        m_adapter = new TypesAdapter();
+        m_adapter.setLiveData(m_typesmodel.getTypesNonSelect());
     }
 
     @Nullable @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_ajouttypes, container, false);
-
-        // Préparation adapter
-        if (m_adapter == null) m_adapter = new TypesAdapter();
-        m_adapter.setLiveData(m_typesmodel.getTypesNonSelect());
 
         // Gestion de la liste
         m_liste = view.findViewById(R.id.liste);
@@ -72,12 +72,6 @@ public class TypeAjoutFragment extends Fragment {
         m_liste.setItemAnimator(new DefaultItemAnimator());
 
         return view;
-    }
-
-    // Méthodes
-    public TypesAdapter getAdapter() {
-        if (m_adapter == null) m_adapter = new TypesAdapter();
-        return m_adapter;
     }
 
     // Classes
@@ -147,6 +141,10 @@ public class TypeAjoutFragment extends Fragment {
             m_live_types.observe(TypeAjoutFragment.this, new Observer<List<Type>>() {
                 @Override
                 public void onChanged(@Nullable List<Type> types) {
+                    if (types == null) {
+                        types = new LinkedList<>();
+                    }
+
                     DiffUtil.DiffResult result = DiffUtil.calculateDiff(new DiffType<>(m_types, types));
                     m_types.clear();
                     m_types.addAll(types);

@@ -26,7 +26,6 @@ import android.widget.TextView;
 import net.capellari.showme.data.DiffType;
 import net.capellari.showme.data.StringUtils;
 import net.capellari.showme.data.TypesModel;
-import net.capellari.showme.db.Type;
 import net.capellari.showme.db.TypeBase;
 import net.capellari.showme.db.TypeParam;
 
@@ -60,7 +59,7 @@ public class TypesFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_types, container, false);
 
         // Préparation adapter
-        if (m_adapter == null) m_adapter = new TypesAdapter();
+        m_adapter = new TypesAdapter();
         m_adapter.setLiveData(m_typesmodel.getParams());
 
         // Gestion de la liste
@@ -75,24 +74,14 @@ public class TypesFragment extends Fragment {
         ));
 
         // touch helper
-        ItemTouchHelper.Callback callback = new TypesTouchCallback(m_adapter);
+        ItemTouchHelper.Callback callback = new TypesTouchCallback();
         ItemTouchHelper touchHelper = new ItemTouchHelper(callback);
         touchHelper.attachToRecyclerView(m_liste);
 
         return view;
     }
 
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-    }
-
     // Méthodes
-    public TypesAdapter getAdapter() {
-        if (m_adapter == null) m_adapter = new TypesAdapter();
-        return m_adapter;
-    }
-
     private void supprimer(TypeBase type) {
         // Message
         msgSuppression(type);
@@ -203,6 +192,10 @@ public class TypesFragment extends Fragment {
             m_livedata.observe(TypesFragment.this, new Observer<List<TypeParam>>() {
                 @Override
                 public void onChanged(@Nullable List<TypeParam> types) {
+                    if (types == null) {
+                        types = new LinkedList<>();
+                    }
+
                     DiffUtil.DiffResult result = DiffUtil.calculateDiff(new DiffType<>(m_types, types));
                     m_types.clear();
                     m_types.addAll(types);
@@ -217,14 +210,6 @@ public class TypesFragment extends Fragment {
         }
     }
     class TypesTouchCallback extends ItemTouchHelper.Callback {
-        // Attributs
-        private final TypesAdapter m_adapter;
-
-        // Constructeur
-        public TypesTouchCallback(TypesAdapter adapter) {
-            m_adapter = adapter;
-        }
-
         // Méthodes
         @Override
         public boolean isLongPressDragEnabled() {

@@ -18,7 +18,7 @@ import android.widget.TextView;
 /**
  * Created by julien on 02/01/18.
  *
- * Rayon préference
+ * Rayon préférence
  */
 
 public class RayonPreference extends Preference {

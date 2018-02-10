@@ -1,7 +1,6 @@
 package net.capellari.showme.data;
 
 import android.Manifest;
-import android.app.Activity;
 import android.arch.lifecycle.Lifecycle;
 import android.arch.lifecycle.LifecycleObserver;
 import android.arch.lifecycle.LiveData;
@@ -11,9 +10,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Location;
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.preference.PreferenceManager;
 
@@ -100,13 +97,8 @@ public class PositionSource implements LifecycleObserver, LocationSource, Shared
         return ContextCompat.checkSelfPermission(m_context, permission) == PackageManager.PERMISSION_GRANTED;
     }
 
-    @Nullable
-    private Activity getActivity() {
-        return m_context instanceof Activity ?  (Activity) m_context : null;
-    }
-
     private void startLocationUpdate(int accuracy) {
-        // Préparation de la requete
+        // Préparation de la requête
         LocationRequest rq = new LocationRequest();
         rq.setFastestInterval(3000);
         rq.setPriority(accuracy);

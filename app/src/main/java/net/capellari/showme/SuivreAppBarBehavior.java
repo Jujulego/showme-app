@@ -35,7 +35,7 @@ public class SuivreAppBarBehavior<V extends View> extends CoordinatorLayout.Beha
         // Préparation
         parent.onLayoutChild(child, layoutDirection);
 
-        // Positionement
+        // Positionnement
         child.setBottom(dependence.getBottom() + child.getMeasuredHeight());
         child.setTop(dependence.getBottom());
 

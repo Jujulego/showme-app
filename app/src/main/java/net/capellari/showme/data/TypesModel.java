@@ -1,5 +1,6 @@
 package net.capellari.showme.data;
 
+import android.annotation.SuppressLint;
 import android.app.Application;
 import android.arch.lifecycle.AndroidViewModel;
 import android.arch.lifecycle.LiveData;
@@ -23,7 +24,7 @@ import java.util.List;
  *
  * Gestion des types
  */
-
+@SuppressLint("StaticFieldLeak")
 public class TypesModel extends AndroidViewModel {
     // Attributs
     // - données

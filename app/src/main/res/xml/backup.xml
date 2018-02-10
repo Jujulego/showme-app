@@ -4,5 +4,6 @@
     <include domain="sharedpref" path="." />
 
     <!-- Base de données -->
-    <include domain="database" path="@string/param_database" />
+    <include domain="database" />
+    <exclude domain="database" path="showme.db" />
 </full-backup-content>

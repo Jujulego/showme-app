@@ -1,4 +1,4 @@
-package net.capellari.showme;
+package net.capellari.showme.data;
 
 import android.content.SearchRecentSuggestionsProvider;
 
@@ -10,8 +10,8 @@ import android.content.SearchRecentSuggestionsProvider;
 
 public class HistoriqueProvider extends SearchRecentSuggestionsProvider {
     // Constantes
-    public final static String AUTORITE = "net.capellari.showme.historique";
-    public final static int MODE        = DATABASE_MODE_QUERIES;
+    public static final String AUTORITE = "net.capellari.showme.data.HistoriqueProvider";
+    public static final int MODE        = DATABASE_MODE_QUERIES;
 
     // Constructeur
     public HistoriqueProvider() {

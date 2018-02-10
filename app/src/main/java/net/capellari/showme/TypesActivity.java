@@ -13,7 +13,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 
 import net.capellari.showme.data.TypesModel;
-import net.capellari.showme.db.AppDatabase;
 
 /**
  * Created by julien on 12/01/18.
@@ -29,7 +28,7 @@ public class TypesActivity extends AppCompatActivity {
     private static final String LISTE_TAG = "liste";
     private static final String AJOUT_TAG = "ajout";
 
-    // Enumération
+    // Énumération
     enum Status {
         VIDE, LISTE, AJOUT
     }

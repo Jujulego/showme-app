@@ -37,13 +37,17 @@ public abstract class AppDatabase extends RoomDatabase {
     public static synchronized AppDatabase getInstance(@NonNull Context context) {
         // (Ré)ouverture de la base
         if (m_instance == null || !m_instance.isOpen()) {
-            m_instance = Room.databaseBuilder(
-                    context.getApplicationContext(), AppDatabase.class,
-                    context.getString(R.string.database)
-            ).addMigrations(MIGRATION_1_2).build();
+            m_instance = getNewInstance(context);
         }
 
         return m_instance;
+    }
+
+    public static AppDatabase getNewInstance(@NonNull Context context) {
+        return Room.databaseBuilder(
+                context.getApplicationContext(), AppDatabase.class,
+                context.getString(R.string.database)
+        ).addMigrations(MIGRATION_1_2).build();
     }
 
     // Migrations

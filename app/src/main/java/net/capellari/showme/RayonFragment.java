@@ -16,7 +16,7 @@ import android.widget.TextView;
 /**
  * Created by julien on 03/01/18.
  *
- * Fragement de demande d'un rayon
+ * Fragment de demande d'un rayon
  */
 
 public class RayonFragment extends Fragment {
@@ -194,7 +194,7 @@ public class RayonFragment extends Fragment {
         if (m_max % m_fact != 0) m_max += m_fact - (m_max % m_fact);
         m_min -= m_min % m_fact;
 
-        // Limitage du rayon
+        // Limitations du rayon
         int rayon = get_rayon();
         if (rayon < m_min) {
             set_rayon(m_min);

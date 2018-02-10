@@ -10,7 +10,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
-import android.database.Cursor;
 import android.location.Location;
 import android.os.Build;
 import android.os.Bundle;
@@ -44,8 +43,6 @@ import net.capellari.showme.data.LieuxSource;
 import net.capellari.showme.data.PositionSource;
 import net.capellari.showme.db.Lieu;
 
-import java.io.IOException;
-
 public class MainActivity extends AppCompatActivity
         implements CarteFragment.OnCarteEventListener,
                    RayonFragment.OnRayonListener,
@@ -58,6 +55,7 @@ public class MainActivity extends AppCompatActivity
 
     private static final String TAG = "MainActivity";
 
+    // Attributs
     // - toolbar
     private Toolbar m_toolbar;
     private Toolbar m_searchBar;
@@ -84,6 +82,7 @@ public class MainActivity extends AppCompatActivity
     private LiveData<Location> m_live_location;
 
     // - outils
+    private boolean m_recherche = false;
     private SharedPreferences m_preferences;
 
     // Events
@@ -206,11 +205,11 @@ public class MainActivity extends AppCompatActivity
         editor.putInt(getString(R.string.pref_rayon), rayon);
         editor.apply();
 
-        // Rafraichissement !
+        // Rafraîchissement !
         if (user) rafraichir();
     }
 
-    // Resultat
+    // Résultat
     @Override
     public void onRefresh() {
         rafraichir();
@@ -271,7 +270,7 @@ public class MainActivity extends AppCompatActivity
     }
     private void setupRecherche() {
         // Gestion du drawer et du searchView
-        if (!m_searchMenuItem.isActionViewExpanded()) {
+        if (!m_recherche) {
             m_drawerLayout.closeDrawers();
             m_searchMenuItem.expandActionView();
         }
@@ -316,11 +315,14 @@ public class MainActivity extends AppCompatActivity
             @Override
             public boolean onMenuItemActionExpand(MenuItem item) {
                 circleReveal(R.id.search_bar, SEARCH_ICON_POS, true);
+                m_recherche = true;
 
                 // Affichage du clavier
                 m_searchView.requestFocus();
                 InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-                imm.toggleSoftInput(0, InputMethodManager.HIDE_NOT_ALWAYS);
+                if (imm != null) {
+                    imm.toggleSoftInput(0, InputMethodManager.HIDE_NOT_ALWAYS);
+                }
 
                 return true;
             }
@@ -328,6 +330,8 @@ public class MainActivity extends AppCompatActivity
             @Override
             public boolean onMenuItemActionCollapse(MenuItem item) {
                 circleReveal(R.id.search_bar, SEARCH_ICON_POS, false);
+                m_recherche = false;
+
                 setupAccueil();
 
                 return false;
@@ -513,7 +517,7 @@ public class MainActivity extends AppCompatActivity
         int width = myView.getWidth();
 
         if (posFromRight > 0) {
-            width -= (posFromRight - 0.5) * myView.getHeight(); // les icones sont carrées !
+            width -= (posFromRight - 0.5) * myView.getHeight(); // les icônes sont carrées !
         }
 
         if (MENU_OVERFLOW) {

@@ -32,7 +32,7 @@
         <activity android:name=".SplashActivity"
             android:theme="@style/AppTheme.SplashScreen">
 
-            <!-- Démarage -->
+            <!-- Démarrage -->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -96,8 +96,8 @@
         <service android:name=".NombreService" />
 
         <!-- ContentProvider -->
-        <provider android:authorities="net.capellari.showme.historique"
-            android:name=".HistoriqueProvider"
+        <provider android:authorities="net.capellari.showme.data.HistoriqueProvider"
+            android:name=".data.HistoriqueProvider"
             android:exported="false" />
     </application>
 

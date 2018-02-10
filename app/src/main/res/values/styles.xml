@@ -28,7 +28,7 @@
         <!-- Préférences -->
         <item name="preferenceTheme">@style/AppTheme.PreferenceThemeOverlay</item>
 
-        <!-- Icones -->
+        <!-- Icônes -->
         <item name="drawerArrowStyle">@style/AppTheme.DrawerArrowStyle</item>
     </style>
 
@@ -47,7 +47,7 @@
     <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
     <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
 
-    <!-- Icones -->
+    <!-- Icônes -->
     <style name="AppTheme.DrawerArrowStyle" parent="Widget.AppCompat.DrawerArrowToggle">
         <item name="color">@android:color/white</item>
     </style>

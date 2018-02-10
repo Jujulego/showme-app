@@ -48,7 +48,6 @@ public class ResultatFragment extends Fragment {
     private int m_refreshMenuItem;
     private OnResultatListener m_listener;
 
-    private int m_compteur = 0; // inversé : mis au max puis réduit jusqu'à 0 => plein !
     private LieuAdapter m_adapter = new LieuAdapter();
 
     private LieuxModel m_lieuxModel;
@@ -76,7 +75,7 @@ public class ResultatFragment extends Fragment {
 
     @Nullable @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        // Infalte !
+        // Inflate !
         View view = inflater.inflate(R.layout.fragment_resultat, container, false);
 
         // Liste
@@ -119,7 +118,7 @@ public class ResultatFragment extends Fragment {
     public void onDestroy() {
         super.onDestroy();
 
-        // Arret reception maj
+        // Arrêt réception maj
         m_live_lieux.removeObservers(this);
     }
 
@@ -148,29 +147,6 @@ public class ResultatFragment extends Fragment {
     }
     public boolean isRefreshing() {
         return m_swipeRefresh.isRefreshing();
-    }
-
-    public void initCompteur(int nb) {
-        m_compteur += nb;
-
-        // On commence !
-        setRefreshing(true);
-    }
-    public void decrementer() {
-        decrementer(1);
-
-        // Fini !
-        if (m_compteur == 0) {
-            setRefreshing(false);
-        }
-    }
-    public void decrementer(@SuppressWarnings("SameParameterValue") int v) {
-        m_compteur -= v;
-
-        if (m_compteur <= 0) {
-            m_compteur = 0;
-            setRefreshing(false);
-        }
     }
 
     public void majDistances(Location location) {

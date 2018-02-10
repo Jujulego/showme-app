@@ -176,7 +176,7 @@ public class Lieu {
     // DAO
     @Dao
     public static abstract class LieuDAO {
-        // Acces
+        // Accès
         @Query("select * from Lieu where _id == :id")
         public abstract Lieu select(long id);
 

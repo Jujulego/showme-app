@@ -24,6 +24,7 @@ import android.text.style.ForegroundColorSpan;
 import android.util.Log;
 import android.view.View;
 
+import net.capellari.showme.data.HistoriqueProvider;
 import net.capellari.showme.data.RequeteManager;
 import net.capellari.showme.db.AppDatabase;
 

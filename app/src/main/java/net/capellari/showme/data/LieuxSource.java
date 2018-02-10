@@ -145,7 +145,7 @@ public class LieuxSource implements LifecycleOwner, LifecycleObserver {
 
     // - recherche
     public void rechercher(String query) {
-        m_query = query;
+        setQuery(query);
         rafraichir();
     }
     public String getQuery() {
