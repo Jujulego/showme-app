@@ -55,12 +55,16 @@
 
     <!-- FiltresFragment -->
     <string name="filtrer_types">Limiter à vos catégories préférées</string>
+
+    <string name="status_texte">Seulement les lieux</string>
     <string-array name="status">
         <item><i>Tous</i></item>
         <item>ouverts</item>
         <item>fermés</item>
     </string-array>
-    <string name="status_texte">Seulement les lieux</string>
+
+    <string name="status_ouvert">Ouvert</string>
+    <string name="status_ferme">Fermé</string>
 
     <!-- SelectType -->
     <string name="menu_select_title">Sélection</string>

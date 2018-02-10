@@ -239,8 +239,8 @@ public class Lieu {
         public abstract void ajoutHoraire(Horaire horaire);
 
         // Vider
-        @Query("delete from Lieu where datetime(date, 'unixepoch') < datetime('now', 'utc', '-7 days')")
-        public abstract void nettoyer();
+        @Query("delete from Lieu where datetime(date, 'unixepoch') > datetime('now', 'utc', '-7 days')")
+        public abstract int nettoyer();
 
         @Query("delete from Lieu")
         public abstract void viderLieux();

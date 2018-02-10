@@ -26,7 +26,8 @@ import net.capellari.showme.R;
 @TypeConverters(Converters.class)
 public abstract class AppDatabase extends RoomDatabase {
     // Attributs
-    private static AppDatabase m_instance;
+    private static AppDatabase s_instance;
+    private static int s_instances = 0;
 
     // DAOs
     public abstract Type.TypeDAO getTypeDAO();
@@ -36,11 +37,12 @@ public abstract class AppDatabase extends RoomDatabase {
     @NonNull
     public static synchronized AppDatabase getInstance(@NonNull Context context) {
         // (Ré)ouverture de la base
-        if (m_instance == null || !m_instance.isOpen()) {
-            m_instance = getNewInstance(context);
+        if (s_instance == null || !s_instance.isOpen()) {
+            s_instance = getNewInstance(context);
         }
 
-        return m_instance;
+        ++s_instances;
+        return s_instance;
     }
 
     public static AppDatabase getNewInstance(@NonNull Context context) {
@@ -48,6 +50,17 @@ public abstract class AppDatabase extends RoomDatabase {
                 context.getApplicationContext(), AppDatabase.class,
                 context.getString(R.string.database)
         ).addMigrations(MIGRATION_1_2).build();
+    }
+
+    @Override
+    public synchronized void close() {
+        --s_instances;
+
+        if (s_instances == 0) {
+            super.close();
+        } else if (s_instances < 0) {
+            s_instances = 0;
+        }
     }
 
     // Migrations

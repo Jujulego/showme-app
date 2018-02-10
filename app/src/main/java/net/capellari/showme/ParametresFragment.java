@@ -164,7 +164,10 @@ public class ParametresFragment extends PreferenceFragmentCompat {
         @Override
         protected Void doInBackground(Void... voids) {
             // Vidage ... :(
-            AppDatabase.getInstance(getContext()).getLieuDAO().viderLieux();
+            AppDatabase db = AppDatabase.getInstance(getContext());
+            db.getLieuDAO().viderLieux();
+            db.close();
+
             RequeteManager.getInstance(getContext()).getRequestQueue().getCache().clear();
 
             return null;

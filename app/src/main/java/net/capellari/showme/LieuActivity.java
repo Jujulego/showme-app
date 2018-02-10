@@ -183,7 +183,7 @@ public class LieuActivity extends AppCompatActivity implements CarteFragment.OnC
             m_adresse.setEnabled(true);
 
             // Horaires
-            m_lieuxModel.recupHoraires(lieu._id).observe(LieuActivity.this, new Observer<List<Horaire>>() {
+            m_lieuxModel.recupLiveHoraires(lieu._id).observe(LieuActivity.this, new Observer<List<Horaire>>() {
                 @Override
                 public void onChanged(@Nullable List<Horaire> horaires) {
                     m_horaireFragment.setHoraires(horaires);

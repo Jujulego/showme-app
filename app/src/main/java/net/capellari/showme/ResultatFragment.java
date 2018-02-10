@@ -13,6 +13,7 @@ import android.support.v7.util.DiffUtil;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.RecyclerView;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -165,6 +166,7 @@ public class ResultatFragment extends Fragment {
         private CardView m_card;
         private TextView m_nom;
         private RatingBar m_note;
+        private TextView m_status;
         private TextView m_distance;
 
         private Lieu m_lieu;
@@ -185,6 +187,7 @@ public class ResultatFragment extends Fragment {
             // Récupération des vues
             m_nom  = itemView.findViewById(R.id.nom);
             m_note = itemView.findViewById(R.id.note);
+            m_status = itemView.findViewById(R.id.lieu_status);
             m_distance = itemView.findViewById(R.id.distance);
         }
 
@@ -200,6 +203,14 @@ public class ResultatFragment extends Fragment {
                 m_note.setRating(lieu.note.floatValue());
             } else {
                 m_note.setVisibility(View.GONE);
+            }
+
+            Boolean ouvert = Lieu.estOuvert(m_lieuxModel.recupHoraires(lieu._id));
+            if (ouvert != null) {
+                m_status.setVisibility(View.VISIBLE);
+                m_status.setText(ouvert ? R.string.status_ouvert : R.string.status_ferme);
+            } else {
+                m_status.setVisibility(View.GONE);
             }
         }
 

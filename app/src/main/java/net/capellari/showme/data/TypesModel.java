@@ -54,6 +54,14 @@ public class TypesModel extends AndroidViewModel {
         new SelectParamsTask().execute();
     }
 
+    // Events
+    @Override
+    protected void onCleared() {
+        // Fermeture de la base
+        m_appdb.close();
+        m_paramdb.close();
+    }
+
     // Méthodes
     public List<Type> getTypes() {
         return m_types;
@@ -146,14 +154,6 @@ public class TypesModel extends AndroidViewModel {
 
         // Maj UI
         m_live_types.setValue(m_typesNonSelect);
-    }
-
-    // Events
-    @Override
-    protected void onCleared() {
-        // Fermeture de la base
-        m_appdb.close();
-        m_paramdb.close();
     }
 
     // Tri

@@ -25,7 +25,7 @@ import net.capellari.showme.data.LieuxModel;
 public class FiltresFragment extends Fragment {
     // Constantes
     private static final String TAG = "FiltresFragment";
-    private static final LieuxModel.LieuStatus[] TABLE_STATUS = {LieuxModel.LieuStatus.INDETERMINE, LieuxModel.LieuStatus.OUVERT, LieuxModel.LieuStatus.FERME};
+    private static final LieuxModel.LieuStatus[] TABLE_STATUS = {LieuxModel.LieuStatus.TOUS, LieuxModel.LieuStatus.OUVERT, LieuxModel.LieuStatus.FERME};
 
     // Attributs
     private CheckBox m_filtrerTypes;
@@ -70,7 +70,7 @@ public class FiltresFragment extends Fragment {
 
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
-
+                m_lieuxModel.setLieuStatus(LieuxModel.LieuStatus.TOUS);
             }
         });
 

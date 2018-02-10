@@ -50,7 +50,6 @@ public class LiveLieu extends LiveData<Lieu> {
         m_context = context;
 
         // Outils
-        m_db = AppDatabase.getInstance(context);
         m_requeteManager = RequeteManager.getInstance(context);
 
         // Ouverture des préférences
@@ -60,6 +59,9 @@ public class LiveLieu extends LiveData<Lieu> {
     // Events
     @Override
     protected void onActive() {
+        m_db = AppDatabase.getInstance(m_context);
+
+        // Activation
         m_selectTask = new SelectTask();
         m_selectTask.execute();
     }
@@ -69,8 +71,11 @@ public class LiveLieu extends LiveData<Lieu> {
         // Annulations !
         m_selectTask.cancel(true);
 
-        if (m_requete != null)    m_requete.cancel();
+        if (m_requete != null)     m_requete.cancel();
         if (m_analyzeTask != null) m_analyzeTask.cancel(true);
+
+        // On lache la base
+        m_db.close();
     }
 
     // Requête
