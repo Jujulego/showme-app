@@ -56,9 +56,9 @@
     <!-- FiltresFragment -->
     <string name="filtrer_types">Limiter à vos catégories préférées</string>
     <string-array name="status">
-        <item>Indéterminé</item>
-        <item>Ouvert</item>
-        <item>Fermé</item>
+        <item><i>Tous</i></item>
+        <item>ouverts</item>
+        <item>fermés</item>
     </string-array>
     <string name="status_texte">Seulement les lieux</string>
 

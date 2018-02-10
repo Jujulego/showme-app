@@ -40,10 +40,14 @@ public class LieuxModel extends AndroidViewModel {
     // Constantes
     private static final String TAG = "LieuxModel";
 
+    // Énumération
+    public enum LieuStatus { INDETERMINE, OUVERT, FERME }
+
     // Attributs
     // - données brutes
     private List<Lieu> m_lieux = new LinkedList<>();
     private LongSparseArray<List<TypeBase>> m_typesLieux = new LongSparseArray<>();
+    private LongSparseArray<List<Horaire>> m_horairesLieux = new LongSparseArray<>();
 
     // - cache
     private LongSparseArray<LiveLieu> m_cacheLieu = new LongSparseArray<>();
@@ -51,6 +55,7 @@ public class LieuxModel extends AndroidViewModel {
     private LongSparseArray<LiveData<List<Horaire>>> m_cacheHoraires = new LongSparseArray<>();
 
     // - filtres
+    private LieuStatus m_lieuStatus = LieuStatus.INDETERMINE;
     private boolean m_filtreParams = true;
     private List<TypeParam> m_typesParam = new LinkedList<>();
 
@@ -200,6 +205,12 @@ public class LieuxModel extends AndroidViewModel {
     }
 
     // - gestion des filtres
+    public void setLieuStatus(LieuStatus status) {
+        if (m_lieuStatus != status) {
+            m_lieuStatus = status;
+            filtrerLieux();
+        }
+    }
     public void setFiltreParam(boolean actif) {
         if (m_filtreParams != actif) {
             m_filtreParams = actif;
@@ -283,11 +294,20 @@ public class LieuxModel extends AndroidViewModel {
         List<TypeBase> types = m_typesLieux.get(lieu._id, null);
         if (types == null) return false;
 
-        // Test
+        // Test types
         boolean ok = false;
         for (TypeBase type : types) {
             ok = m_typesFiltres.contains(type) && m_typesAffiches.get(type._id, false);
             if (ok) break;
+        }
+
+        // Test status
+        if (ok && (m_lieuStatus != LieuStatus.INDETERMINE)) {
+            ok = Lieu.estOuvert(m_horairesLieux.get(lieu._id, null), m_lieuStatus == LieuStatus.OUVERT);
+
+            if (m_lieuStatus == LieuStatus.FERME) {
+                ok = !ok;
+            }
         }
 
         // Ajout
@@ -396,9 +416,11 @@ public class LieuxModel extends AndroidViewModel {
     }
 
     // - types pour d'un lieu
-    private class SelectTypesTask extends AsyncTask<Void,Void,List<TypeBase>> {
+    private class SelectTypesTask extends AsyncTask<Void,Void,Void> {
         // Attributs
         private Lieu m_lieu;
+        private List<TypeBase> m_types;
+        private List<Horaire> m_horaires;
 
         // Constructeur
         public SelectTypesTask(Lieu lieu) {
@@ -407,12 +429,13 @@ public class LieuxModel extends AndroidViewModel {
 
         // Events
         @Override
-        protected void onPostExecute(List<TypeBase> types) {
+        protected void onPostExecute(Void v) {
             // Sauvegarde du résultat
-            m_typesLieux.put(m_lieu._id, types);
+            m_typesLieux.put(m_lieu._id, m_types);
+            m_horairesLieux.put(m_lieu._id, m_horaires);
 
             // Traitements
-            ajouterTypes(types);
+            ajouterTypes(m_types);
             if (filtrerLieu(m_lieu)) {
                 m_live_lieux.setValue(m_lieuxFiltres);
             }
@@ -420,8 +443,11 @@ public class LieuxModel extends AndroidViewModel {
 
         // Méthodes
         @Override
-        protected List<TypeBase> doInBackground(Void... voids) {
-            return m_appdb.getLieuDAO().selectTypes(m_lieu._id);
+        protected Void doInBackground(Void... voids) {
+            m_types    = m_appdb.getLieuDAO().selectTypes(m_lieu._id);
+            m_horaires = m_appdb.getLieuDAO().selectHoraires(m_lieu._id);
+
+            return null;
         }
     }
 

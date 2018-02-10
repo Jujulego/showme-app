@@ -22,7 +22,7 @@ import net.capellari.showme.data.TypesModel;
 
 public class TypesActivity extends AppCompatActivity {
     // Constantes
-    private static final String STATUS = "showme.STATUS";
+    private static final String STATUS = "showme.LieuStatus";
     private static final String TAG    = "TypesActivity";
 
     private static final String LISTE_TAG = "liste";

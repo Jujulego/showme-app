@@ -8,8 +8,11 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
+import android.widget.Spinner;
 
 import net.capellari.showme.data.LieuxModel;
 
@@ -22,9 +25,11 @@ import net.capellari.showme.data.LieuxModel;
 public class FiltresFragment extends Fragment {
     // Constantes
     private static final String TAG = "FiltresFragment";
+    private static final LieuxModel.LieuStatus[] TABLE_STATUS = {LieuxModel.LieuStatus.INDETERMINE, LieuxModel.LieuStatus.OUVERT, LieuxModel.LieuStatus.FERME};
 
     // Attributs
     private CheckBox m_filtrerTypes;
+    private Spinner m_lieuStatus;
 
     private LieuxModel m_lieuxModel;
 
@@ -47,6 +52,25 @@ public class FiltresFragment extends Fragment {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 m_lieuxModel.setFiltreParam(isChecked);
+            }
+        });
+
+        // Préparation spinner
+        m_lieuStatus = view.findViewById(R.id.lieu_status);
+
+        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(getContext(), R.array.status, android.R.layout.simple_spinner_item);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        m_lieuStatus.setAdapter(adapter);
+
+        m_lieuStatus.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                m_lieuxModel.setLieuStatus(TABLE_STATUS[position]);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
             }
         });
 

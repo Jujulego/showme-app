@@ -13,6 +13,7 @@ import android.widget.TextView;
 
 import net.capellari.showme.data.StringUtils;
 import net.capellari.showme.db.Horaire;
+import net.capellari.showme.db.Lieu;
 
 import java.text.DateFormatSymbols;
 import java.util.Calendar;
@@ -139,7 +140,7 @@ public class HoraireFragment extends Fragment {
         } else {
             // On active !
             m_aujourdhui.setEnabled(true);
-            m_aujourdhui.setText(estOuvert() ? R.string.ouvert : R.string.ferme);
+            m_aujourdhui.setText(Lieu.estOuvert(m_liste) ? R.string.ouvert : R.string.ferme);
 
             m_bouton.setEnabled(true);
 
@@ -155,28 +156,6 @@ public class HoraireFragment extends Fragment {
     public void setHoraires(List<Horaire> horaires) {
         m_liste = horaires;
         majUI();
-    }
-    public Boolean estOuvert() {
-        // Pas d'horaires => null
-        if (vide()) return null;
-
-        // Test !
-        Calendar ajd = Calendar.getInstance();
-        boolean ouvert = false;
-
-        for (Horaire horaire : m_liste) {
-            // Récupération des horaires
-            Calendar ouv = horaire.getOuverture(ajd);
-            Calendar fer = horaire.getFermeture(ajd);
-
-            // Test
-            if (ouv.before(ajd) && ajd.before(fer)) {
-                ouvert = true;
-                break;
-            }
-        }
-
-        return ouvert;
     }
 
     // Classe

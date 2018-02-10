@@ -24,6 +24,8 @@ import org.json.JSONObject;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Calendar;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -97,6 +99,40 @@ public class Lieu {
             photo = null;
             Log.w("Lieu", String.format(Locale.getDefault(),"Erreur format URL (photo, _id = %d)", _id), err);
         }
+    }
+
+    // Méthodes statiques
+    @Nullable
+    public static Boolean estOuvert(@Nullable Collection<Horaire> liste) {
+        return estOuvert(liste, null);
+    }
+
+    @NonNull
+    public static Boolean estOuvert(@Nullable Collection<Horaire> liste, boolean defaut) {
+        return estOuvert(liste, (Boolean) defaut);
+    }
+
+    private static Boolean estOuvert(@Nullable Collection<Horaire> liste, @Nullable Boolean defaut) {
+        // Pas d'horaires => null
+        if (liste == null || liste.size() == 0) return defaut;
+
+        // Test !
+        Calendar ajd = Calendar.getInstance();
+        boolean ouvert = false;
+
+        for (Horaire horaire : liste) {
+            // Récupération des horaires
+            Calendar ouv = horaire.getOuverture(ajd);
+            Calendar fer = horaire.getFermeture(ajd);
+
+            // Test
+            if (ouv.before(ajd) && ajd.before(fer)) {
+                ouvert = true;
+                break;
+            }
+        }
+
+        return ouvert;
     }
 
     // Méthodes
@@ -185,6 +221,9 @@ public class Lieu {
 
         @Query("select Type._id,Type.nom from TypeLieu join Type on TypeLieu.type_id = Type._id where lieu_id = :id and not Type.blacklist")
         public abstract LiveData<List<TypeBase>> selectLiveTypes(long id);
+
+        @Query("select Horaire.* from Horaire where lieu_id = :id")
+        public abstract List<Horaire> selectHoraires(long id);
 
         @Query("select Horaire.* from Horaire where lieu_id = :id")
         public abstract LiveData<List<Horaire>> selectLiveHoraires(long id);
