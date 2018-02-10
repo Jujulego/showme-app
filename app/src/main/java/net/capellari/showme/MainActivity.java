@@ -40,6 +40,7 @@ import com.google.android.gms.maps.GoogleMap;
 
 import net.capellari.showme.data.LieuxModel;
 import net.capellari.showme.data.LieuxSource;
+import net.capellari.showme.data.LieuxSuggestions;
 import net.capellari.showme.data.PositionSource;
 import net.capellari.showme.db.Lieu;
 
@@ -351,6 +352,10 @@ public class MainActivity extends AppCompatActivity
             public boolean onQueryTextSubmit(String query) {
                 m_searchView.clearFocus();
                 rechercher(query);
+
+                // Ajout à l'historique
+                LieuxSuggestions.ajouterEntree(MainActivity.this, query);
+
                 return true;
             }
 

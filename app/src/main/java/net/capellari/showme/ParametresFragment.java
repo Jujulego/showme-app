@@ -23,6 +23,7 @@ import android.text.style.ForegroundColorSpan;
 import android.util.Log;
 import android.view.View;
 
+import net.capellari.showme.data.LieuxSuggestions;
 import net.capellari.showme.data.RequeteManager;
 import net.capellari.showme.db.AppDatabase;
 
@@ -108,6 +109,18 @@ public class ParametresFragment extends PreferenceFragmentCompat {
                                 if (positiveResult) {
                                     // Nettoyage !
                                     new ViderTask().execute();
+                                }
+                            }
+                        }
+                );
+            } else if (preference.getKey().equals(getString(R.string.pref_historique))) {
+                // Historique
+                fragment = NettoyagePreferenceDialog.newInstance(
+                        preference.getKey(), new NettoyagePreferenceDialog.OnDialogClosed() {
+                            @Override
+                            public void onDialogClosed(boolean positiveResult) {
+                                if (positiveResult) {
+                                    LieuxSuggestions.viderHistorique(getContext());
                                 }
                             }
                         }

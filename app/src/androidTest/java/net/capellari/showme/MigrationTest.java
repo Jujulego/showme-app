@@ -63,4 +63,13 @@ public class MigrationTest {
         assertThat(cursor.getString(cursor.getColumnIndex("nom")), equalTo("test"));
         assertThat(cursor.getInt(cursor.getColumnIndex("blacklist")), equalTo(0));
     }
+
+    @Test
+    public void migrateApp2To3() throws IOException {
+        SupportSQLiteDatabase db = appHelper.createDatabase(TEST_APPDB, 2);
+        db.close();
+
+        // Application de la migration
+        appHelper.runMigrationsAndValidate(TEST_APPDB, 3, true, AppDatabase.MIGRATION_2_3);
+    }
 }
