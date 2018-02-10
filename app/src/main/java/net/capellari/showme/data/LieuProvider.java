@@ -8,10 +8,8 @@ import android.content.UriMatcher;
 import android.database.Cursor;
 import android.database.MatrixCursor;
 import android.net.Uri;
-import android.provider.SearchRecentSuggestions;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.util.Log;
 
 import net.capellari.showme.R;
 import net.capellari.showme.db.AppDatabase;
@@ -19,7 +17,6 @@ import net.capellari.showme.db.Historique;
 import net.capellari.showme.db.Lieu;
 
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 

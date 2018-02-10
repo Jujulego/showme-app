@@ -128,7 +128,9 @@ public class HoraireFragment extends Fragment {
     }
 
     private void majUI() {
-        if (vide()) {
+        Boolean ouvert = Lieu.estOuvert(m_liste);
+
+        if (ouvert == null) {
             // On cache !
             m_aujourdhui.setEnabled(false);
             m_aujourdhui.setText(R.string.inconnus);
@@ -140,7 +142,7 @@ public class HoraireFragment extends Fragment {
         } else {
             // On active !
             m_aujourdhui.setEnabled(true);
-            m_aujourdhui.setText(Lieu.estOuvert(m_liste) ? R.string.ouvert : R.string.ferme);
+            m_aujourdhui.setText(ouvert ? R.string.ouvert : R.string.ferme);
 
             m_bouton.setEnabled(true);
 

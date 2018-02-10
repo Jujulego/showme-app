@@ -39,8 +39,6 @@ public class FiltresFragment extends Fragment {
     };
 
     // Attributs
-    private float m_note = 0;
-
     private CheckBox m_filtrerTypes;
     private Spinner m_lieuStatus;
     private Spinner m_noteMode;
