@@ -7,8 +7,8 @@ android {
         applicationId "net.capellari.showme"
         minSdkVersion 23
         targetSdkVersion 27
-        versionCode 2
-        versionName "2.0"
+        versionCode 201
+        versionName "2.1"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 
         javaCompileOptions {

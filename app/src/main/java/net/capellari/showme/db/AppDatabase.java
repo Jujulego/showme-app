@@ -21,40 +21,62 @@ import net.capellari.showme.R;
         Lieu.class,
         Type.class,
         TypeLieu.class,
-        Horaire.class
-}, version = 2)
+        Horaire.class,
+        Historique.class
+}, version = 3)
 @TypeConverters(Converters.class)
 public abstract class AppDatabase extends RoomDatabase {
     // Attributs
-    private static AppDatabase m_instance;
+    private static AppDatabase s_instance;
+    private static int s_instances = 0;
 
     // DAOs
     public abstract Type.TypeDAO getTypeDAO();
     public abstract Lieu.LieuDAO getLieuDAO();
+    public abstract Historique.HistoriqueDao getHistoriqueDao();
 
-    // Méthodes
+    // Méthodes statiques
     @NonNull
     public static synchronized AppDatabase getInstance(@NonNull Context context) {
         // (Ré)ouverture de la base
-        if (m_instance == null || !m_instance.isOpen()) {
-            m_instance = getNewInstance(context);
+        if (s_instance == null || !s_instance.isOpen()) {
+            s_instance = getNewInstance(context);
         }
 
-        return m_instance;
+        ++s_instances;
+        return s_instance;
     }
-
     public static AppDatabase getNewInstance(@NonNull Context context) {
         return Room.databaseBuilder(
                 context.getApplicationContext(), AppDatabase.class,
                 context.getString(R.string.database)
-        ).addMigrations(MIGRATION_1_2).build();
+        ).addMigrations(MIGRATION_1_2, MIGRATION_2_3).build();
+    }
+
+    // Méthodes
+    @Override
+    public synchronized void close() {
+        --s_instances;
+
+        if (s_instances == 0) {
+            super.close();
+        } else if (s_instances < 0) {
+            s_instances = 0;
+        }
     }
 
     // Migrations
     public static final Migration MIGRATION_1_2 = new Migration(1, 2) {
         @Override
         public void migrate(@NonNull SupportSQLiteDatabase database) {
-            database.execSQL("ALTER TABLE Type ADD COLUMN blacklist INTEGER NOT NULL DEFAULT 0");
+            database.execSQL("ALTER TABLE `Type` ADD COLUMN `blacklist` INTEGER NOT NULL DEFAULT 0");
+        }
+    };
+    public static final Migration MIGRATION_2_3 = new Migration(2, 3) {
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase database) {
+            database.execSQL("CREATE TABLE IF NOT EXISTS `Historique` (`_id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `query` TEXT NOT NULL, `date` INTEGER NOT NULL)");
+            database.execSQL("CREATE UNIQUE INDEX `index_Historique_query` ON `Historique` (`query`)");
         }
     };
 }

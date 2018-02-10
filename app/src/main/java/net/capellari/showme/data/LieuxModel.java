@@ -6,6 +6,7 @@ import android.arch.lifecycle.AndroidViewModel;
 import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.MutableLiveData;
 import android.os.AsyncTask;
+import android.support.annotation.Nullable;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.util.LongSparseArray;
@@ -40,10 +41,19 @@ public class LieuxModel extends AndroidViewModel {
     // Constantes
     private static final String TAG = "LieuxModel";
 
+    // Énumérations
+    public enum LieuStatus {
+        TOUS, OUVERT, FERME
+    }
+    public enum Comparateur {
+        TOUT, MINIMUM, EGAL, MAXIMUM
+    }
+
     // Attributs
     // - données brutes
     private List<Lieu> m_lieux = new LinkedList<>();
     private LongSparseArray<List<TypeBase>> m_typesLieux = new LongSparseArray<>();
+    private LongSparseArray<List<Horaire>> m_horairesLieux = new LongSparseArray<>();
 
     // - cache
     private LongSparseArray<LiveLieu> m_cacheLieu = new LongSparseArray<>();
@@ -51,6 +61,10 @@ public class LieuxModel extends AndroidViewModel {
     private LongSparseArray<LiveData<List<Horaire>>> m_cacheHoraires = new LongSparseArray<>();
 
     // - filtres
+    private float m_note = 0;
+    private Comparateur m_noteComparateur = Comparateur.MINIMUM;
+    private LieuStatus m_lieuStatus = LieuStatus.TOUS;
+
     private boolean m_filtreParams = true;
     private List<TypeParam> m_typesParam = new LinkedList<>();
 
@@ -148,7 +162,7 @@ public class LieuxModel extends AndroidViewModel {
 
         return types;
     }
-    public LiveData<List<Horaire>> recupHoraires(long id) {
+    public LiveData<List<Horaire>> recupLiveHoraires(long id) {
         // Check
         LiveData<List<Horaire>> horaires = m_cacheHoraires.get(id, null);
 
@@ -161,7 +175,15 @@ public class LieuxModel extends AndroidViewModel {
         return horaires;
     }
 
+    @Nullable
+    public List<Horaire> recupHoraires(long id) {
+        return m_horairesLieux.get(id, null);
+    }
+
     // - accès aux données filtrées
+    public int nbLieuxFiltres() {
+        return m_lieux.size() - m_lieuxFiltres.size();
+    }
     public LiveData<List<Lieu>>     recupLieux() {
         return m_live_lieux;
     }
@@ -185,9 +207,12 @@ public class LieuxModel extends AndroidViewModel {
     public void vider() {
         // Reset !
         m_lieux.clear();
-        m_types.clear();
         m_typesLieux.clear();
+        m_horairesLieux.clear();
+
+        m_types.clear();
         m_typesAffiches.clear();
+
         m_lieuxFiltres.clear();
         m_typesFiltres.clear();
 
@@ -200,11 +225,29 @@ public class LieuxModel extends AndroidViewModel {
     }
 
     // - gestion des filtres
+    public void setLieuStatus(LieuStatus status) {
+        if (m_lieuStatus != status) {
+            m_lieuStatus = status;
+            filtrerLieux();
+        }
+    }
     public void setFiltreParam(boolean actif) {
         if (m_filtreParams != actif) {
             m_filtreParams = actif;
             filtrerTout();
         }
+    }
+
+    public float getNote() {
+        return m_note;
+    }
+    public void setNote(float note) {
+        m_note = note;
+        filtrerLieux();
+    }
+    public void setNoteComparateur(Comparateur mode) {
+        m_noteComparateur = mode;
+        filtrerLieux();
     }
 
     public boolean getFiltreType(long type) {
@@ -264,30 +307,69 @@ public class LieuxModel extends AndroidViewModel {
     }
     private boolean filtrerType(TypeBase type) {
         // Déjà présent ?
-        if (m_typesFiltres.contains(type)) return false;
+        if (m_typesFiltres.contains(type)) {
+            return false;
+        }
 
         // Type sélectionné ?
         //noinspection SuspiciousMethodCalls
-        if (m_filtreParams && !m_typesParam.contains(type)) return false;
+        if (m_filtreParams && !m_typesParam.contains(type)) {
+            return false;
+        }
 
         // Ajout !
         m_typesFiltres.add(type);
         return true;
     }
 
+    private boolean appliquerComparateur(float val, float seuil, Comparateur comparateur) {
+        switch (comparateur) {
+            case TOUT:
+                return true;
+
+            case MINIMUM:
+                return val >= seuil;
+
+            case EGAL:
+                return val == seuil;
+
+            case MAXIMUM:
+                return val <= seuil;
+        }
+
+        return false;
+    }
     private boolean filtrerLieu(Lieu lieu) {
         // Déjà présent ?
-        if (m_lieuxFiltres.contains(lieu)) return false;
+        if (m_lieuxFiltres.contains(lieu)) {
+            return false;
+        }
 
         // Récupération des types
         List<TypeBase> types = m_typesLieux.get(lieu._id, null);
-        if (types == null) return false;
+        if (types == null) {
+            return false;
+        }
 
-        // Test
+        // Test types
         boolean ok = false;
         for (TypeBase type : types) {
             ok = m_typesFiltres.contains(type) && m_typesAffiches.get(type._id, false);
             if (ok) break;
+        }
+
+        // Test status
+        if (ok && (m_lieuStatus != LieuStatus.TOUS)) {
+            ok = Lieu.estOuvert(m_horairesLieux.get(lieu._id, null), m_lieuStatus == LieuStatus.OUVERT);
+
+            if (m_lieuStatus == LieuStatus.FERME) {
+                ok = !ok;
+            }
+        }
+
+        // Test note
+        if (ok && (lieu.note != null)) {
+            ok = appliquerComparateur(lieu.note.floatValue(), m_note, m_noteComparateur);
         }
 
         // Ajout
@@ -360,8 +442,9 @@ public class LieuxModel extends AndroidViewModel {
     private class UpdateTypes extends AsyncTask<Type,Void,Void> {
         @Override
         protected Void doInBackground(Type... types) {
-            Type.TypeDAO dao = m_appdb.getTypeDAO();
-            m_appdb.beginTransaction();
+            AppDatabase db = AppDatabase.getInstance(getApplication());
+            Type.TypeDAO dao = db.getTypeDAO();
+            db.beginTransaction();
 
             try {
                 for (Type t : types) {
@@ -372,9 +455,10 @@ public class LieuxModel extends AndroidViewModel {
                     }
                 }
 
-                m_appdb.setTransactionSuccessful();
+                db.setTransactionSuccessful();
             } finally {
-                m_appdb.endTransaction();
+                db.endTransaction();
+                db.close();
             }
 
             return null;
@@ -396,9 +480,11 @@ public class LieuxModel extends AndroidViewModel {
     }
 
     // - types pour d'un lieu
-    private class SelectTypesTask extends AsyncTask<Void,Void,List<TypeBase>> {
+    private class SelectTypesTask extends AsyncTask<Void,Void,Void> {
         // Attributs
         private Lieu m_lieu;
+        private List<TypeBase> m_types;
+        private List<Horaire> m_horaires;
 
         // Constructeur
         public SelectTypesTask(Lieu lieu) {
@@ -407,12 +493,13 @@ public class LieuxModel extends AndroidViewModel {
 
         // Events
         @Override
-        protected void onPostExecute(List<TypeBase> types) {
+        protected void onPostExecute(Void v) {
             // Sauvegarde du résultat
-            m_typesLieux.put(m_lieu._id, types);
+            m_typesLieux.put(m_lieu._id,    m_types);
+            m_horairesLieux.put(m_lieu._id, m_horaires);
 
             // Traitements
-            ajouterTypes(types);
+            ajouterTypes(m_types);
             if (filtrerLieu(m_lieu)) {
                 m_live_lieux.setValue(m_lieuxFiltres);
             }
@@ -420,8 +507,13 @@ public class LieuxModel extends AndroidViewModel {
 
         // Méthodes
         @Override
-        protected List<TypeBase> doInBackground(Void... voids) {
-            return m_appdb.getLieuDAO().selectTypes(m_lieu._id);
+        protected Void doInBackground(Void... voids) {
+            AppDatabase db = AppDatabase.getInstance(getApplication());
+            m_types    = db.getLieuDAO().selectTypes(m_lieu._id);
+            m_horaires = db.getLieuDAO().selectHoraires(m_lieu._id);
+            db.close();
+
+            return null;
         }
     }
 
@@ -429,14 +521,20 @@ public class LieuxModel extends AndroidViewModel {
     private class NettoyageTask extends AsyncTask<Void,Void,Void> {
         @Override
         protected Void doInBackground(Void... voids) {
-            m_appdb.getLieuDAO().nettoyer();
+            AppDatabase db = AppDatabase.getInstance(getApplication());
+            Log.d(TAG, String.valueOf(db.getLieuDAO().nettoyer()) + " entrées nettoyées");
+            db.close();
+
             return null;
         }
     }
     private class VidageTask extends AsyncTask<Void,Void,Void> {
         @Override
         protected Void doInBackground(Void... voids) {
-            m_appdb.getLieuDAO().viderLieux();
+            AppDatabase db = AppDatabase.getInstance(getApplication());
+            db.getLieuDAO().viderLieux();
+            db.close();
+
             return null;
         }
     }

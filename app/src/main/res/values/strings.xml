@@ -55,12 +55,31 @@
 
     <!-- FiltresFragment -->
     <string name="filtrer_types">Limiter à vos catégories préférées</string>
-    <string-array name="status">
-        <item>Indéterminé</item>
-        <item>Ouvert</item>
-        <item>Fermé</item>
-    </string-array>
+
     <string name="status_texte">Seulement les lieux</string>
+    <string-array name="status">
+        <item><i>tous</i></item>
+        <item>ouverts</item>
+        <item>fermés</item>
+    </string-array>
+    <string name="status_ouvert">Ouvert</string>
+    <string name="status_ferme">Fermé</string>
+
+    <string name="note_texte">Note</string>
+    <string-array name="node_mode">
+        <item><i>toutes</i></item>
+        <item>minimum</item>
+        <item>egal</item>
+        <item>maximum</item>
+    </string-array>
+
+    <!-- RésultatFragment -->
+    <string name="liste_rafraichir">Rafraîchissez la liste !</string>
+    <string name="liste_vide">"J'ai rien trouvé &#8230;"</string>
+    <plurals name="liste_filtree">
+        <item quantity="one">%d lieu filtré</item>
+        <item quantity="other">%d lieux filtrés</item>
+    </plurals>
 
     <!-- SelectType -->
     <string name="menu_select_title">Sélection</string>

@@ -42,9 +42,11 @@ public class ResultatFragment extends Fragment {
     private static final String TAG = "ResultatFragment";
 
     // Attributs
+    private TextView m_message;
     private RecyclerView m_liste;
     private SwipeRefreshLayout m_swipeRefresh;
 
+    private boolean m_neverRefreshed = true;
     private int m_refreshMenuItem;
     private OnResultatListener m_listener;
 
@@ -77,6 +79,11 @@ public class ResultatFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         // Inflate !
         View view = inflater.inflate(R.layout.fragment_resultat, container, false);
+
+        // Message
+        m_message = view.findViewById(R.id.message);
+        m_message.setText(getString(R.string.liste_rafraichir));
+        m_message.setVisibility(View.VISIBLE);
 
         // Liste
         m_liste = view.findViewById(R.id.liste);
@@ -143,6 +150,7 @@ public class ResultatFragment extends Fragment {
     }
 
     public void setRefreshing(boolean refresh) {
+        m_neverRefreshed &= !refresh;
         m_swipeRefresh.setRefreshing(refresh);
     }
     public boolean isRefreshing() {
@@ -165,6 +173,7 @@ public class ResultatFragment extends Fragment {
         private CardView m_card;
         private TextView m_nom;
         private RatingBar m_note;
+        private TextView m_status;
         private TextView m_distance;
 
         private Lieu m_lieu;
@@ -185,6 +194,7 @@ public class ResultatFragment extends Fragment {
             // Récupération des vues
             m_nom  = itemView.findViewById(R.id.nom);
             m_note = itemView.findViewById(R.id.note);
+            m_status = itemView.findViewById(R.id.lieu_status);
             m_distance = itemView.findViewById(R.id.distance);
         }
 
@@ -200,6 +210,14 @@ public class ResultatFragment extends Fragment {
                 m_note.setRating(lieu.note.floatValue());
             } else {
                 m_note.setVisibility(View.GONE);
+            }
+
+            Boolean ouvert = Lieu.estOuvert(m_lieuxModel.recupHoraires(lieu._id));
+            if (ouvert != null) {
+                m_status.setVisibility(View.VISIBLE);
+                m_status.setText(ouvert ? R.string.status_ouvert : R.string.status_ferme);
+            } else {
+                m_status.setVisibility(View.GONE);
             }
         }
 
@@ -248,6 +266,21 @@ public class ResultatFragment extends Fragment {
 
             // Maj UI
             result.dispatchUpdatesTo(this);
+
+            if (lieux.size() == 0) {
+                int nb = m_lieuxModel.nbLieuxFiltres();
+
+                // Message !
+                if (nb == 0) {
+                    m_message.setText(getString(m_neverRefreshed ? R.string.liste_rafraichir : R.string.liste_vide));
+                } else {
+                    m_message.setText(getResources().getQuantityString(R.plurals.liste_filtree, nb, nb));
+                }
+
+                m_message.setVisibility(View.VISIBLE);
+            } else {
+                m_message.setVisibility(View.GONE);
+            }
         }
 
         public void majDistances(Location location) {

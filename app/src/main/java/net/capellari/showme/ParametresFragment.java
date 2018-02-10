@@ -8,7 +8,6 @@ import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.provider.SearchRecentSuggestions;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
@@ -24,7 +23,7 @@ import android.text.style.ForegroundColorSpan;
 import android.util.Log;
 import android.view.View;
 
-import net.capellari.showme.data.HistoriqueProvider;
+import net.capellari.showme.data.LieuxSuggestions;
 import net.capellari.showme.data.RequeteManager;
 import net.capellari.showme.db.AppDatabase;
 
@@ -121,13 +120,7 @@ public class ParametresFragment extends PreferenceFragmentCompat {
                             @Override
                             public void onDialogClosed(boolean positiveResult) {
                                 if (positiveResult) {
-                                    // Nettoyage !
-                                    SearchRecentSuggestions suggestions = new SearchRecentSuggestions(
-                                            getContext(),
-                                            HistoriqueProvider.AUTORITE, HistoriqueProvider.MODE
-                                    );
-
-                                    suggestions.clearHistory();
+                                    LieuxSuggestions.viderHistorique(getContext());
                                 }
                             }
                         }
@@ -164,7 +157,10 @@ public class ParametresFragment extends PreferenceFragmentCompat {
         @Override
         protected Void doInBackground(Void... voids) {
             // Vidage ... :(
-            AppDatabase.getInstance(getContext()).getLieuDAO().viderLieux();
+            AppDatabase db = AppDatabase.getInstance(getContext());
+            db.getLieuDAO().viderLieux();
+            db.close();
+
             RequeteManager.getInstance(getContext()).getRequestQueue().getCache().clear();
 
             return null;
