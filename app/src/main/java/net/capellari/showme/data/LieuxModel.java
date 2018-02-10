@@ -41,9 +41,13 @@ public class LieuxModel extends AndroidViewModel {
     // Constantes
     private static final String TAG = "LieuxModel";
 
-    // Énumération
+    // Énumérations
     public enum LieuStatus {
-        TOUS, OUVERT, FERME }
+        TOUS, OUVERT, FERME
+    }
+    public enum Comparateur {
+        TOUT, MINIMUM, EGAL, MAXIMUM
+    }
 
     // Attributs
     // - données brutes
@@ -57,7 +61,10 @@ public class LieuxModel extends AndroidViewModel {
     private LongSparseArray<LiveData<List<Horaire>>> m_cacheHoraires = new LongSparseArray<>();
 
     // - filtres
+    private float m_note = 0;
+    private Comparateur m_noteComparateur = Comparateur.MINIMUM;
     private LieuStatus m_lieuStatus = LieuStatus.TOUS;
+
     private boolean m_filtreParams = true;
     private List<TypeParam> m_typesParam = new LinkedList<>();
 
@@ -228,6 +235,18 @@ public class LieuxModel extends AndroidViewModel {
         }
     }
 
+    public float getNote() {
+        return m_note;
+    }
+    public void setNote(float note) {
+        m_note = note;
+        filtrerLieux();
+    }
+    public void setNoteComparateur(Comparateur mode) {
+        m_noteComparateur = mode;
+        filtrerLieux();
+    }
+
     public boolean getFiltreType(long type) {
         return m_typesAffiches.get(type, false);
     }
@@ -300,6 +319,23 @@ public class LieuxModel extends AndroidViewModel {
         return true;
     }
 
+    private boolean appliquerComparateur(float val, float seuil, Comparateur comparateur) {
+        switch (comparateur) {
+            case TOUT:
+                return true;
+
+            case MINIMUM:
+                return val >= seuil;
+
+            case EGAL:
+                return val == seuil;
+
+            case MAXIMUM:
+                return val <= seuil;
+        }
+
+        return false;
+    }
     private boolean filtrerLieu(Lieu lieu) {
         // Déjà présent ?
         if (m_lieuxFiltres.contains(lieu)) {
@@ -326,6 +362,11 @@ public class LieuxModel extends AndroidViewModel {
             if (m_lieuStatus == LieuStatus.FERME) {
                 ok = !ok;
             }
+        }
+
+        // Test note
+        if (ok && (lieu.note != null)) {
+            ok = appliquerComparateur(lieu.note.floatValue(), m_note, m_noteComparateur);
         }
 
         // Ajout
