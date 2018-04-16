@@ -126,7 +126,8 @@ public class Lieu {
             Calendar fer = horaire.getFermeture(ajd);
 
             // Test
-            if (ouv.before(ajd) && ajd.before(fer)) {
+            boolean j1 = fer.before(ouv); // si la fermeture est "avant" l'ouverture, c'est que ça ferme le lendemain !
+            if (j1 ^ (ouv.before(ajd) && ajd.before(fer))) {
                 ouvert = true;
                 break;
             }

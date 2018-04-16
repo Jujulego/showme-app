@@ -313,16 +313,7 @@ public class ResultatFragment extends Fragment {
         // Méthodes
         @Override
         public int compare(Lieu l1, Lieu l2) {
-            float d1 = m_ref.distanceTo(l1.getLocation());
-            float d2 = m_ref.distanceTo(l2.getLocation());
-
-            if (d1 < d2) {
-                return -1;
-            } else if (d1 == d2) {
-                return 0;
-            } else {
-                return 1;
-            }
+            return (int) (m_ref.distanceTo(l1.getLocation()) - m_ref.distanceTo(l2.getLocation()));
         }
     }
 }

@@ -78,13 +78,7 @@ public class Horaire implements Comparable<Horaire> {
 
     @Override
     public int compareTo(@NonNull Horaire obj) {
-        if (ouverture < obj.ouverture) {
-            return -1;
-        } else if (ouverture > obj.ouverture) {
-            return 1;
-        } else {
-            return 0;
-        }
+        return ouverture - obj.ouverture;
     }
 
     public Calendar getJour(Calendar calendar) {
